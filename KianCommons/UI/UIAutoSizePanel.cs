@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace KianUtils.UI {
+namespace KianCommons.UI {
     public class UIAutoSizePanel :UIPanel{
         public override void Awake() {
             base.Awake();

@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Reflection.Emit;
 using HarmonyLib;
 
-namespace KianUtils.Patches {
+namespace KianCommons.Patches {
     using CSUtil.Commons;
     using System.Reflection;
     public static class TranspilerUtils {
         static bool VERBOSE => HelpersExtensions.VERBOSE;
 
         static void Log(object message) {
-            KianUtils.Log.Info("TRANSPILER " + message);
+            KianCommons.Log.Info("TRANSPILER " + message);
         }
 
         public static List<CodeInstruction> ToCodeList(IEnumerable<CodeInstruction> instructions) {

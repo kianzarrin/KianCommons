@@ -1,12 +1,12 @@
 using ColossalFramework;
 using ColossalFramework.Math;
-using KianUtils.Math;
+using KianCommons.Math;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace KianUtils {
+namespace KianCommons {
     public class NetServiceException : Exception {
         public NetServiceException(string m) : base(m) { }
         public NetServiceException() : base() { }

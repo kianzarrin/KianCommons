@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace KianUtils.Math {
+namespace KianCommons.Math {
     // start dir and end dir are pointing inwards.
     public struct CubicBezier3 {
         public ControlPoint3 Start;

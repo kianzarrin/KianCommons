@@ -1,4 +1,4 @@
-namespace KianUtils.Math {
+namespace KianCommons.Math {
     using UnityEngine;
 
     public struct ControlPoint3 {

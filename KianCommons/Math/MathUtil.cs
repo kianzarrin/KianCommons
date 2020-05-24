@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace KianUtils.Math {
+namespace KianCommons.Math {
     public static class MathUtil {
         public const float Epsilon = 0.001f;
         public static bool EqualAprox(float a, float b, float error = Epsilon) {

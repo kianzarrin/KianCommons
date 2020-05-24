@@ -1,4 +1,4 @@
-namespace KianUtils.UI {
+namespace KianCommons.UI {
     using System;
     using ColossalFramework.UI;
     using UnityEngine;

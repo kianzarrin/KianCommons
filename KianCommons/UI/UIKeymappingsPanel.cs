@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Text;
 using UnityEngine;
 
-namespace KianUtils.UI {
+namespace KianCommons.UI {
     // Copied from Fine Road Anarchy
     public class UIKeymappingsPanel : UICustomControl {
         // Token: 0x06000024 RID: 36 RVA: 0x00003718 File Offset: 0x00001918

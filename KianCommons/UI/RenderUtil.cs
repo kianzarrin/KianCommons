@@ -1,9 +1,9 @@
 using ColossalFramework;
 using ColossalFramework.Math;
-using KianUtils.Math;
+using KianCommons.Math;
 using UnityEngine;
 
-namespace KianUtils.UI {
+namespace KianCommons.UI {
     public static class RenderUtil {
         /// <summary>
         /// Draws a half sausage at segment end.

@@ -3,10 +3,10 @@ using UnityEngine;
 using System.IO;
 using System.Reflection;
 
-namespace KianUtils.UI {
+namespace KianCommons.UI {
     using static HelpersExtensions;
     public static class TextureUtil {
-        const string PATH = nameof(KianUtils)+ ".Resources.";
+        const string PATH = nameof(KianCommons)+ ".Resources.";
         public static UITextureAtlas CreateTextureAtlas(string textureFile, string atlasName, int spriteWidth, int spriteHeight, string[] spriteNames) {
             Texture2D texture2D = LoadTextureFromAssembly(
                 textureFile, spriteWidth * spriteNames.Length, spriteHeight);

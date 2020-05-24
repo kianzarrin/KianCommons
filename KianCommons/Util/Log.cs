@@ -1,4 +1,4 @@
-namespace KianUtils
+namespace KianCommons
 {
     using System.Diagnostics;
     using System.IO;

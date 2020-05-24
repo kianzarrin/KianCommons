@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace KianUtils {
+namespace KianCommons {
     using static NetUtil;
     using static GridUtil;
 
