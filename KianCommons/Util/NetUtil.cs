@@ -112,6 +112,8 @@ namespace KianCommons {
             return ret;
         }
 
+        #region Math
+
         /// Note: inverted flag or LHT does not influce the beizer.
         internal static Bezier3 CalculateSegmentBezier3(this ref NetSegment seg) {
             ref NetNode startNode = ref seg.m_startNode.ToNode();
@@ -130,6 +132,58 @@ namespace KianCommons {
             return bezier;
         }
 
+        /// <param name="startNode"> if true the bezier is inverted so that it will be facing start node</param>
+        /// Note: inverted flag or LHT does not influce the beizer.
+        internal static Bezier2 CalculateSegmentBezier2(ushort segmentId, bool startNode) {
+            Bezier3 bezier3 = segmentId.ToSegment().CalculateSegmentBezier3();
+            Bezier2 bezier2 = bezier3.ToCSBezier2();
+            if (!startNode)
+                return bezier2;
+            else
+                return bezier2.Invert();
+        }
+
+        /// <param name="endNodeID">bezier will be facing endNodeID</param>
+        internal static Bezier2 CalculateSegmentBezier2(ushort segmentId, ushort endNodeID) {
+            bool startNode = !IsStartNode(segmentId, endNodeID);
+            return CalculateSegmentBezier2(segmentId, startNode);
+        }
+
+        internal static float GetClosestT(this ref NetSegment segment, Vector3 position) {
+            Bezier3 bezier = segment.CalculateSegmentBezier3();
+            return bezier.GetClosestT(position);
+        }
+
+        /// <param name="bLeft2">if other segment is to the left side of segmentID.</param>
+        /// <param name="cornerPoint">is normalized</param>
+        /// <param name="cornerDir">is normalized</param>
+        internal static void CalculateCorner(
+            ushort segmentID, ushort nodeID, bool bLeft2,
+            out Vector2 cornerPoint, out Vector2 cornerDir) {
+            segmentID.ToSegment().CalculateCorner(
+                segmentID,
+                true,
+                IsStartNode(segmentID, nodeID),
+                !bLeft2, // leftSide = if this segment is to the left of the other segment = !bLeft2
+                out Vector3 cornerPos,
+                out Vector3 cornerDirection,
+                out bool smooth);
+            cornerPoint = cornerPos.ToCS2D();
+            cornerDir = cornerDirection.ToCS2D().normalized;
+        }
+
+        /// <param name="bLeft2">if other segment is to the left side of segmentID.</param>
+        internal static void CalculateOtherCorner(
+            ushort segmentID, ushort nodeID, bool bLeft2,
+            out Vector2 cornerPoint, out Vector2 cornerDir) {
+            ushort otherSegmentID = bLeft2 ?
+                segmentID.ToSegment().GetLeftSegment(nodeID) :
+                segmentID.ToSegment().GetRightSegment(nodeID);
+            CalculateCorner(otherSegmentID, nodeID, !bLeft2,
+                            out cornerPoint, out cornerDir);
+        }
+
+        #endregion math
 
         public static float SampleHeight(Vector2 point) {
             return terrainMan.SampleDetailHeightSmooth(point.ToCS3D(0));

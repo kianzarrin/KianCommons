@@ -1,9 +1,12 @@
-
+using System;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace KianCommons {
     using static NetUtil;
+    using static HelpersExtensions;
+    using static Math.VectorUtil;
     using static GridUtil;
 
     public struct GridVector {
@@ -34,7 +37,11 @@ namespace KianCommons {
             return new GridVector(a);
         }
 
-        public int Index => y* GRID_LENGTH + x;
+        public Vector2 GetGirdStartCorner() {
+            return new Vector2(ConvertStartPoint(x), ConvertStartPoint(y));
+        }
+
+        public int Index => y * GRID_LENGTH + x;
 
         public static GridVector up = new GridVector(0, 1);
         public static GridVector down = new GridVector(0, -1);
@@ -52,17 +59,19 @@ namespace KianCommons {
     }
 
     public static class GridUtil {
-        public const float GRID_SIZE= 64f;
+        public const float GRID_SIZE = 64f;
         public const int GRID_LENGTH = 270;
         public static int ConvertGrid(float a) =>
-            Mathf.Clamp((int)(a / GRID_SIZE + (GRID_LENGTH/2)), 0, GRID_LENGTH-1); //270/2=135 279-1=269
+            Mathf.Clamp((int)(a / GRID_SIZE + (GRID_LENGTH / 2)), 0, GRID_LENGTH - 1); //270/2=135 279-1=269
+        public static float ConvertStartPoint(int xy) =>
+            (xy - GRID_LENGTH / 2f) * GRID_SIZE;
 
         public static IEnumerable<ushort> ScanDirSegment(Vector2 start, Vector2 dir, float dist) {
             foreach (GridVector grid in ScaDir(start, dir, dist)) {
                 int index = grid.Index;
                 //Log.Debug($"grid={grid} dist={dist}");
                 ushort segmentID = 0;
-                if (index >= 0 && index < netMan.m_segmentGrid.Length) 
+                if (index >= 0 && index < netMan.m_segmentGrid.Length)
                     segmentID = netMan.m_segmentGrid[index];
                 while (segmentID != 0) {
                     yield return segmentID;
@@ -74,25 +83,25 @@ namespace KianCommons {
         public static IEnumerable<GridVector> ScaDir(Vector2 start, Vector2 dir, float dist) {
             GridVector startGrid = new GridVector(start);
             if (Mathf.Abs(dir.x) >= Mathf.Abs(dir.y)) {
-                foreach (GridVector point in scanX(startGrid, dir, dist)) 
+                foreach (GridVector point in scanX(startGrid, dir, dist))
                     yield return point;
             } else {
-                foreach (GridVector point in scanY(startGrid, dir, dist)) 
+                foreach (GridVector point in scanY(startGrid, dir, dist))
                     yield return point;
-            } 
-        } 
+            }
+        }
 
         static IEnumerable<GridVector> scanX(GridVector start, Vector2 dir, float dist) {
             float ratioYX = Mathf.Abs(dir.y / dir.x);
             dist /= GRID_SIZE;
-            int distx =  Mathf.CeilToInt(dist / Mathf.Sqrt(1 + ratioYX * ratioYX)); // dist = sqrt(distx^2 + (distx*ratioYX)^2)
+            int distx = Mathf.CeilToInt(dist / Mathf.Sqrt(1 + ratioYX * ratioYX)); // dist = sqrt(distx^2 + (distx*ratioYX)^2)
             int signx = (int)Mathf.Sign(dir.x);
             int signy = (int)Mathf.Sign(dir.y);
 
             for (int x = 0; x <= distx; ++x) {
                 int y = Mathf.RoundToInt(x * ratioYX);
 
-                GridVector grid = new GridVector(start.x + x*signx, start.y + y*signy);
+                GridVector grid = new GridVector(start.x + x * signx, start.y + y * signy);
                 yield return grid;
                 yield return grid + GridVector.up;
                 yield return grid + GridVector.down;
