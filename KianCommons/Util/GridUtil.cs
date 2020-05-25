@@ -42,6 +42,7 @@ namespace KianCommons {
         }
 
         public int Index => y * GRID_LENGTH + x;
+        public int MangitudeSquare => x * x + y * y;
 
         public static GridVector up = new GridVector(0, 1);
         public static GridVector down = new GridVector(0, -1);
@@ -52,6 +53,9 @@ namespace KianCommons {
         public static GridVector operator +(GridVector lhs, GridVector rhs) =>
             new GridVector(lhs.x + rhs.x, lhs.y + rhs.y);
 
+        public static GridVector operator -(GridVector lhs, GridVector rhs) =>
+            new GridVector(lhs.x - rhs.x, lhs.y - rhs.y);
+
         public override string ToString() {
             return $"GridVector<{Index}>({x}, {y})";
         }
@@ -59,13 +63,15 @@ namespace KianCommons {
     }
 
     public static class GridUtil {
-        public const float GRID_SIZE = 64f;
-        public const int GRID_LENGTH = 270;
+        public const float GRID_SIZE = NetManager.NODEGRID_CELL_SIZE;
+        public const int GRID_LENGTH = NetManager.NODEGRID_RESOLUTION;
         public static int ConvertGrid(float a) =>
             Mathf.Clamp((int)(a / GRID_SIZE + (GRID_LENGTH / 2)), 0, GRID_LENGTH - 1); //270/2=135 279-1=269
         public static float ConvertStartPoint(int xy) =>
             (xy - GRID_LENGTH / 2f) * GRID_SIZE;
 
+
+        #region ScanDir
         public static IEnumerable<ushort> ScanDirSegment(Vector2 start, Vector2 dir, float dist) {
             foreach (GridVector grid in ScaDir(start, dir, dist)) {
                 int index = grid.Index;
@@ -124,5 +130,32 @@ namespace KianCommons {
                 yield return grid + GridVector.right;
             }
         }
+        #endregion
+
+
+        #region ScanArea
+        public static IEnumerable<ushort>ScanSegmentsInArea(Vector2 point) {
+            GridVector start = new GridVector(point);
+            foreach (GridVector grid in ScanArea(start)) {
+                int index = grid.Index;
+                //Log.Debug($"grid={grid} dist={dist}");
+                ushort segmentID = 0;
+                if (index >= 0 && index < netMan.m_segmentGrid.Length)
+                    segmentID = netMan.m_segmentGrid[index];
+                while (segmentID != 0) {
+                    yield return segmentID;
+                    segmentID = segmentID.ToSegment().m_nextGridSegment;
+                }
+            }
+        }
+
+        static IEnumerable<GridVector> ScanArea(GridVector start) {
+            for (int i = -1; i <= 1; ++i) {
+                for (int j = -1; j <= 1; ++j) {
+                    yield return new GridVector(i, j);
+                }
+            }
+        }
+        #endregion
     }
 }

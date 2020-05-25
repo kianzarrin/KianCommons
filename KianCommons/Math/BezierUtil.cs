@@ -168,7 +168,7 @@ namespace KianCommons.Math {
                 bezier.d + sideDistance * normalEnd, -tangentEnd);
         }
 
-        public static Bezier3 TOCSBezier3(this Bezier2 bezier) {
+        public static Bezier3 ToCSBezier3(this Bezier2 bezier) {
             return new Bezier3 {
                 a = NetUtil.Get3DPos(bezier.a),
                 b = NetUtil.Get3DPos(bezier.b),
@@ -176,5 +176,27 @@ namespace KianCommons.Math {
                 d = NetUtil.Get3DPos(bezier.d),
             };
         }
+
+        public static Bezier3 ToCSBezier3(this Bezier2 bezier, float h) {
+            return new Bezier3 {
+                a = bezier.a.ToCS3D(h),
+                b = bezier.b.ToCS3D(h),
+                c = bezier.c.ToCS3D(h),
+                d = bezier.d.ToCS3D(h),
+            };
+        }
+
+        public static Vector3 Mirror(Vector3 pos, Bezier3 bezier) {
+            float t = bezier.GetClosestT(pos);
+            var pos0 = bezier.Position(t);
+            var diff = pos0 - pos;
+            var pos2 = pos0 + diff;
+            return pos2;
+        }
+
+        public static Vector2 Mirror(Vector2 point, Bezier2 bezier) {
+            return Mirror(point.ToCS3D(0), bezier.ToCSBezier3(0)).ToCS2D();
+        }
+
     }
 }

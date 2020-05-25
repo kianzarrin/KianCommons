@@ -101,7 +101,6 @@ namespace KianCommons {
             return startNode ? segment.m_startDirection : segment.m_endDirection;
         }
 
-
         internal static float MaxNodeHW(ushort nodeId) {
             float ret = 0;
             foreach (var segmentId in GetSegmentsCoroutine(nodeId)) {
