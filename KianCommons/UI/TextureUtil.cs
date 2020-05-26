@@ -6,7 +6,7 @@ using System.Reflection;
 namespace KianCommons.UI {
     using static HelpersExtensions;
     public static class TextureUtil {
-        const string PATH = nameof(KianCommons)+ ".Resources.";
+        static string PATH => typeof(TextureUtil).Assembly.GetName().Name + ".Resources.";
         public static UITextureAtlas CreateTextureAtlas(string textureFile, string atlasName, int spriteWidth, int spriteHeight, string[] spriteNames) {
             Texture2D texture2D = LoadTextureFromAssembly(
                 textureFile, spriteWidth * spriteNames.Length, spriteHeight);
