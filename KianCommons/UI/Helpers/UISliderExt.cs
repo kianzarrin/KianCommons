@@ -3,11 +3,8 @@ namespace KianCommons.UI {
     using UnityEngine;
 
     public class UISliderExt : UISlider {
-        public static UISliderExt Instance { get; private set; }
-
         public override void Awake() {
             base.Awake();
-            Instance = this;
         }
 
         UISlicedSprite slicedSprite_;
@@ -37,21 +34,14 @@ namespace KianCommons.UI {
             UISprite thumbSprite = AddUIComponent<UISprite>();
             thumbSprite.spriteName = "ScrollbarThumb";
             thumbSprite.height = 20f;
-            thumbSprite.width = 10f;
+            thumbSprite.width = 7f;
             thumbObject = thumbSprite;
             thumbOffset = new Vector2(padding, 0);
-
-            value = 0;
 
             eventSizeChanged += (component, value) => {
                 // TODO [clean up] is this necessary? move it to override.
                 slicedSprite_.width = slicedSprite_.parent.width - 2 * padding;
             };
-        }
-
-        protected override void OnValueChanged() {
-            tooltip = value.ToString();
-            RefreshTooltip();
         }
 
         //public virtual bool ShouldShow{get;}

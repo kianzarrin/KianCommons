@@ -4,11 +4,8 @@ namespace KianCommons.UI {
     using UnityEngine;
 
     public class UICheckBoxExt : UICheckBox {
-        public static UICheckBoxExt Instance { get; private set; }
-
         public override void Awake() {
             base.Awake();
-            Instance = this;
             name = nameof(UICheckBoxExt);
             height = 30f;
             clipChildren = true;
