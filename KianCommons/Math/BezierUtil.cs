@@ -1,4 +1,3 @@
-
 namespace KianCommons.Math {
     using ColossalFramework.Math;
     using UnityEngine;

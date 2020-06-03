@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 
 namespace KianCommons.Math {
+    [Obsolete("Use Vector2D or Vector3D instead")]
     public static class VectorUtil {
         /// <summary>
         /// return value is between 0 to pi. v1 and v2 are interchangable.
@@ -69,9 +70,6 @@ namespace KianCommons.Math {
         public static Vector2 Extend(this Vector2 v, float magnitude) => NewMagnitude(v, magnitude + v.magnitude);
         public static Vector2 NewMagnitude(this Vector2 v, float magnitude) => magnitude * v.normalized;
 
-
-        /// returns rotated vector counter clockwise
-        ///
         public static Vector3 ToCS3D(this Vector2 v2, float h = 0) => new Vector3(v2.x, h, v2.y);
         public static Vector2 ToCS2D(this Vector3 v3) => new Vector2(v3.x, v3.z);
         public static float Height(this Vector3 v3) => v3.y;
