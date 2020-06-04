@@ -65,7 +65,7 @@ namespace KianCommons.Math {
         public static Vector2 Rotate90CCW(this Vector2 v) => new Vector2(-v.y, +v.x);
         public static Vector2 PerpendicularCCW(this Vector2 v) => v.normalized.Rotate90CCW();
         public static Vector2 Rotate90CW(this Vector2 v) => new Vector2(+v.y, -v.x);
-        public static Vector2 PerpendicularCC(this Vector2 v) => v.normalized.Rotate90CW();
+        public static Vector2 PerpendicularCW(this Vector2 v) => v.normalized.Rotate90CW();
 
         public static Vector2 Extend(this Vector2 v, float magnitude) => NewMagnitude(v, magnitude + v.magnitude);
         public static Vector2 NewMagnitude(this Vector2 v, float magnitude) => magnitude * v.normalized;

@@ -18,7 +18,7 @@ namespace KianCommons.Math {
         public Vector2D(float x, float z) => _vector2 = new Vector2(x, z);
         public Vector2D(Vector2 v) => _vector2 = v;
         public void Set(float newX, float newY) => _vector2.Set(newX, newY);
-        public Vector3 ToVector3D(float h = 0) => new Vector3(this, h);
+        public Vector3D ToVector3D(float h = 0) => new Vector3D(this, h);
         public static implicit operator Vector2D(Vector2 v) => new Vector2D(v);
         public static implicit operator Vector2(Vector2D v) => v._vector2;
 
