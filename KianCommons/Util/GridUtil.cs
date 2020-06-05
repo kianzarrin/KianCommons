@@ -79,6 +79,7 @@ namespace KianCommons {
                 ushort segmentID = 0;
                 if (index >= 0 && index < netMan.m_segmentGrid.Length)
                     segmentID = netMan.m_segmentGrid[index];
+                else Log.Debug($"ScanDirSegment: index:{index} was ignored because is out of range.");
                 while (segmentID != 0) {
                     yield return segmentID;
                     segmentID = segmentID.ToSegment().m_nextGridSegment;

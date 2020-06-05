@@ -66,6 +66,8 @@ namespace KianCommons.Math {
                 float len = (bezier.d - bezier.Position(t - step)).magnitude;
                 ret += len;
             }
+            if (EqualAprox(ret, 0))
+                return 0f;
             return ret;
         }
 
