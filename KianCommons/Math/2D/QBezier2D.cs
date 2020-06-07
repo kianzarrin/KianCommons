@@ -39,7 +39,7 @@ namespace KianCommons.Math {
             set => MiddlePoint = value;
         }
 
-        public bool IsLinear() => Vector2D.EqualApprox(P2 - P1, P1 - P0);
+        public bool IsStraight() => Vector2D.EqualApprox(P2 - P1, P1 - P0);
 
         public override string ToString() => $"Bezier2D({P0} {P1} {P2})";
 
@@ -50,7 +50,7 @@ namespace KianCommons.Math {
             return t1 * (t1 * P0 + t * P1) + t * (t1 * P1 + t * P2);
         }
 
-        public Vector2D PointLinear(float t) => P0 + t * P2;
+        public Vector2D PointStraight(float t) => P0 + t * P2;
 
 
         private Vector2D _Tangent(float t) => (2 * (1 - t) * (P1 - P0) + 2 * t * (P2 - P1));
@@ -82,7 +82,7 @@ namespace KianCommons.Math {
         #endregion
 
         public float ArcLength(float step = 0.1f) {
-            if (IsLinear()) {
+            if (IsStraight()) {
                 return (P2 - P0).magnitude;
             }
             float ret = 0;
@@ -108,7 +108,7 @@ namespace KianCommons.Math {
         /// </summary>
         /// <param name="distance">distance to travel on the arc in meteres</param>
         public float Travel(float distance, float startT = 0, float step = 1/16f) {
-            if (IsLinear()) {
+            if (IsStraight()) {
                 return distance / (P2 - P0).magnitude;
             }
 
@@ -132,7 +132,7 @@ namespace KianCommons.Math {
         }
 
         public ControlPoint2D Travel2(float distance) {
-            if (IsLinear()) {
+            if (IsStraight()) {
                 var point = Start.Point + distance * Start.Dir;
                 return new ControlPoint2D(point, Start.Dir);
             }

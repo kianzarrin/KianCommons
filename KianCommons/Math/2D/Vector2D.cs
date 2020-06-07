@@ -22,8 +22,6 @@ namespace KianCommons.Math {
             }
         }
 
-
-
         public static Vector2D down => Vector2.down;
         public static Vector2D up => Vector2.up;
         public static Vector2D one => Vector2.one;

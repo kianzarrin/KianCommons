@@ -9,6 +9,9 @@ namespace KianCommons.Math {
             Dir = dir.normalized;
         }
 
+        /// <summary>
+        /// returns the control point with -dir.
+        /// </summary>
         public ControlPoint2D Reverse => new ControlPoint2D(Point, -Dir);
 
 

@@ -72,6 +72,9 @@ namespace KianCommons.Math {
 
         public static Vector3 ToCS3D(this Vector2 v2, float h = 0) => new Vector3(v2.x, h, v2.y);
         public static Vector2 ToCS2D(this Vector3 v3) => new Vector2(v3.x, v3.z);
+        public static Vector2 To2D(this Vector3 v3) => new Vector2D(v3.x, v3.z);
+
+
         public static float Height(this Vector3 v3) => v3.y;
     }
 }

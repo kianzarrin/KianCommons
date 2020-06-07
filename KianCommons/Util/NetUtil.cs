@@ -131,34 +131,44 @@ namespace KianCommons {
             return bezier;
         }
 
+        internal static CubicBezier2D CalculateSegmentCubicBezier2D(ushort segmentId, bool startNode=false) =>
+            segmentId.ToSegment().CalculateSegmentCubicBezier2D(startNode);
+
         /// <param name="startNode"> if true the bezier is inverted so that it will be facing start node</param>
         /// Note: inverted flag or LHT does not influce the beizer.
-        internal static Bezier2 CalculateSegmentBezier2(ushort segmentId, bool startNode) {
-            Bezier3 bezier3 = segmentId.ToSegment().CalculateSegmentBezier3();
-            Bezier2 bezier2 = bezier3.ToCSBezier2();
-            if (!startNode)
-                return bezier2;
-            else
-                return bezier2.Invert();
+        internal static CubicBezier2D CalculateSegmentCubicBezier2D(this ref NetSegment segment, bool startNode=false) {
+            var startPos = segment.m_startNode.ToNode().m_position;
+            var endPos = segment.m_endNode.ToNode().m_position;
+            ControlPoint2D start = new ControlPoint2D(startPos.To2D(), segment.m_startDirection.To2D());
+            ControlPoint2D end = new ControlPoint2D(endPos.To2D(), segment.m_endDirection.To2D());
+
+            var bezier = new CubicBezier2D {
+                Start = start,
+                End = end,
+            };
+
+
+            if (startNode)
+                bezier.Invert();
+
+            return bezier;
         }
 
         /// <param name="endNodeID">bezier will be facing endNodeID</param>
-        internal static Bezier2 CalculateSegmentBezier2(ushort segmentId, ushort endNodeID) {
+        internal static CubicBezier2D CalculateSegmentBezier2(ushort segmentId, ushort endNodeID) {
             bool startNode = !IsStartNode(segmentId, endNodeID);
-            return CalculateSegmentBezier2(segmentId, startNode);
+            return segmentId.ToSegment().CalculateSegmentCubicBezier2D(startNode);
         }
 
-        internal static float GetClosestT(this ref NetSegment segment, Vector3 position) {
-            Bezier3 bezier = segment.CalculateSegmentBezier3();
+        internal static float GetClosestT(this ref NetSegment segment, Vector2D position) {
+            var bezier = segment.CalculateSegmentCubicBezier2D();
             return bezier.GetClosestT(position);
         }
 
         /// <param name="bLeft2">if other segment is to the left side of segmentID.</param>
         /// <param name="cornerPoint">is normalized</param>
         /// <param name="cornerDir">is normalized</param>
-        internal static void CalculateCorner(
-            ushort segmentID, ushort nodeID, bool bLeft2,
-            out Vector2 cornerPoint, out Vector2 cornerDir) {
+        internal static ControlPoint2D CalculateCorner(ushort segmentID, ushort nodeID, bool bLeft2) {
             segmentID.ToSegment().CalculateCorner(
                 segmentID,
                 true,
@@ -167,19 +177,15 @@ namespace KianCommons {
                 out Vector3 cornerPos,
                 out Vector3 cornerDirection,
                 out bool smooth);
-            cornerPoint = cornerPos.ToCS2D();
-            cornerDir = cornerDirection.ToCS2D().normalized;
+            return new ControlPoint2D(cornerPos.To2D(), cornerDirection.To2D());
         }
 
         /// <param name="bLeft2">if other segment is to the left side of segmentID.</param>
-        internal static void CalculateOtherCorner(
-            ushort segmentID, ushort nodeID, bool bLeft2,
-            out Vector2 cornerPoint, out Vector2 cornerDir) {
+        internal static ControlPoint2D CalculateOtherCorner(ushort segmentID, ushort nodeID, bool bLeft2) {
             ushort otherSegmentID = bLeft2 ?
                 segmentID.ToSegment().GetLeftSegment(nodeID) :
                 segmentID.ToSegment().GetRightSegment(nodeID);
-            CalculateCorner(otherSegmentID, nodeID, !bLeft2,
-                            out cornerPoint, out cornerDir);
+            return CalculateCorner(otherSegmentID, nodeID, !bLeft2);
         }
 
         #endregion math
