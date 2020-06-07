@@ -140,7 +140,10 @@ namespace KianCommons {
             Assert(obj != null, " unexpected null " + m);
 
         internal static void AssertEqual(int a, int b, string m = "") =>
-            Assert(a==b, "expected {a} == {b} | " + m);
+            Assert(a==b, $"expected {a} == {b} : " + m);
+
+        internal static void AssertEqual(float a, float b, string m = "", float epsilon = Math.MathUtil.Epsilon) =>
+            Assert(Math.MathUtil.EqualAprox(a,b,epsilon), $"expected {a} == {b} : " + m);
 
         internal static void Assert(bool con, string m = "") {
             if (!con) {

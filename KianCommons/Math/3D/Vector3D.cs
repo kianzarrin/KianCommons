@@ -1,5 +1,4 @@
 using System;
-using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace KianCommons.Math {
@@ -104,6 +103,8 @@ namespace KianCommons.Math {
         }
 
         public Vector3D normalized => Normalize(this);
+        public bool IsNormalized => MathUtil.EqualAprox(magnitude, 1);
+
 
         public static float Dot(Vector3D lhs, Vector3D rhs) {
             return lhs.x * rhs.x + lhs.h * rhs.h + lhs.z * rhs.z;
@@ -125,7 +126,7 @@ namespace KianCommons.Math {
         }
 
         public static float Distance(Vector3D a, Vector3D b) {
-            Vector3D vector = new Vector3D(a.x - b.x, a.h - b.h, a.z - b.z);
+            Vector3D vector = a - b;
             return Mathf.Sqrt(vector.x * vector.x + vector.h * vector.h + vector.z * vector.z);
         }
 
@@ -143,11 +144,11 @@ namespace KianCommons.Math {
         public float sqrMagnitude => x * x + z * z + h * h;
 
         public static Vector3D Min(Vector3D lhs, Vector3D rhs) {
-            return new Vector3D(Mathf.Min(lhs.x, rhs.x), Mathf.Min(lhs.h, rhs.h), Mathf.Min(lhs.z, rhs.z));
+            return new Vector3D(x:Mathf.Min(lhs.x, rhs.x), h:Mathf.Min(lhs.h, rhs.h), z:Mathf.Min(lhs.z, rhs.z));
         }
 
         public static Vector3D Max(Vector3D lhs, Vector3D rhs) {
-            return new Vector3D(Mathf.Max(lhs.x, rhs.x), Mathf.Max(lhs.h, rhs.h), Mathf.Max(lhs.z, rhs.z));
+            return new Vector3D(x:Mathf.Max(lhs.x, rhs.x), h:Mathf.Max(lhs.h, rhs.h), z:Mathf.Max(lhs.z, rhs.z));
         }
 
         public static Vector3D zero => Vector3.zero;
@@ -160,12 +161,12 @@ namespace KianCommons.Math {
         public static Vector3D left => Vector3.left; // x:-1,y:0,h:0
         public static Vector3D right => Vector3.right;
 
-        public static Vector3D operator +(Vector3D a, Vector3D b) => new Vector3D(a.x + b.x, a.h + b.h, a.z + b.z);
-        public static Vector3D operator -(Vector3D a, Vector3D b) => new Vector3D(a.x - b.x, a.h - b.h, a.z - b.z);
-        public static Vector3D operator -(Vector3D a) => new Vector3D(-a.x, -a.h, -a.z);
-        public static Vector3D operator *(Vector3D a, float d) => new Vector3D(a.x * d, a.h * d, a.z * d);
-        public static Vector3D operator *(float d, Vector3D a) => new Vector3D(a.x * d, a.h * d, a.z * d);
-        public static Vector3D operator /(Vector3D a, float d) => new Vector3D(a.x / d, a.h / d, a.z / d);
+        public static Vector3D operator +(Vector3D a, Vector3D b) => new Vector3D(x:a.x + b.x, h:a.h + b.h, z:a.z + b.z);
+        public static Vector3D operator -(Vector3D a, Vector3D b) => new Vector3D(x: a.x - b.x, h: a.h - b.h, z: a.z - b.z);
+        public static Vector3D operator -(Vector3D a) => new Vector3D(x:-a.x,h: -a.h,z: -a.z);
+        public static Vector3D operator *(Vector3D a, float d) => new Vector3D(x: a.x * d, h: a.h * d, z: a.z * d);
+        public static Vector3D operator *(float d, Vector3D a) => new Vector3D(x: a.x * d, h: a.h * d, z: a.z * d);
+        public static Vector3D operator /(Vector3D a, float d) => new Vector3D(x: a.x / d, h: a.h / d, z: a.z / d);
         public static bool operator ==(Vector3D lhs, Vector3D rhs) => (lhs - rhs).magnitude < 9.99999944E-11f;
         public static bool operator !=(Vector3D lhs, Vector3D rhs) => !(lhs == rhs);
 

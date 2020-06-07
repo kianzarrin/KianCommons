@@ -1,5 +1,6 @@
 namespace KianCommons.Math {
     using ColossalFramework.Math;
+    using System;
     using UnityEngine;
     using static MathUtil;
 
@@ -71,24 +72,25 @@ namespace KianCommons.Math {
             return ret;
         }
 
-        public static float ArcLength(this Bezier2 bezier, Vector2 point, float step = 0.1f) {
-            if (bezier.IsStraight()) {
-                return (point - bezier.a).magnitude;
-            }
-            float ret = 0;
-            float t;
-            for (t = step; t <= 1f + Epsilon; t += step) {
-                var p0 = bezier.Position(t - step);
-                float len = (bezier.Position(t) - p0).magnitude;
-                float len2 = (point - p0).magnitude;
-                if (len2 <= len + Epsilon) {
-                    ret += len2;
-                    return ret;
-                }
-                ret += len;
-            }
-            return ret;
-        }
+        //[Obsolete("This is inaccurate")]
+        //public static float ArcLength(this Bezier2 bezier, Vector2 point, float step = 0.1f) {
+        //    if (bezier.IsStraight()) {
+        //        return (point - bezier.a).magnitude;
+        //    }
+        //    float ret = 0;
+        //    float t;
+        //    for (t = step; t <= 1f + Epsilon; t += step) {
+        //        var p0 = bezier.Position(t - step);
+        //        float len = (bezier.Position(t) - p0).magnitude;
+        //        float len2 = (point - p0).magnitude;
+        //        if (len2 <= len + Epsilon) {
+        //            ret += len2;
+        //            return ret;
+        //        }
+        //        ret += len;
+        //    }
+        //    return ret;
+        //}
 
         public static Bezier2 ToCSBezier2(this Bezier3 bezier) {
             return new Bezier2 {
