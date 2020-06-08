@@ -23,54 +23,21 @@ namespace KianCommons.Math {
         //    return ret;
         //}
 
-        ///// <summary>
-        ///// Travels some distance on beizer and calculates the point and tangent at that distance.
-        ///// </summary>
-        ///// <param name="distance">distance to travel on the arc in meteres</param>
-        ///// <param name="tangent">normalized tangent on the curve toward the end of the beizer.</param>
-        ///// <returns>point on the curve at the given distance.</returns>
-        //public static Vector2 Travel2(this Bezier2 beizer, float distance, out Vector2 tangent) {
-        //    if (beizer.IsStraight()) {
-        //        tangent = (beizer.d - beizer.a).normalized;
-        //        return beizer.TravelStraight(distance);
-        //    }
-        //    float t = beizer.Travel(0, distance);
-        //    tangent = beizer.Tangent(t).normalized;
-        //    return beizer.Position(t);
-        //}
-
-        //static Vector2 TravelStraight(this Bezier2 beizer, float length) {
-        //    float r = length / beizer.ArcLength();
-        //    return beizer.a + r * (beizer.d - beizer.a);
-        //}
-
-
-        //public static bool IsStraight(this Bezier2 beizer) {
-        //    return false;
-        //    var startDir = (beizer.a - beizer.b).normalized;
-        //    var endDir = (beizer.c - beizer.d).normalized; // c actually gets past d.
-        //    return EqualAprox((startDir + endDir).sqrMagnitude, 0f, Epsilon * Epsilon);
-        //    //.LogRet($"IsStraight bezier={beizer.STR()} startDir:{startDir} endDir:{endDir} sum={(startDir + endDir)} ret:");
-        //}
-
-        //public static float ArcLength(this Bezier2 bezier, float step = 0.1f) {
-        //    if (bezier.IsStraight()) {
-        //        return (bezier.d - bezier.a).magnitude;
-        //    }
-        //    float ret = 0;
-        //    float t;
-        //    for (t = step; t < 1f; t += step) {
-        //        float len = (bezier.Position(t) - bezier.Position(t - step)).magnitude;
-        //        ret += len;
-        //    }
-        //    {
-        //        float len = (bezier.d - bezier.Position(t - step)).magnitude;
-        //        ret += len;
-        //    }
-        //    if (EqualAprox(ret, 0))
-        //        return 0f;
-        //    return ret;
-        //}
+        public static float ArcLength(this Bezier2 bezier, float step = 1f/16) {
+            float ret = 0;
+            float t;
+            for (t = step; t < 1f; t += step) {
+                float len = (bezier.Position(t) - bezier.Position(t - step)).magnitude;
+                ret += len;
+            }
+            {
+                float len = (bezier.d - bezier.Position(t - step)).magnitude;
+                ret += len;
+            }
+            if (EqualAprox(ret, 0))
+                return 0f;
+            return ret;
+        }
 
         ///// <summary>
         ///// results are normalized.
