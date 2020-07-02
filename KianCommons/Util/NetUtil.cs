@@ -25,6 +25,23 @@ namespace KianCommons {
         internal static ref NetNode ToNode(this ushort id) => ref netMan.m_nodes.m_buffer[id];
         internal static ref NetSegment ToSegment(this ushort id) => ref netMan.m_segments.m_buffer[id];
         internal static ref NetLane ToLane(this uint id) => ref netMan.m_lanes.m_buffer[id];
+        internal static NetLane.Flags Flags(this ref NetLane lane) => (NetLane.Flags)lane.m_flags;
+
+        /// <summary>
+        /// returns lane data of the given lane ID.
+        /// throws exception if unsucessful.
+        /// </summary>
+        internal static LaneData GetLaneData(uint laneId) {
+            HelpersExtensions.Assert(laneId != 0, "laneId!=0");
+            var flags = laneId.ToLane().Flags();
+            bool valid = (flags & NetLane.Flags.Created | NetLane.Flags.Deleted) != NetLane.Flags.Created;
+            HelpersExtensions.Assert(valid, "valid");
+            foreach (var laneData in IterateLanes(laneId.ToLane().m_segment))
+                if (laneData.LaneID == laneId)
+                    return laneData;
+            throw new Exception("Unreachable code");
+        }
+
         public static bool IsCSUR(NetInfo info) {
             if (info == null ||
                 (info.m_netAI.GetType() != typeof(RoadAI) &&
@@ -462,6 +479,8 @@ namespace KianCommons {
         public ushort SegmentID => LaneID.ToLane().m_segment;
         public ref NetSegment Segment => ref SegmentID.ToSegment();
         public ushort NodeID => StartNode ? Segment.m_startNode : Segment.m_endNode;
+        public NetLane.Flags Flags => LaneID.ToLane().Flags();
+        public Bezier3 Bezier => LaneID.ToLane().m_bezier;
         public override string ToString() => $"LaneData:[segment:{SegmentID} node:{NodeID} lane ID:{LaneID} {LaneInfo.m_laneType} {LaneInfo.m_vehicleType}]";
     }
 }

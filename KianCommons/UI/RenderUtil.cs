@@ -2,6 +2,7 @@ using ColossalFramework;
 using ColossalFramework.Math;
 using KianCommons.Math;
 using UnityEngine;
+using UnityEngine.Experimental.Director;
 
 namespace KianCommons.UI {
     public static class RenderUtil {
@@ -125,8 +126,15 @@ namespace KianCommons.UI {
                 out bezier.c);
 
             bezier.Render(cameraInfo, color, hw, alphaBlend);
+        }
 
-
+        public static void RenderLaneOverlay(
+            RenderManager.CameraInfo cameraInfo,
+            LaneData laneData,
+            Color color,
+            bool alphaBlend = false) {
+            float hw = laneData.LaneInfo.m_width * 0.5f;
+            laneData.Bezier.Render(cameraInfo, color, hw, alphaBlend);
         }
 
         public static void DrawNodeCircle(RenderManager.CameraInfo cameraInfo,
