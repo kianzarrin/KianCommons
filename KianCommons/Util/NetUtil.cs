@@ -394,14 +394,10 @@ namespace KianCommons {
             Log.LogToFileSimple(file: "NodeControler.Strage.log", message: message);
         }
 
-        public static IEnumerable<LaneData> IterateLanes(
-         ushort segmentId,
-         bool? startNode = null,
-         NetInfo.LaneType laneType = NetInfo.LaneType.All,
-         VehicleInfo.VehicleType vehicleType = VehicleInfo.VehicleType.All) {
+        public static IEnumerable<LaneData> IterateLanes(ushort segmentId) {
             int idx = 0;
             if (segmentId.ToSegment().Info == null) {
-                Log.Error("null info: potentially cuased by missing assets");
+                Log.Error("null info: potentially caused by missing assets");
                 yield break;
             }
             int n = segmentId.ToSegment().Info.m_lanes.Length;
@@ -417,13 +413,23 @@ namespace KianCommons {
                     LaneInfo = laneInfo,
                     StartNode = forward ^ !inverted,
                 };
-                if (startNode != null && startNode != ret.StartNode)
-                    continue;
-                if (!ret.LaneInfo.m_laneType.IsFlagSet(laneType))
-                    continue;
-                if (!ret.LaneInfo.m_vehicleType.IsFlagSet(vehicleType))
-                    continue;
                 yield return ret;
+            }
+        }
+
+        public static IEnumerable<LaneData> IterateLanes(
+         ushort segmentId,
+         bool? startNode = null,
+         NetInfo.LaneType laneType = NetInfo.LaneType.All,
+         VehicleInfo.VehicleType vehicleType = VehicleInfo.VehicleType.All) {
+            foreach (LaneData laneData in IterateLanes(segmentId)) {
+                if (startNode != null && startNode != laneData.StartNode)
+                    continue;
+                if (!laneData.LaneInfo.m_laneType.IsFlagSet(laneType))
+                    continue;
+                if (!laneData.LaneInfo.m_vehicleType.IsFlagSet(vehicleType))
+                    continue;
+                yield return laneData;
             }
         }
 
