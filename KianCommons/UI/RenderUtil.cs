@@ -137,6 +137,30 @@ namespace KianCommons.UI {
             laneData.Bezier.Render(cameraInfo, color, hw, alphaBlend);
         }
 
+        public static void RenderInstanceOverlay(
+            RenderManager.CameraInfo cameraInfo,
+            InstanceID instanceID,
+            Color color,
+            bool alphaBlend = false) {
+            if (instanceID.IsEmpty)
+                return;
+            switch (instanceID.Type) {
+                case InstanceType.NetLane:
+                    LaneData laneData = NetUtil.GetLaneData(instanceID.NetLane);
+                    RenderUtil.RenderLaneOverlay(cameraInfo, laneData, color, alphaBlend);
+                    break;
+                case InstanceType.NetSegment:
+                    RenderUtil.RenderSegmnetOverlay(cameraInfo, instanceID.NetSegment, color, alphaBlend);
+                    break;
+                case InstanceType.NetNode:
+                    RenderUtil.DrawNodeCircle(cameraInfo, color, instanceID.NetNode, alphaBlend);
+                    break;
+                default:
+                    Log.Error("Unexpected InstanceID.Type: " + instanceID.Type);
+                    return;
+            }
+        }
+
         public static void DrawNodeCircle(RenderManager.CameraInfo cameraInfo,
                            Color color,
                            ushort nodeId,

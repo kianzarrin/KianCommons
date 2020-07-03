@@ -36,7 +36,7 @@ namespace KianCommons {
             var flags = laneId.ToLane().Flags();
             bool valid = (flags & NetLane.Flags.Created | NetLane.Flags.Deleted) != NetLane.Flags.Created;
             HelpersExtensions.Assert(valid, "valid");
-            foreach (var laneData in IterateLanes(laneId.ToLane().m_segment))
+            foreach (var laneData in IterateSegmentLanes(laneId.ToLane().m_segment))
                 if (laneData.LaneID == laneId)
                     return laneData;
             throw new Exception("Unreachable code");
@@ -394,7 +394,20 @@ namespace KianCommons {
             Log.LogToFileSimple(file: "NodeControler.Strage.log", message: message);
         }
 
-        public static IEnumerable<LaneData> IterateLanes(ushort segmentId) {
+        public static IEnumerable<uint> IterateNodeLanes(ushort nodeId) {
+            int idx = 0;
+            if (nodeId.ToNode().Info == null) {
+                Log.Error("null info: potentially caused by missing assets");
+                yield break;
+            }
+            for (uint laneID = nodeId.ToNode().m_lane;
+                laneID != 0;
+                laneID = laneID.ToLane().m_nextLane, idx++) {
+                yield return laneID;
+            }
+        }
+
+        public static IEnumerable<LaneData> IterateSegmentLanes(ushort segmentId) {
             int idx = 0;
             if (segmentId.ToSegment().Info == null) {
                 Log.Error("null info: potentially caused by missing assets");
@@ -422,7 +435,7 @@ namespace KianCommons {
          bool? startNode = null,
          NetInfo.LaneType laneType = NetInfo.LaneType.All,
          VehicleInfo.VehicleType vehicleType = VehicleInfo.VehicleType.All) {
-            foreach (LaneData laneData in IterateLanes(segmentId)) {
+            foreach (LaneData laneData in IterateSegmentLanes(segmentId)) {
                 if (startNode != null && startNode != laneData.StartNode)
                     continue;
                 if (!laneData.LaneInfo.m_laneType.IsFlagSet(laneType))
