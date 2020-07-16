@@ -29,13 +29,15 @@ namespace KianCommons {
             }
         }
 
-        public static bool CheckFlags(this NetNode.Flags value, NetNode.Flags required, NetNode.Flags forbidden) {
-            return (value & (required|forbidden)) == required;
-        }
+        public static bool CheckFlags(this NetNode.Flags value, NetNode.Flags required, NetNode.Flags forbidden) =>
+            (value & (required|forbidden)) == required;
 
-        public static bool CheckFlags(this NetSegment.Flags value, NetSegment.Flags required, NetSegment.Flags forbidden) {
-            return (value & (required | forbidden)) == required;
-        }
+
+        public static bool CheckFlags(this NetSegment.Flags value, NetSegment.Flags required, NetSegment.Flags forbidden) =>
+            (value & (required | forbidden)) == required;
+
+        public static bool CheckFlags(this NetLane.Flags value, NetLane.Flags required, NetLane.Flags forbidden) =>
+            (value & (required | forbidden)) == required;
 
         internal static AppMode currentMode => SimulationManager.instance.m_ManagersWrapper.loading.currentMode;
         internal static bool CheckGameMode(AppMode mode)

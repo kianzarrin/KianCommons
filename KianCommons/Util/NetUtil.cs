@@ -250,6 +250,14 @@ namespace KianCommons {
             return false;
         }
 
+        public static bool IsLaneValid(uint laneId) {
+            if (laneId != 0) {
+                return laneId.ToLane().Flags().
+                    CheckFlags(required: NetLane.Flags.Created, forbidden: NetLane.Flags.Deleted);
+            }
+            return false;
+        }
+
         public static ushort GetHeadNode(ref NetSegment segment) {
             // tail node>-------->head node
             bool invert = (segment.m_flags & NetSegment.Flags.Invert) != NetSegment.Flags.None;
