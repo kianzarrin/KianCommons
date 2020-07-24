@@ -1,10 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Reflection.Emit;
-using HarmonyLib;
-
 namespace KianCommons.Patches {
-    using CSUtil.Commons;
+    using System;
+    using System.Collections.Generic;
+    using System.Reflection.Emit;
+    using HarmonyLib;
     using System.Reflection;
     public static class TranspilerUtils {
         static bool VERBOSE => HelpersExtensions.VERBOSE;
@@ -225,22 +223,6 @@ namespace KianCommons.Patches {
                 Log("\n" + insertion.IL2STR());
             if (VERBOSE)
                 Log("PEEK:\n" + codes.GetRange(index - 4, insertion.Length+12).IL2STR());
-        }
-    }
-
-    public static class PrefixUtils {
-        public static bool HandleTernaryBool(TernaryBool? res, ref bool __result) {
-            if (res != null) {
-                if (res == TernaryBool.True) {
-                    __result = true;
-                    return false;
-                }
-                if (res == TernaryBool.False) {
-                    __result = false;
-                    return false;
-                }
-            }
-            return true;
         }
     }
 }
