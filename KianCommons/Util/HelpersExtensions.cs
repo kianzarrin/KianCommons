@@ -5,10 +5,46 @@ namespace KianCommons {
     using UnityEngine;
     using ICities;
     using System.Diagnostics;
+    using System.Reflection;
 
     public static class HelpersExtensions
     {
         public const bool VERBOSE = false;
+
+        public static bool[] ALL_BOOL = new bool[] { false, true};
+
+        public static Version VersionOf(Type t) =>
+            t.Assembly.GetName().Version;
+
+        public static Version VersionOf(object obj) =>
+            VersionOf(obj.GetType());
+
+        public static void CopyProperties(object target, object origin) {
+            Assert(target.GetType().IsSubclassOf(origin.GetType()));
+            FieldInfo[] fields = origin.GetType().GetFields();
+            foreach (FieldInfo fieldInfo in fields) {
+                //Extensions.Log($"Copying field:<{fieldInfo.Name}> ...>");
+                object value = fieldInfo.GetValue(origin);
+                string strValue = value?.ToString() ?? "null";
+                //Extensions.Log($"Got field value:<{strValue}> ...>");
+                fieldInfo.SetValue(target, value);
+                //Extensions.Log($"Copied field:<{fieldInfo.Name}> value:<{strValue}>");
+            }
+        }
+
+        public static void CopyProperties<T>(object target, object origin) {
+            Assert(target is T, "target is T");
+            Assert(origin is T, "origin is T");
+            FieldInfo[] fields = typeof(T).GetFields();
+            foreach (FieldInfo fieldInfo in fields) {
+                //Extensions.Log($"Copying field:<{fieldInfo.Name}> ...>");
+                object value = fieldInfo.GetValue(origin);
+                //string strValue = value?.ToString() ?? "null";
+                //Extensions.Log($"Got field value:<{strValue}> ...>");
+                fieldInfo.SetValue(target, value);
+                //Extensions.Log($"Copied field:<{fieldInfo.Name}> value:<{strValue}>");
+            }
+        }
 
         public static int String2Enum<T>(string str) where T: Enum {
             return Array.IndexOf(Enum.GetNames(typeof(T)), str);

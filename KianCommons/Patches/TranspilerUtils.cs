@@ -4,19 +4,48 @@ namespace KianCommons.Patches {
     using System.Reflection.Emit;
     using HarmonyLib;
     using System.Reflection;
+    using System.Linq;
+    using System.CodeDom;
+
     public static class TranspilerUtils {
         static bool VERBOSE => HelpersExtensions.VERBOSE;
-
         static void Log(object message) {
             KianCommons.Log.Info("TRANSPILER " + message);
         }
+
+        /// <typeparam name="TDelegate">delegate type</typeparam>
+        /// <returns>Type[] represeting arguments of the delegate.</returns>
+        internal static Type[] GetParameterTypes<TDelegate>() where TDelegate : Delegate {
+            return typeof(TDelegate).GetMethod("Invoke").GetParameters().Select(p => p.ParameterType).ToArray();
+        }
+
+        /// <summary>
+        /// Gets directly declared method.
+        /// </summary>
+        /// <typeparam name="TDelegate">delegate that has the same argument types as the intented overloaded method</typeparam>
+        /// <param name="type">the class/type where the method is delcared</param>
+        /// <param name="name">the name of the method</param>
+        /// <returns>a method or null when type is null or when a method is not found</returns>
+        internal static MethodInfo DeclaredMethod<TDelegate>(Type type, string name)
+            where TDelegate : Delegate {
+            var args = GetParameterTypes<TDelegate>();
+            var ret = AccessTools.DeclaredMethod(type, name, args);
+            if (ret == null)
+                Log($"failed to retrieve method {type}.{name}({args})");
+            return ret;
+        }
+
+        /// <summary>
+        /// like AccessTools.DeclaredMethod but throws suitable exception if method not found.
+        /// </summary>
+        internal static MethodInfo GetMethod(Type type, string name) =>
+            AccessTools.DeclaredMethod(type, name) ?? throw new Exception($"Method not found: {type.Name}.{name}");
 
         public static List<CodeInstruction> ToCodeList(IEnumerable<CodeInstruction> instructions) {
             var originalCodes = new List<CodeInstruction>(instructions);
             var codes = new List<CodeInstruction>(originalCodes);
             return codes;
         }
-
 
         public static CodeInstruction GetLDArg(MethodInfo method, string argName) {
             byte idx = (byte)GetParameterLoc(method, argName);
