@@ -9,7 +9,6 @@ namespace KianCommons.Math {
         public float h;
         public float this[int index] {
             get {
-                float result;
                 switch (index) {
                     case 0: return x;
                     case 1: return z;

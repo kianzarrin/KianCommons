@@ -48,9 +48,6 @@ namespace KianCommons.UI {
             base.Start();
             width = parent.width;
         }
-
-        protected virtual void OnCheckChanged() {
-        }
     }
 }
 

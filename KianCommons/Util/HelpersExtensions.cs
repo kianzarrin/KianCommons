@@ -6,10 +6,9 @@ namespace KianCommons {
     using ICities;
     using System.Diagnostics;
     using System.Reflection;
-
     public static class HelpersExtensions
     {
-        public const bool VERBOSE = false;
+        public static bool VERBOSE = false;
 
         public static bool[] ALL_BOOL = new bool[] { false, true};
 

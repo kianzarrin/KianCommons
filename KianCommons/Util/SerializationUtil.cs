@@ -3,7 +3,7 @@ using System.IO;
 using System.Runtime.Serialization.Formatters;
 using System.Runtime.Serialization.Formatters.Binary;
 
-namespace AdvancedRoads.Util {
+namespace KianCommons {
     public static class SerializationUtil {
 
         static BinaryFormatter GetBinaryFormatter =>

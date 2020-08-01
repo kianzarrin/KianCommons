@@ -46,9 +46,10 @@ namespace KianCommons.Math {
 
         public static bool IsStraight(this Bezier2 beizer) {
             return false;
-            var startDir = (beizer.a - beizer.b).normalized;
-            var endDir = (beizer.c - beizer.d).normalized; // c actually gets past d.
-            return EqualAprox((startDir + endDir).sqrMagnitude, 0f, Epsilon * Epsilon);
+            // cannot work optimise small beziers for some unknown reasosn. commenting out this until the problem is fixed.
+            //var startDir = (beizer.a - beizer.b).normalized;
+            //var endDir = (beizer.c - beizer.d).normalized; // c actually gets past d.
+            //return EqualAprox((startDir + endDir).sqrMagnitude, 0f, Epsilon * Epsilon);
             //.LogRet($"IsStraight bezier={beizer.STR()} startDir:{startDir} endDir:{endDir} sum={(startDir + endDir)} ret:");
         }
 

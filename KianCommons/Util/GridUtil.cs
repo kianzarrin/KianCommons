@@ -5,8 +5,6 @@ using UnityEngine;
 
 namespace KianCommons {
     using static NetUtil;
-    using static HelpersExtensions;
-    using static Math.VectorUtil;
     using static GridUtil;
 
     public struct GridVector {

@@ -5,7 +5,6 @@ namespace KianCommons.Patches {
     using HarmonyLib;
     using System.Reflection;
     using System.Linq;
-    using System.CodeDom;
 
     public static class TranspilerUtils {
         static bool VERBOSE => HelpersExtensions.VERBOSE;
@@ -121,28 +120,9 @@ namespace KianCommons.Patches {
             } else if (instruction.opcode == OpCodes.Stloc) {
                 return new CodeInstruction(OpCodes.Ldloc, instruction.operand);
             } else {
-                throw new Exception("Statement is not stloc!");
+                throw new Exception("instruction is not stloc! : " + instruction);
             }
         }
-
-        public static CodeInstruction BuildLdLocFromLdLoc(CodeInstruction instruction) {
-            if (instruction.opcode == OpCodes.Ldloc_0) {
-                return new CodeInstruction(OpCodes.Ldloc_0);
-            } else if (instruction.opcode == OpCodes.Ldloc_1) {
-                return new CodeInstruction(OpCodes.Ldloc_1);
-            } else if (instruction.opcode == OpCodes.Ldloc_2) {
-                return new CodeInstruction(OpCodes.Ldloc_2);
-            } else if (instruction.opcode == OpCodes.Ldloc_3) {
-                return new CodeInstruction(OpCodes.Ldloc_3);
-            } else if (instruction.opcode == OpCodes.Ldloc_S) {
-                return new CodeInstruction(OpCodes.Ldloc_S, instruction.operand);
-            } else if (instruction.opcode == OpCodes.Ldloc) {
-                return new CodeInstruction(OpCodes.Ldloc, instruction.operand);
-            } else {
-                throw new Exception("Statement is not ldloc!");
-            }
-        }
-
         public static CodeInstruction BuildStLocFromLdLoc(CodeInstruction instruction) {
             if (instruction.opcode == OpCodes.Ldloc_0) {
                 return new CodeInstruction(OpCodes.Stloc_0);
@@ -157,7 +137,7 @@ namespace KianCommons.Patches {
             } else if (instruction.opcode == OpCodes.Ldloc) {
                 return new CodeInstruction(OpCodes.Stloc, instruction.operand);
             } else {
-                throw new Exception("Statement is not ldloc!");
+                throw new Exception("instruction is not ldloc! : " + instruction);
             }
         }
 
