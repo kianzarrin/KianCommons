@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace KianCommons.UI.Helpers {
+    // usage: sub to eventCheckChanged.
+    // set Title
     public class UICheckboxDropDownExt : UICheckboxDropDown {
         static Vector2 SIZE = new Vector2(120, 30);
 
@@ -77,10 +79,6 @@ namespace KianCommons.UI.Helpers {
         } // end Start()
 
 
-
-        // usage: sub to eventCheckChanged.
-        // set Title
-
         public static UICheckboxDropDownExt Add(UIPanel panel) {
             // work around dropdown going under top panel.
             UIPanel containing_panel = panel.AddUIComponent<UIPanel>();
@@ -89,5 +87,5 @@ namespace KianCommons.UI.Helpers {
             return containing_panel.AddUIComponent<UICheckboxDropDownExt>();
             // TODO set width to width of triger button
         }
-    } // end sub class
-} // end class
+    } // end class
+} // end namespace

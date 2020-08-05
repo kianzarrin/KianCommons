@@ -17,7 +17,10 @@ namespace KianCommons.UI {
             pressedBgSprite = "ButtonMenuPressed";
             disabledBgSprite = "ButtonMenuDisabled";
             disabledTextColor = new Color32(128, 128, 128, 255);
+            autoSize = true;
             canFocus = false;
+            textPadding = new RectOffset(5, 5, 5, 5);
+            atlas = TextureUtil.GetAtlas("Ingame");
         }
 
         public override void Start() {
