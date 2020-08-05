@@ -503,15 +503,15 @@ namespace KianCommons {
         public int LaneIndex;
         public NetInfo.Lane LaneInfo;
         public bool StartNode;
-        public ushort SegmentID => Lane.m_segment;
-        public ref NetSegment Segment => ref SegmentID.ToSegment();
-        public ref NetLane Lane => ref LaneID.ToLane();
-        public ushort NodeID => StartNode ? Segment.m_startNode : Segment.m_endNode;
-        public NetLane.Flags Flags {
+        public readonly ushort SegmentID => Lane.m_segment;
+        public readonly ref NetSegment Segment => ref SegmentID.ToSegment();
+        public readonly ref NetLane Lane => ref LaneID.ToLane();
+        public readonly ushort NodeID => StartNode ? Segment.m_startNode : Segment.m_endNode;
+        public readonly NetLane.Flags Flags {
             get => (NetLane.Flags)Lane.m_flags;
             set => LaneID.ToLane().m_flags = (ushort)value;
         }
-        public Bezier3 Bezier => Lane.m_bezier;
+        public readonly Bezier3 Bezier => Lane.m_bezier;
         public override string ToString() => $"LaneData:[segment:{SegmentID} node:{NodeID} lane ID:{LaneID} {LaneInfo.m_laneType} {LaneInfo.m_vehicleType}]";
     }
 }

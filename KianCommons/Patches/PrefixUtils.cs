@@ -1,4 +1,4 @@
-namespace UnitedUI.KianCommons.KianCommons.Patches {
+namespace KianCommons.Patches {
     using CSUtil.Commons;
     public static class PrefixUtils {
         public static bool HandleTernaryBool(TernaryBool? res, ref bool __result) {
