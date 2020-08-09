@@ -168,7 +168,7 @@ namespace KianCommons.UI {
             Vector3 pos = nodeId.ToNode().m_position;
             float r = 0;
             int n = 0;
-            foreach (ushort segmentId in NetUtil.GetSegmentsCoroutine(nodeId)) {
+            foreach (ushort segmentId in NetUtil.IterateNodeSegments(nodeId)) {
                 r += segmentId.ToSegment().Info.m_halfWidth;
                 n++;
             }

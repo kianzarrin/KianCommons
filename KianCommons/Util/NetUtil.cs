@@ -96,7 +96,7 @@ namespace KianCommons {
         }
 
         internal static ushort GetID(this NetSegment segment) {
-            foreach (var segmentID in GetSegmentsCoroutine(segment.m_startNode)) {
+            foreach (var segmentID in IterateNodeSegments(segment.m_startNode)) {
                 if (Equals(ref segment, segmentID)) {
                     return segmentID;
                 }
@@ -124,7 +124,7 @@ namespace KianCommons {
 
         internal static float MaxNodeHW(ushort nodeId) {
             float ret = 0;
-            foreach (var segmentId in GetSegmentsCoroutine(nodeId)) {
+            foreach (var segmentId in IterateNodeSegments(nodeId)) {
                 float hw = segmentId.ToSegment().Info.m_halfWidth;
                 if (hw > ret)
                     ret = hw;
@@ -372,11 +372,7 @@ namespace KianCommons {
             }
         }
 
-        public static IEnumerable<ushort> IterateNodeSegments(ushort nodeID) =>
-            GetSegmentsCoroutine(nodeID);
-
-        [Obsolete("inconsisten naming")]
-        internal static IEnumerable<ushort> GetSegmentsCoroutine(ushort nodeID) {
+        public static IEnumerable<ushort> IterateNodeSegments(ushort nodeID) {
             for (int i = 0; i < 8; ++i) {
                 ushort segmentID = nodeID.ToNode().GetSegment(i);
                 if (segmentID != 0) {
@@ -384,6 +380,10 @@ namespace KianCommons {
                 }
             }
         }
+
+        [Obsolete("use IterateNodeSegments instead")]
+        internal static IEnumerable<ushort> GetSegmentsCoroutine(ushort nodeID)
+            => IterateNodeSegments(nodeID);
 
         public static void LaneTest(ushort segmentId) {
             string message = $"STRANGE LANE ISSUE: lane count mismatch for " +
