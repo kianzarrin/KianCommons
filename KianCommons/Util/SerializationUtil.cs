@@ -1,5 +1,8 @@
 using System;
 using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters;
 using System.Runtime.Serialization.Formatters.Binary;
 
@@ -10,10 +13,8 @@ namespace KianCommons {
             new BinaryFormatter { AssemblyFormat = FormatterAssemblyStyle.Simple };
 
         public static object Deserialize(byte[] data) {
-            if (data == null)
-                return null;
+            if (data == null || data.Length==0) return null;
             //Log.Debug($"SerializationUtil.Deserialize(data): data.Length={data?.Length}");
-
             var memoryStream = new MemoryStream();
             memoryStream.Write(data, 0, data.Length);
             memoryStream.Position = 0;
@@ -21,10 +22,39 @@ namespace KianCommons {
         }
 
         public static byte[] Serialize(object obj) {
+            if (obj == null) return null;
             var memoryStream = new MemoryStream();
             GetBinaryFormatter.Serialize(memoryStream, obj);
             memoryStream.Position = 0; // redundant
             return memoryStream.ToArray();
+        }
+
+        public static void GetObjectFields(SerializationInfo info, object instance) {
+            var fields = instance.GetType().GetFields().Where(field => !field.IsStatic);
+            foreach (FieldInfo field in fields) {
+                info.AddValue(field.Name, field.GetValue(instance), field.FieldType);
+            }
+        }
+
+        public static void SetObjectFields(SerializationInfo info, object instance) {
+            foreach (SerializationEntry item in info) {
+                FieldInfo field = instance.GetType().GetField(item.Name);
+                if (field != null && !field.IsStatic) {
+                    object val = Convert.ChangeType(item.Value, field.FieldType);
+                    field.SetValue(instance, val);
+                }
+            }
+        }
+
+        public static void SetObjectProperties(SerializationInfo info, object instance) {
+            foreach (SerializationEntry item in info) {
+                var p = instance.GetType().GetProperty(item.Name);
+                var setter = p?.GetSetMethod();
+                if (setter != null && !setter.IsStatic) {
+                    object val = Convert.ChangeType(item.Value, p.PropertyType);
+                    p.SetValue(instance, val, null);
+                }
+            }
         }
     }
 }

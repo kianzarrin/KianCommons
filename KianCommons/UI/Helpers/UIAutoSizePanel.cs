@@ -8,7 +8,7 @@ namespace KianCommons.UI {
 
             // default values can be overriden.
             autoLayout = true;
-            autoSize = true; 
+            autoSize = true;
             autoLayoutDirection = LayoutDirection.Vertical;
             name = "UIAutoSizePanel"; 
             atlas = TextureUtil.GetAtlas("Ingame"); 
@@ -19,15 +19,15 @@ namespace KianCommons.UI {
             RefreshSizeRecursive();
         }
 
-        private bool m_AutoSize;
+        private bool m_AutoSize2 = false;
 
-        /// <summary>autosize only for the dimension determined by layout direction</summary>
-        public override bool autoSize {
+        /// <summary>auto size in the direction other than the autosize direction</summary>
+        public bool AutoSize2 {
             get {
-                return m_AutoSize;
+                return m_AutoSize2;
             }
             set {
-                m_AutoSize = value;
+                m_AutoSize2 = value;
                 Invalidate();
                 RefreshSizeRecursive();
             }
@@ -140,14 +140,16 @@ namespace KianCommons.UI {
                 else
                     widthAcc -= padding.left;
                 width = widthAcc;
-                height = padding.vertical + maxHeight;
+                if(AutoSize2)
+                    height = padding.vertical + maxHeight;
             } else {
                 if (autoLayoutStart.StartsAtTop())
                     heightAcc += padding.bottom;
                 else
                     heightAcc -= padding.top;
                 height = heightAcc;
-                width = padding.horizontal + maxWidth;
+                if (AutoSize2)
+                    width = padding.horizontal + maxWidth;
                 //Log.Debug($"updating {name} hieght to " + height);
             }
         }

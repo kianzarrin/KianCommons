@@ -16,15 +16,19 @@ namespace KianCommons {
     public static class NetUtil {
         public const float SAFETY_NET = 0.02f;
 
-        public static NetManager netMan => NetManager.instance;
+        public static NetManager netMan = NetManager.instance;
         public static NetTool netTool => Singleton<NetTool>.instance;
         public static SimulationManager simMan => Singleton<SimulationManager>.instance;
         public static TerrainManager terrainMan => TerrainManager.instance;
 
         public const float MPU = 8f; // meter per unit
-        internal static ref NetNode ToNode(this ushort id) => ref netMan.m_nodes.m_buffer[id];
-        internal static ref NetSegment ToSegment(this ushort id) => ref netMan.m_segments.m_buffer[id];
-        internal static ref NetLane ToLane(this uint id) => ref netMan.m_lanes.m_buffer[id];
+
+        private static NetNode[] nodeBuffer_ = netMan.m_nodes.m_buffer;
+        private static NetSegment[] segmentBuffer_ = netMan.m_segments.m_buffer;
+        private static NetLane[] laneBuffer_ = netMan.m_lanes.m_buffer;
+        internal static ref NetNode ToNode(this ushort id) => ref nodeBuffer_[id];
+        internal static ref NetSegment ToSegment(this ushort id) => ref segmentBuffer_[id];
+        internal static ref NetLane ToLane(this uint id) => ref laneBuffer_[id];
         internal static NetLane.Flags Flags(this ref NetLane lane) => (NetLane.Flags)lane.m_flags;
 
         /// <summary>
@@ -228,6 +232,12 @@ namespace KianCommons {
         public static bool IsStartNode(ushort segmentId, ushort nodeId) =>
             segmentId.ToSegment().m_startNode == nodeId;
 
+        public static ushort GetSegmentNode(ushort segmentID, bool startNode) =>
+            segmentID.ToSegment().GetNode(startNode);
+
+        public static ushort GetNode(this ref NetSegment segment, bool startNode) =>
+            startNode ? segment.m_startNode : segment.m_endNode;
+
         public static bool HasNode(ushort segmentId, ushort nodeId) =>
             segmentId.ToSegment().m_startNode == nodeId || segmentId.ToSegment().m_endNode == nodeId;
 
@@ -362,7 +372,11 @@ namespace KianCommons {
             }
         }
 
-        public static IEnumerable<ushort> GetSegmentsCoroutine(ushort nodeID) {
+        public static IEnumerable<ushort> IterateNodeSegments(ushort nodeID) =>
+            GetSegmentsCoroutine(nodeID);
+
+        [Obsolete("inconsisten naming")]
+        internal static IEnumerable<ushort> GetSegmentsCoroutine(ushort nodeID) {
             for (int i = 0; i < 8; ++i) {
                 ushort segmentID = nodeID.ToNode().GetSegment(i);
                 if (segmentID != 0) {
