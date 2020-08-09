@@ -2,34 +2,40 @@ using ColossalFramework.UI;
 using UnityEngine;
 using System.IO;
 using System.Reflection;
+using System;
 
 namespace KianCommons.UI {
     using static HelpersExtensions;
     public static class TextureUtil {
         static string PATH => typeof(TextureUtil).Assembly.GetName().Name + ".Resources.";
-        public static UITextureAtlas CreateTextureAtlas(string textureFile, string atlasName, int spriteWidth, int spriteHeight, string[] spriteNames) {
-            Texture2D texture2D = LoadTextureFromAssembly(
-                textureFile, spriteWidth * spriteNames.Length, spriteHeight);
+        static string ModPath => PluginUtil.GetPlugin().modPath;
+        public static string FILE_PATH = Path.Combine(ModPath, "Resources");
 
-            UITextureAtlas uitextureAtlas = ScriptableObject.CreateInstance<UITextureAtlas>();
-            Assert(uitextureAtlas != null, "uitextureAtlas");
-            Material material = Object.Instantiate<Material>(UIView.GetAView().defaultAtlas.material);
-            Assert(material != null, "material");
-            material.mainTexture = texture2D;
-            uitextureAtlas.material = material;
-            uitextureAtlas.name = atlasName;
-            int num2;
-            for (int i = 0; i < spriteNames.Length; i = num2) {
-                float num = 1f / (float)spriteNames.Length;
+        public static UITextureAtlas CreateTextureAtlas(
+            string textureFile, string atlasName, int spriteWidth, int spriteHeight, string[] spriteNames)
+        {
+            Texture2D texture2D = LoadTextureFromAssembly( textureFile, spriteWidth * spriteNames.Length, spriteHeight);
+            UITextureAtlas uitextureAtlas = InitializeAtalas(atlasName);
+
+            for (int i = 0; i < spriteNames.Length; i++) {
                 UITextureAtlas.SpriteInfo spriteInfo = new UITextureAtlas.SpriteInfo {
                     name = spriteNames[i],
                     texture = texture2D,
-                    region = new Rect((float)i * num, 0f, num, 1f)
+                    region = new Rect(i / (float)spriteNames.Length, 0f, spriteNames.Length, 1f)
                 };
                 uitextureAtlas.AddSprite(spriteInfo);
-                num2 = i + 1;
             }
             return uitextureAtlas;
+        }
+
+        public static UITextureAtlas InitializeAtalas(string name) {
+            UITextureAtlas ret = ScriptableObject.CreateInstance<UITextureAtlas>();
+            Assert(ret != null, "uitextureAtlas");
+            Material material = UnityEngine.Object.Instantiate<Material>(UIView.GetAView().defaultAtlas.material);
+            Assert(material != null, "material");
+            ret.material = material;
+            ret.name = name;
+            return ret;
         }
 
         public static void AddTexturesInAtlas(UITextureAtlas atlas, Texture2D[] newTextures, bool locked = false) {
@@ -86,37 +92,46 @@ namespace KianCommons.UI {
             return UIView.GetAView().defaultAtlas;
         }
 
+        #region loading textures
+
+        public static Stream GetFileStream(string file) {
+            string path = Path.Combine(FILE_PATH, file);
+            return File.OpenRead(path) ?? throw new Exception(path + "not find");
+        }
+
+        public static Texture2D GetTextureFromFile(string file) {
+            using (Stream stream = GetFileStream(file))
+                return GetTextureFromStream(stream);
+        }
 
         // todo merge with GetTextureFromAssemblyManifest
-        private static Texture2D LoadTextureFromAssembly(string textureFile, int width, int height) {
-            Assembly executingAssembly = Assembly.GetExecutingAssembly();
-            string path = PATH + textureFile;
-            Stream manifestResourceStream = executingAssembly.GetManifestResourceStream(path);
-            Assert(manifestResourceStream != null, "could not find " + path);
-            byte[] array = new byte[manifestResourceStream.Length];
-            manifestResourceStream.Read(array, 0, array.Length);
+        [Obsolete("use GetTextureFromAssemblyManifest instead")]
+        private static Texture2D LoadTextureFromAssembly(string textureFile, int width, int height)
+            => GetTextureFromAssemblyManifest(textureFile);
 
-            Texture2D texture2D = new Texture2D(width, height, TextureFormat.ARGB32, false);
-            Assert(texture2D != null, "texture2D");
-            texture2D.filterMode = FilterMode.Bilinear;
-            texture2D.LoadImage(array);
-            texture2D.Apply(true, true);
-
-            return texture2D;
+        public static Stream GetManifestResourceStream(string file) {
+            string path = string.Concat(PATH, file);
+            return Assembly.GetExecutingAssembly().GetManifestResourceStream(path)
+                ?? throw new Exception(path + "not find");
         }
 
         // useful to load cursor textures.
         public static Texture2D GetTextureFromAssemblyManifest(string file) {
-            string path = string.Concat(PATH, file);
+            using (Stream stream = GetManifestResourceStream(file))
+                return GetTextureFromStream(stream);
+        }
+
+        public static Texture2D GetTextureFromStream(Stream stream) {
             Texture2D texture2D = new Texture2D(1, 1, TextureFormat.ARGB32, false);
-            using (Stream manifestResourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(path)) {
-                byte[] array = new byte[manifestResourceStream.Length];
-                manifestResourceStream.Read(array, 0, array.Length);
-                texture2D.LoadImage(array);
-            }
-            texture2D.wrapMode = TextureWrapMode.Clamp;
-            texture2D.Apply();
+            byte[] array = new byte[stream.Length];
+            stream.Read(array, 0, array.Length);
+            texture2D.filterMode = FilterMode.Bilinear;
+            texture2D.LoadImage(array);
+            texture2D.wrapMode = TextureWrapMode.Clamp; // for cursor.
+            texture2D.Apply(true,true);
             return texture2D;
         }
+
+        #endregion
     }
 }
