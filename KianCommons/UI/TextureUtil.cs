@@ -11,9 +11,17 @@ namespace KianCommons.UI {
         static string PATH => typeof(TextureUtil).Assembly.GetName().Name + ".Resources.";
         static string ModPath => PluginUtil.GetPlugin().modPath;
         public static string FILE_PATH = ModPath;
+        public static bool EmbededResources = true;
+
 
         public static UITextureAtlas CreateTextureAtlas(string textureFile, string atlasName, int spriteWidth, int spriteHeight, string[] spriteNames) {
-            Texture2D texture2D = GetTextureFromFile(textureFile);
+            Texture2D texture2D;
+#pragma warning disable CS0618 // Type or member is obsolete
+            if (!EmbededResources)
+                texture2D = GetTextureFromFile(textureFile);
+            else
+                texture2D = GetTextureFromAssemblyManifest(textureFile);
+#pragma warning restore CS0618 // Type or member is obsolete
 
             UITextureAtlas uitextureAtlas = ScriptableObject.CreateInstance<UITextureAtlas>();
             Assert(uitextureAtlas != null, "uitextureAtlas");
