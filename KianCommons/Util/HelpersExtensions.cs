@@ -19,7 +19,9 @@ namespace KianCommons {
             VersionOf(obj.GetType());
 
         public static void CopyProperties(object target, object origin) {
-            Assert(target.GetType().IsSubclassOf(origin.GetType()));
+            var t1 = target.GetType();
+            var t2 = origin.GetType();
+            Assert(t1 == t2 || t1.IsSubclassOf(t2));
             FieldInfo[] fields = origin.GetType().GetFields();
             foreach (FieldInfo fieldInfo in fields) {
                 //Extensions.Log($"Copying field:<{fieldInfo.Name}> ...>");
