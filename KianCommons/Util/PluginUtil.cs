@@ -152,7 +152,8 @@ namespace KianCommons {
                 name2 = name2.Replace(" ", "");
             }
 
-            Log.Debug($"[MATCHING] : {name1} =? {name2} " + searchOptions);
+            if(HelpersExtensions.VERBOSE)
+                Log.Debug($"[MATCHING] : {name1} =? {name2} " + searchOptions);
 
             if (searchOptions.IsFlagSet(SearchOptionT.Contains)) {
                 if (name1.Contains(name2))

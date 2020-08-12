@@ -14,10 +14,13 @@ namespace KianCommons {
 
         public static bool[] ALL_BOOL = new bool[] { false, true};
 
-        public static Version VersionOf(Type t) =>
+        public static Version Version(this Assembly asm) =>
+            asm.GetName().Version;
+
+        public static Version VersionOf(this Type t) =>
             t.Assembly.GetName().Version;
 
-        public static Version VersionOf(object obj) =>
+        public static Version VersionOf(this object obj) =>
             VersionOf(obj.GetType());
 
         public static void CopyProperties(object target, object origin) {
