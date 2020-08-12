@@ -6,6 +6,8 @@ namespace KianCommons {
     using ICities;
     using System.Diagnostics;
     using System.Reflection;
+    using ColossalFramework;
+
     public static class HelpersExtensions
     {
         public static bool VERBOSE = false;
@@ -96,23 +98,6 @@ namespace KianCommons {
             InGame;
 #endif
 
-        internal static string BIG(string m)
-        {
-            string mul(string s, int i)
-            {
-                string ret_ = "";
-                while (i-- > 0) ret_ += s;
-                return ret_;
-            }
-            m = "  " + m + "  ";
-            int n = 120;
-            string stars1 = mul("*", n);
-            string stars2 = mul("*", (n - m.Length) / 2);
-            string ret = stars1 + "\n" + stars2 + m + stars2 + "\n" + stars1;
-            return ret;
-        }
-
-
         /// <summary>
         /// returns a new List calling Clone() on all items.
         /// </summary>
@@ -148,6 +133,27 @@ namespace KianCommons {
                 ticks.Reset();
                 ticks.Start();
             }
+        }
+
+        /// <summary>
+        /// returns false if string is null or empty. otherwise returns true.
+        /// </summary>
+        internal static bool ToBool(this string str) => !(str == null || str == "");
+
+
+
+        internal static string BIG(string m) {
+            string mul(string s, int i) {
+                string ret_ = "";
+                while (i-- > 0) ret_ += s;
+                return ret_;
+            }
+            m = "  " + m + "  ";
+            int n = 120;
+            string stars1 = mul("*", n);
+            string stars2 = mul("*", (n - m.Length) / 2);
+            string ret = stars1 + "\n" + stars2 + m + stars2 + "\n" + stars1;
+            return ret;
         }
 
 
