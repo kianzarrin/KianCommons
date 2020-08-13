@@ -6,6 +6,8 @@ namespace KianCommons {
     using ICities;
     using System.Diagnostics;
     using System.Reflection;
+    using System.Runtime.CompilerServices;
+
     public static class HelpersExtensions
     {
         public static bool VERBOSE = false;
@@ -112,6 +114,14 @@ namespace KianCommons {
             return ret;
         }
 
+        internal static string STR(this InstanceID instanceID)
+            => instanceID.Type + ":" + instanceID.Index;
+
+        /// <summary>
+        /// if object is null returns "null" otherwise returns obj.ToString()
+        /// </summary>
+        internal static string STR(object obj) =>
+            obj == null ? "null" : obj.ToString();
 
         /// <summary>
         /// returns a new List calling Clone() on all items.
