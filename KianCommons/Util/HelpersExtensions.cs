@@ -142,7 +142,10 @@ namespace KianCommons {
         /// </summary>
         internal static bool ToBool(this string str) => !(str == null || str == "");
 
+        internal static string STR(this object obj) => obj == null ? "<null>" : obj.ToString();
 
+        internal static string STR(this InstanceID instanceID) =>
+            instanceID.Type + ":" + instanceID.Index;
 
         internal static string BIG(string m) {
             string mul(string s, int i) {
