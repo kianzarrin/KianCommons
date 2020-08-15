@@ -46,7 +46,9 @@ namespace KianCommons.Patches {
             return codes;
         }
 
-        public static CodeInstruction GetLDArg(MethodInfo method, string argName) {
+        public static CodeInstruction GetLDArg(MethodInfo method, string argName, bool throwOnError = true) {
+            if (!throwOnError && !HasParameter(method, argName))
+                return null;
             byte idx = (byte)GetParameterLoc(method, argName);
             if (!method.IsStatic)
                 idx++; // first argument is object instance.
@@ -74,6 +76,14 @@ namespace KianCommons.Patches {
                 }
             }
             throw new Exception($"did not found parameter with name:<{name}>");
+        }
+
+        public static bool HasParameter(MethodInfo method, string name) {
+            foreach(var param in method.GetParameters()) {
+                if (param.Name == name)
+                    return true;
+            }
+            return false;
         }
 
         public static bool IsSameInstruction(CodeInstruction a, CodeInstruction b, bool debug = false) {

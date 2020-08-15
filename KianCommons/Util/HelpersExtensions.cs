@@ -6,13 +6,18 @@ namespace KianCommons {
     using ICities;
     using System.Diagnostics;
     using System.Reflection;
+    using System.Runtime.CompilerServices;
+    using UnityEngineInternal;
+
+    //internal static class StackHelpers {
+    //}
 
     public static class HelpersExtensions
     {
         public static bool VERBOSE = false;
 
         public static bool[] ALL_BOOL = new bool[] { false, true};
-
+         
         public static Version Version(this Assembly asm) =>
             asm.GetName().Version;
 
@@ -209,6 +214,5 @@ namespace KianCommons {
                 throw e;
             }
         }
-
     }
 }
