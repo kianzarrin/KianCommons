@@ -1,12 +1,13 @@
-using System;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters;
-using System.Runtime.Serialization.Formatters.Binary;
-
 namespace KianCommons {
+    using System;
+    using System.IO;
+    using System.Linq;
+    using System.Reflection;
+    using System.Runtime.Serialization;
+    using System.Runtime.Serialization.Formatters;
+    using System.Runtime.Serialization.Formatters.Binary;
+    using KianCommons.Math;
+
     public static class SerializationUtil {
 
         static BinaryFormatter GetBinaryFormatter =>
@@ -32,7 +33,13 @@ namespace KianCommons {
         public static void GetObjectFields(SerializationInfo info, object instance) {
             var fields = instance.GetType().GetFields().Where(field => !field.IsStatic);
             foreach (FieldInfo field in fields) {
-                info.AddValue(field.Name, field.GetValue(instance), field.FieldType);
+                var type = field.GetType();
+                if (type == typeof(FixedVector3D)) {
+                    //Vector3Serializable v = (Vector3Serializable)field.GetValue(instance);
+                    info.AddValue(field.Name, field.GetValue(instance), typeof(Vector3Serializable));
+                } else { 
+                    info.AddValue(field.Name, field.GetValue(instance), field.FieldType);
+                }
             }
         }
 
