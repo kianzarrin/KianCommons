@@ -28,6 +28,18 @@ namespace KianCommons.Math {
         /// <param name="distance">distance to travel on the arc in meteres</param>
         /// <param name="tangent">normalized tangent on the curve toward the end of the beizer.</param>
         /// <returns>point on the curve at the given distance.</returns>
+        public static Vector3 Travel2(this Bezier3 beizer, float distance, out Vector3 tangent) {
+            float t = beizer.Travel(0, distance);
+            tangent = beizer.Tangent(t).normalized;
+            return beizer.Position(t);
+        }
+
+        /// <summary>
+        /// Travels some distance on beizer and calculates the point and tangent at that distance.
+        /// </summary>
+        /// <param name="distance">distance to travel on the arc in meteres</param>
+        /// <param name="tangent">normalized tangent on the curve toward the end of the beizer.</param>
+        /// <returns>point on the curve at the given distance.</returns>
         public static Vector2 Travel2(this Bezier2 beizer, float distance, out Vector2 tangent) {
             if (beizer.IsStraight()) {
                 tangent = (beizer.d - beizer.a).normalized;
@@ -117,6 +129,23 @@ namespace KianCommons.Math {
             };
         }
 
+        /// <param name="startDir">should be going toward the end of the bezier.</param>
+        /// <param name="endDir">should be going toward the start of the  bezier.</param>
+        /// <returns></returns>
+        public static Bezier3 Bezier3ByDir(Vector3 startPos, Vector3 startDir, Vector3 endPos, Vector3 endDir) {
+            NetSegment.CalculateMiddlePoints(
+                startPos, startDir,
+                endPos, endDir,
+                false, false,
+                out Vector3 MiddlePoint1, out Vector3 MiddlePoint2);
+            return new Bezier3 {
+                a = startPos,
+                d = endPos,
+                b = MiddlePoint1,
+                c = MiddlePoint2,
+            };
+        }
+
         /// <summary>
         /// results are normalized.
         /// fast for t==0 or t==1
@@ -132,6 +161,24 @@ namespace KianCommons.Math {
             }
             tangent.Normalize();
             normal = tangent.Rotate90CW();
+            if (lefSide) normal = -normal;
+        }
+
+        /// <summary>
+        /// results are normalized.
+        /// fast for t==0 or t==1
+        /// </summary>
+        /// <param name="lefSide">is normal to the left of tangent (going away from origin) </param>
+        public static void NormalTangent(this ref Bezier3 bezier, float t, bool lefSide, out Vector3 normal, out Vector3 tangent) {
+            if (MathUtil.EqualAprox(t, 0)) {
+                tangent = bezier.b - bezier.a;
+            } else if (MathUtil.EqualAprox(t, 0)) {
+                tangent = bezier.d - bezier.c;
+            } else {
+                tangent = bezier.Tangent(t);
+            }
+            tangent.Normalize();
+            normal = tangent.NormalCW();
             if (lefSide) normal = -normal;
         }
 
@@ -162,10 +209,20 @@ namespace KianCommons.Math {
             return t;
         }
 
+        /// <param name="bLeft">going from start to end</param>
         public static Bezier2 CalculateParallelBezier(this Bezier2 bezier, float sideDistance, bool bLeft) {
             bezier.NormalTangent(0, bLeft, out Vector2 normalStart, out Vector2 tangentStart);
             bezier.NormalTangent(1, bLeft, out Vector2 normalEnd, out Vector2 tangentEnd);
             return BezierUtil.Bezier2ByDir(
+                bezier.a + sideDistance * normalStart, tangentStart,
+                bezier.d + sideDistance * normalEnd, -tangentEnd);
+        }
+
+        /// <param name="bLeft">going from start to end</param>
+        public static Bezier3 CalculateParallelBezier(this Bezier3 bezier, float sideDistance, bool bLeft) {
+            bezier.NormalTangent(0, bLeft, out Vector3 normalStart, out Vector3 tangentStart);
+            bezier.NormalTangent(1, bLeft, out Vector3 normalEnd, out Vector3 tangentEnd);
+            return BezierUtil.Bezier3ByDir(
                 bezier.a + sideDistance * normalStart, tangentStart,
                 bezier.d + sideDistance * normalEnd, -tangentEnd);
         }

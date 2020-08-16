@@ -135,7 +135,7 @@ namespace KianCommons {
         #region Math
 
         /// Note: inverted flag or LHT does not influce the beizer.
-        internal static Bezier3 CalculateSegmentBezier3(this ref NetSegment seg) {
+        internal static Bezier3 CalculateSegmentBezier3(this ref NetSegment seg, bool bStartNode=true) {
             ref NetNode startNode = ref seg.m_startNode.ToNode();
             ref NetNode endNode = ref seg.m_endNode.ToNode();
             Bezier3 bezier = new Bezier3 {
@@ -149,18 +149,17 @@ namespace KianCommons {
                 endNode.m_flags.IsFlagSet(NetNode.Flags.Middle),
                 out bezier.b,
                 out bezier.c);
+            if (!bStartNode)
+                bezier = bezier.Invert();
             return bezier;
         }
 
         /// <param name="startNode"> if true the bezier is inverted so that it will be facing start node</param>
         /// Note: inverted flag or LHT does not influce the beizer.
         internal static Bezier2 CalculateSegmentBezier2(ushort segmentId, bool startNode) {
-            Bezier3 bezier3 = segmentId.ToSegment().CalculateSegmentBezier3();
+            Bezier3 bezier3 = segmentId.ToSegment().CalculateSegmentBezier3(startNode);
             Bezier2 bezier2 = bezier3.ToCSBezier2();
-            if (!startNode)
-                return bezier2;
-            else
-                return bezier2.Invert();
+            return bezier2;
         }
 
         /// <param name="endNodeID">bezier will be facing endNodeID</param>
