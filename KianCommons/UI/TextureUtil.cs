@@ -13,8 +13,11 @@ namespace KianCommons.UI {
         public static string FILE_PATH = ModPath;
         public static bool EmbededResources = true;
 
-
         public static UITextureAtlas CreateTextureAtlas(string textureFile, string atlasName, int spriteWidth, int spriteHeight, string[] spriteNames) {
+            return CreateTextureAtlas(textureFile, atlasName, spriteNames);
+        }
+
+        public static UITextureAtlas CreateTextureAtlas(string textureFile, string atlasName, string[] spriteNames) {
             Texture2D texture2D;
 #pragma warning disable CS0618 // Type or member is obsolete
             if (!EmbededResources)
@@ -32,7 +35,7 @@ namespace KianCommons.UI {
             uitextureAtlas.name = atlasName;
 
             int n = spriteNames.Length;
-            for (int i = 0; i < n; i ++) {
+            for (int i = 0; i < n; i++) {
                 float num = 1f / (float)spriteNames.Length;
                 UITextureAtlas.SpriteInfo spriteInfo = new UITextureAtlas.SpriteInfo {
                     name = spriteNames[i],
