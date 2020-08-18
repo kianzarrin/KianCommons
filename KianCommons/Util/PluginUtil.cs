@@ -108,6 +108,8 @@ namespace KianCommons {
                 bool match = Matches(current, searchIds);
 
                 IUserMod userModInstance = current.userModInstance as IUserMod;
+                if (userModInstance == null) continue;
+
                 if (searchOptions.IsFlagSet(SearchOptionT.UserModeName))
                     match = match || Match(userModInstance.Name, searchName, searchOptions);
 
