@@ -7,7 +7,9 @@ namespace KianCommons.UI {
             base.Awake();
         }
 
-        UISlicedSprite slicedSprite_;
+        public float Padding = 0; // contianer has padding
+        public UISlicedSprite SlicedSprite;
+
         public override void Start() {
             base.Start();
 
@@ -16,43 +18,33 @@ namespace KianCommons.UI {
             color = Color.grey;
             name = GetType().Name;
             height = 15f;
-            float padding = 0; // contianer has padding
-            width = parent.width - 2 * padding;
+            width = parent.width - 2 * Padding;
 
             maxValue = 100;
             minValue = 0;
             stepSize = 1;
             AlignTo(parent, UIAlignAnchor.TopLeft);
 
-            Log.Debug("parent:" + parent);
-            slicedSprite_ = AddUIComponent<UISlicedSprite>();
-            slicedSprite_.spriteName = "ScrollbarTrack";
-            slicedSprite_.height = 12;
-            slicedSprite_.width = width;
-            slicedSprite_.relativePosition = new Vector3(padding, 2f);
+            //Log.Debug("parent:" + parent);
+            SlicedSprite = AddUIComponent<UISlicedSprite>();
+            SlicedSprite.spriteName = "ScrollbarTrack";
+            SlicedSprite.height = 12;
+            SlicedSprite.width = width;
+            SlicedSprite.relativePosition = new Vector3(Padding, 2f);
 
             UISprite thumbSprite = AddUIComponent<UISprite>();
             thumbSprite.spriteName = "ScrollbarThumb";
             thumbSprite.height = 20f;
             thumbSprite.width = 7f;
             thumbObject = thumbSprite;
-            thumbOffset = new Vector2(padding, 0);
-
-            eventSizeChanged += (component, value) => {
-                // TODO [clean up] is this necessary? move it to override.
-                slicedSprite_.width = slicedSprite_.parent.width - 2 * padding;
-            };
+            thumbOffset = new Vector2(Padding, 0);
         }
 
-        //public virtual bool ShouldShow{get;}
-
-        //public virtual void Refresh() {
-        //    parent.isVisible = isVisible = slicedSprite_.isEnabled = thumbObject.isEnabled = isEnabled = data.CanModifyOffset();
-        //    parent.Invalidate();
-        //    Invalidate();
-        //    thumbObject.Invalidate();
-        //    slicedSprite_.Invalidate();
-        //    //Log.Debug($"slider.Refresh: node:{data.NodeID} isEnabled={isEnabled}\n" + Environment.StackTrace);
-        //}
+        protected override void OnSizeChanged() {
+            base.OnSizeChanged();
+            if (SlicedSprite == null || SlicedSprite.parent == null)
+                return;
+            SlicedSprite.width = SlicedSprite.parent.width - 2 * Padding;
+        }
     }
 }

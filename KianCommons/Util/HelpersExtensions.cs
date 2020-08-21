@@ -13,6 +13,9 @@ namespace KianCommons {
 
     public static class HelpersExtensions
     {
+        internal static bool InSimulationThread() =>
+            System.Threading.Thread.CurrentThread == SimulationManager.instance.m_simulationThread;
+
         public static bool VERBOSE = false;
 
         public static bool[] ALL_BOOL = new bool[] { false, true};
