@@ -5,6 +5,10 @@ namespace KianCommons.UI {
     public class UISliderExt : UISlider {
         public override void Awake() {
             base.Awake();
+            maxValue = 100;
+            minValue = 0;
+            stepSize = 1f;
+            scrollWheelAmount = 1f;
         }
 
         public float Padding = 0; // contianer has padding
@@ -19,10 +23,6 @@ namespace KianCommons.UI {
             name = GetType().Name;
             height = 15f;
             width = parent.width - 2 * Padding;
-
-            maxValue = 100;
-            minValue = 0;
-            stepSize = 1;
             AlignTo(parent, UIAlignAnchor.TopLeft);
 
             //Log.Debug("parent:" + parent);
@@ -45,6 +45,21 @@ namespace KianCommons.UI {
             if (SlicedSprite == null || SlicedSprite.parent == null)
                 return;
             SlicedSprite.width = SlicedSprite.parent.width - 2 * Padding;
+        }
+
+        private bool _mixedValues = false;
+        public virtual bool MixedValues {
+            set {
+                _mixedValues = value;
+                if (!value) {
+                    thumbObject.color = Color.white;
+                    thumbObject.opacity = 1;
+                } else {
+                    thumbObject.color = Color.grey;
+                    thumbObject.opacity = 0.2f;
+                }
+            }
+            get => _mixedValues;
         }
     }
 }
