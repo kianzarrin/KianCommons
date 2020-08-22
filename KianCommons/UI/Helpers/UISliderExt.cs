@@ -3,11 +3,33 @@ namespace KianCommons.UI {
     using UnityEngine;
 
     public class UISliderExt : UISlider {
+        #region work around the bug with quantizing negative value
+        public new float m_StepSize;
+        public new float stepSize {
+            set {
+                base.stepSize = value * 0.01f; // set to small value to work around quantize negative problem.
+                this.m_StepSize = value;
+            }
+            get => this.m_StepSize;
+        }
+
+        protected override void OnValueChanged() {
+            // fix step size here.
+            m_RawValue = Quantize(m_RawValue, stepSize);
+            base.OnValueChanged();
+        }
+
+        public static float Quantize(float val, float step) {
+            return Mathf.Round(val / step) * step;
+        }
+
+        #endregion
+
         public override void Awake() {
             base.Awake();
             maxValue = 100;
             minValue = 0;
-            stepSize = 1f;
+            stepSize = 0.5f;
             scrollWheelAmount = 1f;
         }
 
