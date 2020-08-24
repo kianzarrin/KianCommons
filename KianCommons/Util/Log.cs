@@ -16,12 +16,12 @@ namespace KianCommons {
         /// <summary>
         /// Set to <c>true</c> to include log level in log entries.
         /// </summary>
-        private static readonly bool ShowLevel = false;
+        private static readonly bool ShowLevel = true;
 
         /// <summary>
         /// Set to <c>true</c> to include timestamp in log entries.
         /// </summary>
-        private static readonly bool ShowTimestamp = false;
+        private static readonly bool ShowTimestamp = true;
 
         /// <summary>
         /// File name for log file.
@@ -151,7 +151,7 @@ private static void LogToFile(string message, LogLevel level) {
         w.WriteLine(message);
 
         if (level == LogLevel.Error) {
-            w.WriteLine(new StackTrace().ToString());
+            w.WriteLine(new StackTrace(true).ToString());
             w.WriteLine();
         }
     }

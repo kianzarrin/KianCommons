@@ -20,10 +20,14 @@ namespace KianCommons {
 
     public static class PluginUtil {
         static PluginManager man => PluginManager.instance;
+
+        public static PluginInfo GetCSUR() => GetPlugin("CSUR ToolBox", 1959342332ul);
+
+        [Obsolete]
         internal static bool CSUREnabled;
+        [Obsolete]
         static bool IsCSUR(PluginInfo current) =>
             current.name.Contains("CSUR ToolBox") || 1959342332 == (uint)current.publishedFileID.AsUInt64;
-
         [Obsolete]
         public static void Init() {
             CSUREnabled = false;
@@ -76,10 +80,10 @@ namespace KianCommons {
             AllOptions = CaseInsensetive | IgnoreWhiteSpace,
 
             /// <summary>search for IUserMod.Name</summary>
-            UserModeName = 1<<5,
+            UserModName = 1<<5,
 
             /// <summary>search for the type of user mod instance excluding name space</summary>
-            UserModeType = 1<<6,
+            UserModType = 1<<6,
 
             /// <summary>search for the root name space of user mod type</summary>
             RootNameSpace = 1<<7,
@@ -90,12 +94,12 @@ namespace KianCommons {
             /// <summary>search for the name of the main assembly</summary>
             AssemblyName =  1<<9,
 
-            AllTargets = UserModeName | UserModeType | RootNameSpace | PluginName | AssemblyName,
+            AllTargets = UserModName | UserModType | RootNameSpace | PluginName | AssemblyName,
         }
 
 
         public const SearchOptionT DefaultsearchOptions =
-            SearchOptionT.Contains | SearchOptionT.IgnoreWhiteSpace | SearchOptionT.CaseInsensetive | SearchOptionT.UserModeName;
+            SearchOptionT.Contains | SearchOptionT.IgnoreWhiteSpace | SearchOptionT.CaseInsensetive | SearchOptionT.UserModName;
 
         public static PluginInfo GetPlugin(string searchName, ulong searchId, SearchOptionT searchOptions = DefaultsearchOptions) {
             return GetPlugin(searchName, new[] { searchId }, searchOptions);
@@ -110,11 +114,11 @@ namespace KianCommons {
                 IUserMod userModInstance = current.userModInstance as IUserMod;
                 if (userModInstance == null) continue;
 
-                if (searchOptions.IsFlagSet(SearchOptionT.UserModeName))
+                if (searchOptions.IsFlagSet(SearchOptionT.UserModName))
                     match = match || Match(userModInstance.Name, searchName, searchOptions);
 
                 Type userModType = userModInstance.GetType();
-                if (searchOptions.IsFlagSet(SearchOptionT.UserModeType))
+                if (searchOptions.IsFlagSet(SearchOptionT.UserModType))
                     match = match || Match(userModType.Name, searchName, searchOptions);
 
                 if (searchOptions.IsFlagSet(SearchOptionT.RootNameSpace)) {
