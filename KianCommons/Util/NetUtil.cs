@@ -244,19 +244,21 @@ namespace KianCommons {
             segmentID1.ToSegment().GetSharedNode(segmentID2);
 
         public static bool IsSegmentValid(ushort segmentId) {
-            if (segmentId != 0) {
-                return segmentId.ToSegment().m_flags.
-                    CheckFlags(required: NetSegment.Flags.Created, forbidden: NetSegment.Flags.Deleted);
-            }
-            return false;
+            if (segmentId == 0)
+                return false;
+            if (segmentId.ToSegment().Info == null)
+                return false;
+            return segmentId.ToSegment().m_flags
+                .CheckFlags(required: NetSegment.Flags.Created, forbidden: NetSegment.Flags.Deleted);
         }
 
         public static bool IsNodeValid(ushort nodeId) {
-            if (nodeId != 0) {
-                return nodeId.ToNode().m_flags.
-                    CheckFlags(required: NetNode.Flags.Created, forbidden: NetNode.Flags.Deleted);
-            }
-            return false;
+            if (nodeId == 0)
+                return false;
+            if (nodeId.ToNode().Info == null)
+                return false;
+            return nodeId.ToNode().m_flags
+                .CheckFlags(required: NetNode.Flags.Created, forbidden: NetNode.Flags.Deleted);
         }
 
         public static bool IsLaneValid(uint laneId) {
