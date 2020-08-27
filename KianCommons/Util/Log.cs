@@ -77,6 +77,7 @@ namespace KianCommons {
         [Conditional("DEBUG")]
         public static void DebugWait(string message, int id=0, float seconds=0.5f, bool copyToGameLog = true) {
             float diff = seconds + 1;
+            if (id < 0) id = -id;
             id = System.Math.Abs(id % MAX_WAIT_ID);
             if (times_[id] != null) {
                 var diff0 = DateTime.Now - times_[id];
