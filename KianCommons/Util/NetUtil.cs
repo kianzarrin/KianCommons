@@ -3,6 +3,7 @@ using ColossalFramework.Math;
 using KianCommons.Math;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using UnityEngine;
 
@@ -469,10 +470,24 @@ namespace KianCommons {
             }
         }
 
-        public static bool IsHeadingTowardsStartNode(LaneData lane) {
-            bool forward = lane.LaneInfo.m_finalDirection == NetInfo.Direction.Forward;
-            bool inverted = lane.LaneID.ToLane().m_segment.ToSegment().m_flags.IsFlagSet(NetSegment.Flags.Invert);
-            return forward ^ !inverted;
+        public static bool IsHeadingTowardsEndNode(uint laneID, byte laneIndex) {
+            ushort segmentID = laneID.ToLane().m_segment;
+            var laneInfo = segmentID.ToSegment().Info.m_lanes[laneIndex];
+            bool forward = laneInfo.m_finalDirection == NetInfo.Direction.Forward;
+            bool inverted = segmentID.ToSegment().m_flags.IsFlagSet(NetSegment.Flags.Invert);
+            bool b = forward ^ !inverted;
+            return !b;
+        }
+
+        public static void GetLaneTailAndHeadNodes(uint laneID, byte laneIndex, out ushort tail, out ushort head) {
+            ushort segmentID = laneID.ToLane().m_segment;
+            if (IsHeadingTowardsEndNode(laneID, laneIndex)) {
+                tail = segmentID.ToSegment().m_startNode;
+                head = segmentID.ToSegment().m_endNode;
+            } else {
+                tail = segmentID.ToSegment().m_endNode;
+                head = segmentID.ToSegment().m_startNode;
+            }
         }
 
         /// <summary>

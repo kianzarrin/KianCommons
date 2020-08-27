@@ -75,10 +75,9 @@ namespace KianCommons {
         static DateTime[] times_ = new DateTime[MAX_WAIT_ID];
 
         [Conditional("DEBUG")]
-        public static void DebugWait(string message, int id, float seconds=0.5f, bool copyToGameLog = true) {
+        public static void DebugWait(string message, int id=0, float seconds=0.5f, bool copyToGameLog = true) {
             float diff = seconds + 1;
             id = System.Math.Abs(id % MAX_WAIT_ID);
-            Log.Debug($"id={id} timses_.len={times_?.Length}");
             if (times_[id] != null) {
                 var diff0 = DateTime.Now - times_[id];
                 diff = diff0.Seconds;
@@ -88,6 +87,9 @@ namespace KianCommons {
                 times_[id] = DateTime.Now;
             }
         }
+
+        public static void DebugWait(string message, object id, float seconds = 0.5f, bool copyToGameLog = true) 
+            => DebugWait(message, id.GetHashCode(), seconds, copyToGameLog);
 
         /// <summary>
         /// Logs debug trace, only in <c>DEBUG</c> builds.
