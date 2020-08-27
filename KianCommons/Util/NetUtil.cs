@@ -431,6 +431,16 @@ namespace KianCommons {
             }
         }
 
+        // requires testing.
+        //public static bool IsLaneHeadingTowardsStartNode(uint laneID, int laneIndex) {
+        //    ushort segmentID = laneID.ToLane().m_segment;
+        //    var laneInfo = segmentID.ToSegment().Info.m_lanes[laneIndex];
+        //    bool backward = laneInfo.m_finalDirection == NetInfo.Direction.Backward;
+        //    bool inverted = segmentID.ToSegment().m_flags.IsFlagSet(NetSegment.Flags.Invert);
+        //    return backward ^ inverted;
+        //}
+
+
         public static IEnumerable<LaneData> IterateSegmentLanes(ushort segmentId) {
             int idx = 0;
             if (segmentId.ToSegment().Info == null) {
@@ -470,25 +480,7 @@ namespace KianCommons {
             }
         }
 
-        public static bool IsHeadingTowardsEndNode(uint laneID, byte laneIndex) {
-            ushort segmentID = laneID.ToLane().m_segment;
-            var laneInfo = segmentID.ToSegment().Info.m_lanes[laneIndex];
-            bool forward = laneInfo.m_finalDirection == NetInfo.Direction.Forward;
-            bool inverted = segmentID.ToSegment().m_flags.IsFlagSet(NetSegment.Flags.Invert);
-            bool b = forward ^ !inverted;
-            return !b;
-        }
 
-        public static void GetLaneTailAndHeadNodes(uint laneID, byte laneIndex, out ushort tail, out ushort head) {
-            ushort segmentID = laneID.ToLane().m_segment;
-            if (IsHeadingTowardsEndNode(laneID, laneIndex)) {
-                tail = segmentID.ToSegment().m_startNode;
-                head = segmentID.ToSegment().m_endNode;
-            } else {
-                tail = segmentID.ToSegment().m_endNode;
-                head = segmentID.ToSegment().m_startNode;
-            }
-        }
 
         /// <summary>
         /// sorted from outer lane to inner lane when heading toward <paramref name="startNode"/>
