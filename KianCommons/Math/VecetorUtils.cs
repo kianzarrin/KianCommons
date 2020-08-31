@@ -87,6 +87,15 @@ namespace KianCommons.Math {
         /// the resutl is normalized
         /// </summary>
         public static Vector3 NormalCCW(this Vector3 v) => new Vector3(-v.z, 0, +v.x).normalized;
+
+        /// <summary>
+        /// returns a new vector with corresponding index set to input value.
+        /// </summary>
+        /// <param name="index">0:x 1:y 2:z</param>
+        public static Vector3 SetI(this Vector3 v, float value, int index) {
+            v[index] = value;
+            return v;
+        }
         #endregion
     }
 }
