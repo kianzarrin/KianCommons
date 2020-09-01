@@ -6,13 +6,19 @@ namespace KianCommons {
     using System.Runtime.CompilerServices;
 
     public static class HarmonyUtil {
+        static bool harmonyInstalled_ = false;
         public static void AssertHarmonyInstalled() {
             if (!HarmonyHelper.IsHarmonyInstalled) {
                 string m =
                     "****** ERRRROOORRRRRR!!!!!!!!!! **************\n" +
                     "**********************************************\n" +
                     "    HARMONY MOD DEPENDANCY IS NOT INSTALLED!\n\n" +
-                    "solution: exit to desktop. unsub and resub to harmony mod. then run the game again.\n" +
+                    "solution:\n" +
+                    " - exit to desktop.\n" +
+                    " - unsub harmony mod.\n" +
+                    " - make sure harmony mod is deleted from the content folder\n" +
+                    " - resub to harmony mod.\n" +
+                    " - run the game again.\n" +
                     "**********************************************\n" +
                     "**********************************************\n";
                 Log.Error(m);
@@ -21,9 +27,14 @@ namespace KianCommons {
         }
 
         public static void InstallHarmony(string harmonyID) {
+            if (harmonyInstalled_) {
+                Log.Info("skipping harmony installation because its already installed");
+                return;
+            }
             AssertHarmonyInstalled();
             Log.Info("Patching...");
             PatchAll(harmonyID);
+            harmonyInstalled_ = true;
             Log.Info("Patched.");
         }
 
@@ -41,9 +52,14 @@ namespace KianCommons {
             AssertHarmonyInstalled();
             Log.Info("UnPatching...");
             UnpatchAll(harmonyID);
+            harmonyInstalled_ = false;
             Log.Info("UnPatched.");
         }
 
+        /// <summary>
+        /// assertion shall take place in a function that does not refrence Harmony.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
         static void UnpatchAll(string harmonyID) {
             var harmony = new Harmony(harmonyID);
             harmony.UnpatchAll(harmonyID);
