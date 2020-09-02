@@ -9,6 +9,7 @@ namespace KianCommons {
     using KianCommons.Math;
 
     public static class SerializationUtil {
+        public static Version DeserializationVersion;
 
         static BinaryFormatter GetBinaryFormatter =>
             new BinaryFormatter { AssemblyFormat = FormatterAssemblyStyle.Simple };
@@ -63,5 +64,8 @@ namespace KianCommons {
                 }
             }
         }
+
+        public static Vector3Serializable GetVector3(this SerializationInfo info, string name) =>
+            (Vector3Serializable)info.GetValue(name, typeof(Vector3Serializable));
     }
 }
