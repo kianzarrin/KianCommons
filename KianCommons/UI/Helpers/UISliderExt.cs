@@ -7,7 +7,7 @@ namespace KianCommons.UI {
         public new float m_StepSize;
         public new float stepSize {
             set {
-                base.stepSize = value * 0.01f; // set to small value to work around quantize negative problem.
+                //base.stepSize = 0f; // work around quantize negative problem.
                 this.m_StepSize = value;
             }
             get => this.m_StepSize;
@@ -15,12 +15,20 @@ namespace KianCommons.UI {
 
         protected override void OnValueChanged() {
             // fix step size here.
-            m_RawValue = Quantize(m_RawValue, stepSize);
+            QuantizeRawValue(stepSize);
             base.OnValueChanged();
         }
 
         public static float Quantize(float val, float step) {
             return Mathf.Round(val / step) * step;
+        }
+
+        public void QuantizeValue(float _stepSize) {
+            value = Quantize(value, _stepSize);
+        }
+
+        public void QuantizeRawValue(float _stepSize) {
+            m_RawValue = Quantize(m_RawValue, _stepSize);
         }
 
         #endregion
@@ -30,6 +38,7 @@ namespace KianCommons.UI {
             maxValue = 100;
             minValue = 0;
             stepSize = 0.5f;
+            // base.stepSize = 0f; // work around quantize negative problem.
             scrollWheelAmount = 1f;
         }
 

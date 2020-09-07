@@ -52,12 +52,17 @@ namespace KianCommons.UI.Helpers {
             button.verticalAlignment = UIVerticalAlignment.Middle;
             button.zOrder = 0;
             button.textScale = 0.8f;
-
-            eventSizeChanged += new PropertyChangedEventHandler<Vector2>((c, t) => {
-                button.size = t;
-                listWidth = (int)t.x; // TODO put in override.
-            });
+            listWidth = (int)width;
+            awakened_ = true;
         }
+        bool awakened_ = false;
+        protected override void OnSizeChanged() {
+            base.OnSizeChanged();
+            if (!awakened_) return;
+            triggerButton.size = size;
+            listWidth = (int)width;
+        }
+
     }
 }
 

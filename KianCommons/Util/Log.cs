@@ -75,7 +75,7 @@ namespace KianCommons {
         static DateTime[] times_ = new DateTime[MAX_WAIT_ID];
 
         [Conditional("DEBUG")]
-        public static void DebugWait(string message, int id=0, float seconds=0.5f, bool copyToGameLog = true) {
+        public static void DebugWait(string message, int id, float seconds=0.5f, bool copyToGameLog = true) {
             float diff = seconds + 1;
             if (id < 0) id = -id;
             id = System.Math.Abs(id % MAX_WAIT_ID);
@@ -89,8 +89,13 @@ namespace KianCommons {
             }
         }
 
-        public static void DebugWait(string message, object id, float seconds = 0.5f, bool copyToGameLog = true) 
-            => DebugWait(message, id.GetHashCode(), seconds, copyToGameLog);
+        [Conditional("DEBUG")]
+        public static void DebugWait(string message, object id = null, float seconds = 0.5f, bool copyToGameLog = true) {
+            if (id == null)
+                id = Environment.StackTrace + message;
+            DebugWait(message, id.GetHashCode(), seconds, copyToGameLog);
+
+        }
 
         /// <summary>
         /// Logs debug trace, only in <c>DEBUG</c> builds.
@@ -103,9 +108,7 @@ namespace KianCommons {
         {
             LogToFile(message, LogLevel.Debug);
             if (copyToGameLog)
-            {
                 UnityEngine.Debug.Log(message);
-            }
 }
 
 /// <summary>
