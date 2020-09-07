@@ -15,21 +15,21 @@ namespace KianCommons.UI {
 
         protected override void OnValueChanged() {
             // fix step size here.
-            QuantizeRawValue(stepSize);
+            RoundRawValue(stepSize);
             base.OnValueChanged();
         }
 
-        public static float Quantize(float val, float step) {
+        public static float Round(float val, float step) {
             if (step == 0)return val;
             return Mathf.Round(val / step) * step;
         }
 
-        public void QuantizeValue(float _stepSize) {
-            value = Quantize(value, _stepSize);
+        public void RoundValue(float _stepSize) {
+            value = Round(value, _stepSize);
         }
 
-        public void QuantizeRawValue(float _stepSize) {
-            m_RawValue = Quantize(m_RawValue, _stepSize);
+        public void RoundRawValue(float _stepSize) {
+            m_RawValue = Round(m_RawValue, _stepSize);
         }
 
         #endregion
