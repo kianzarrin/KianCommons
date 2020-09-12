@@ -6,7 +6,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
-namespace KianCommons.Utils {
+namespace KianCommons {
     public static class MeshUtil {
         public static Mesh LoadMesh(string fileName) {
             Assembly executingAssembly = Assembly.GetExecutingAssembly();

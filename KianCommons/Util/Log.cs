@@ -172,6 +172,9 @@ namespace KianCommons {
             }
         }
 
+    }
+
+    internal static class LogExtensions {
         /// <summary>
         /// useful for easily debuggin inline functions
         /// to be used like this example:

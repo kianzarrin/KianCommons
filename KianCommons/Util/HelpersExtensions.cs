@@ -70,12 +70,12 @@ namespace KianCommons {
             Assert(t1 == t2 || t1.IsSubclassOf(t2));
             FieldInfo[] fields = origin.GetType().GetFields();
             foreach (FieldInfo fieldInfo in fields) {
-                //Extensions.Log($"Copying field:<{fieldInfo.Name}> ...>");
+                //Log.Debug($"Copying field:<{fieldInfo.Name}> ...>");
                 object value = fieldInfo.GetValue(origin);
                 string strValue = value?.ToString() ?? "null";
-                //Extensions.Log($"Got field value:<{strValue}> ...>");
+                //Log.Debug($"Got field value:<{strValue}> ...>");
                 fieldInfo.SetValue(target, value);
-                //Extensions.Log($"Copied field:<{fieldInfo.Name}> value:<{strValue}>");
+                //Log.Debug($"Copied field:<{fieldInfo.Name}> value:<{strValue}>");
             }
         }
 
@@ -84,12 +84,12 @@ namespace KianCommons {
             Assert(origin is T, "origin is T");
             FieldInfo[] fields = typeof(T).GetFields();
             foreach (FieldInfo fieldInfo in fields) {
-                //Extensions.Log($"Copying field:<{fieldInfo.Name}> ...>");
+                //Log.Debug($"Copying field:<{fieldInfo.Name}> ...>");
                 object value = fieldInfo.GetValue(origin);
                 //string strValue = value?.ToString() ?? "null";
-                //Extensions.Log($"Got field value:<{strValue}> ...>");
+                //Log.Debug($"Got field value:<{strValue}> ...>");
                 fieldInfo.SetValue(target, value);
-                //Extensions.Log($"Copied field:<{fieldInfo.Name}> value:<{strValue}>");
+                //Log.Debug($"Copied field:<{fieldInfo.Name}> value:<{strValue}>");
             }
         }
     }

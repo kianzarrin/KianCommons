@@ -37,10 +37,10 @@ namespace KianCommons {
         /// throws exception if unsucessful.
         /// </summary>
         internal static LaneData GetLaneData(uint laneId) {
-            HelpersExtensions.Assert(laneId != 0, "laneId!=0");
+            Assertion.Assert(laneId != 0, "laneId!=0");
             var flags = laneId.ToLane().Flags();
             bool valid = (flags & NetLane.Flags.Created | NetLane.Flags.Deleted) != NetLane.Flags.Created;
-            HelpersExtensions.Assert(valid, "valid");
+            Assertion.Assert(valid, "valid");
             foreach (var laneData in IterateSegmentLanes(laneId.ToLane().m_segment))
                 if (laneData.LaneID == laneId)
                     return laneData;
@@ -341,7 +341,7 @@ namespace KianCommons {
         /// </summary>
         public static IEnumerable<ushort> GetCCSegList(ushort nodeID) {
             ushort segmentID0 = GetFirstSegment(nodeID);
-            HelpersExtensions.Assert(segmentID0 != 0, "GetFirstSegment!=0");
+            Assertion.Assert(segmentID0 != 0, "GetFirstSegment!=0");
             yield return segmentID0;
             ushort segmentID = segmentID0;
 
@@ -360,7 +360,7 @@ namespace KianCommons {
         /// </summary>
         public static IEnumerable<ushort> GetCWSegList(ushort nodeID) {
             ushort segmentID0 = GetFirstSegment(nodeID);
-            HelpersExtensions.Assert(segmentID0 != 0, "GetFirstSegment!=0");
+            Assertion.Assert(segmentID0 != 0, "GetFirstSegment!=0");
             yield return segmentID0;
             ushort segmentID = segmentID0;
 
