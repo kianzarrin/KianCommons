@@ -25,7 +25,7 @@ namespace KianCommons {
             Directory.CreateDirectory(dir);
             string path = Path.Combine(dir, fileName + ".obj");
             Log.Debug($"dumping mesh {mesh.name} to " + path);
-            using (FileStream fs = new FileStream( Path.Combine(dir, fileName + ".obj"), FileMode.Create)) {
+            using (FileStream fs = new FileStream( path, FileMode.Create)) {
                 OBJLoader.ExportOBJ(mesh.EncodeOBJ(), fs);
             }
         }
@@ -79,7 +79,7 @@ namespace KianCommons {
                 newNormals[i] = mesh.normals[j];
                 newTangents[i] = mesh.tangents[j];
             }
-            var newMesh = new Mesh();
+            var newMesh = new Mesh { name = mesh.name + (keepLeftSide ? "_CutLeftHalf": "_CutRightHalf") };
             newMesh.bounds = mesh.bounds;
             newMesh.vertices = newVertices;
             newMesh.normals = newNormals;
@@ -108,7 +108,7 @@ namespace KianCommons {
                 }
             }
 
-            var newMesh = new Mesh();
+            var newMesh = new Mesh { name = mesh.name + (keepLeftSide ? "_CutLeftHalf" : "_CutRightHalf") };
             newMesh.bounds = mesh.bounds;
             newMesh.vertices = mesh.vertices.ToArray();
             newMesh.uv = mesh.uv.ToArray();
@@ -138,7 +138,7 @@ namespace KianCommons {
                 }
             }
 
-            var newMesh = new Mesh();
+            var newMesh = new Mesh { name = mesh.name + "_CutMeshGeneric" };
             newMesh.bounds = mesh.bounds;
             newMesh.vertices = mesh.vertices.ToArray();
             newMesh.uv = mesh.uv.ToArray();
@@ -193,7 +193,7 @@ namespace KianCommons {
                 newNormals[i] = mesh.normals[j];
                 newTangents[i] = mesh.tangents[j];
             }
-            var newMesh = new Mesh();
+            var newMesh = new Mesh { name = mesh.name + "_CutMeshGeneric" };
             newMesh.bounds = mesh.bounds;
             newMesh.vertices = newVertices;
             newMesh.normals = newNormals;
