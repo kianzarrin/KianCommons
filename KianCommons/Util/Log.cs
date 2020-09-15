@@ -118,6 +118,10 @@ namespace KianCommons {
             }
         }
 
+        [Obsolete("kept for backward compatibility")]
+        public static void Warning(string m)
+            => Error("Warning:" + m);
+
         /// <summary>
         /// Logs error message and also outputs a stack trace.
         /// </summary>
