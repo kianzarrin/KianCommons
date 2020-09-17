@@ -43,7 +43,7 @@ namespace KianCommons.UI {
             scrollWheelAmount = 1f;
         }
 
-        public float Padding = 0; // contianer has padding
+        public float Padding = 0; // modify to add padding
         public UISlicedSprite SlicedSprite;
 
         public override void Start() {
@@ -55,6 +55,9 @@ namespace KianCommons.UI {
             name = GetType().Name;
             height = 15f;
             width = parent.width - 2 * Padding;
+            if(parent is UIPanel parentPanel) {
+                width -= parentPanel.padding.horizontal + parentPanel.autoLayoutPadding.horizontal;
+            }
             AlignTo(parent, UIAlignAnchor.TopLeft);
 
             //Log.Debug("parent:" + parent);
