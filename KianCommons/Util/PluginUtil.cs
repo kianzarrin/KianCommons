@@ -145,9 +145,9 @@ namespace KianCommons {
         }
 
         public static bool Match(string name1, string name2, SearchOptionT searchOptions = DefaultsearchOptions) {
-            if (!HelpersExtensions.ToBool(name1)) return false;
-            HelpersExtensions.Assert((searchOptions & SearchOptionT.AllModes) != 0);
-            HelpersExtensions.Assert((searchOptions & SearchOptionT.AllTargets) != 0);
+            if (!StringExtensions.ToBool(name1)) return false;
+            Assertion.Assert((searchOptions & SearchOptionT.AllModes) != 0);
+            Assertion.Assert((searchOptions & SearchOptionT.AllTargets) != 0);
 
             if (searchOptions.IsFlagSet(SearchOptionT.CaseInsensetive)) {
                 name1 = name1.ToLower();
@@ -177,7 +177,7 @@ namespace KianCommons {
         }
 
         public static bool Matches(PluginInfo plugin, ulong[] searchIds) {
-            HelpersExtensions.AssertNotNull(plugin);
+            Assertion.AssertNotNull(plugin);
             if (searchIds == null)
                 return false;
             foreach (var id in searchIds) {

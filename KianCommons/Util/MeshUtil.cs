@@ -25,7 +25,7 @@ namespace KianCommons {
             Directory.CreateDirectory(dir);
             string path = Path.Combine(dir, fileName + ".obj");
             Log.Debug($"dumping mesh {mesh.name} to " + path);
-            using (FileStream fs = new FileStream( Path.Combine(dir, fileName + ".obj"), FileMode.Create)) {
+            using (FileStream fs = new FileStream( path, FileMode.Create)) {
                 OBJLoader.ExportOBJ(mesh.EncodeOBJ(), fs);
             }
         }
@@ -82,7 +82,7 @@ namespace KianCommons {
                 newNormals[i] = mesh.normals[j];
                 newTangents[i] = mesh.tangents[j];
             }
-            var newMesh = new Mesh();
+            var newMesh = new Mesh { name = mesh.name + (keepLeftSide ? "_CutLeftHalf": "_CutRightHalf") };
             newMesh.bounds = mesh.bounds;
             newMesh.vertices = newVertices;
             newMesh.normals = newNormals;
@@ -107,14 +107,14 @@ namespace KianCommons {
                     return keepLeftSide ? mesh.vertices[t].x < 0 + EPSILON : mesh.vertices[t].x > 0 - EPSILON;
                 }
                 if (GoodSide(i) && GoodSide(i + 1) && GoodSide(i + 2)) {
-                    //Log._Debug($"Adding triangle[i:i+2]i={i}");
+                    //Log.Debug($"Adding triangle[i:i+2]i={i}");
                     newTriangleList.Add(mesh.triangles[i]);
                     newTriangleList.Add(mesh.triangles[i + 1]);
                     newTriangleList.Add(mesh.triangles[i + 2]);
                 }
             }
 
-            var newMesh = new Mesh();
+            var newMesh = new Mesh { name = mesh.name + (keepLeftSide ? "_CutLeftHalf" : "_CutRightHalf") };
             newMesh.bounds = mesh.bounds;
             newMesh.vertices = mesh.vertices.ToArray();
             newMesh.uv = mesh.uv.ToArray();
@@ -141,14 +141,14 @@ namespace KianCommons {
                     return IsGoodFunc(mesh.vertices[t]);
                 }
                 if (IsGood(i) && IsGood(i + 1) && IsGood(i + 2)) {
-                    //Log._Debug($"Adding triangle[i:i+2]i={i}");
+                    //Log.Debug($"Adding triangle[i:i+2]i={i}");
                     newTriangleList.Add(mesh.triangles[i]);
                     newTriangleList.Add(mesh.triangles[i + 1]);
                     newTriangleList.Add(mesh.triangles[i + 2]);
                 }
             }
 
-            var newMesh = new Mesh();
+            var newMesh = new Mesh { name = mesh.name + "_CutMeshGeneric" };
             newMesh.bounds = mesh.bounds;
             newMesh.vertices = mesh.vertices.ToArray();
             newMesh.uv = mesh.uv.ToArray();
@@ -206,7 +206,7 @@ namespace KianCommons {
                 newNormals[i] = mesh.normals[j];
                 newTangents[i] = mesh.tangents[j];
             }
-            var newMesh = new Mesh();
+            var newMesh = new Mesh { name = mesh.name + "_CutMeshGeneric" };
             newMesh.bounds = mesh.bounds;
             newMesh.vertices = newVertices;
             newMesh.normals = newNormals;

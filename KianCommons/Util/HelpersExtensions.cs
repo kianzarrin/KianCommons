@@ -8,6 +8,7 @@ namespace KianCommons {
     using ICities;
     using System.Diagnostics;
     using System.Reflection;
+    using UnityEngine.SceneManagement;
 
     internal static class EnumBitMaskExtensions {
         internal static int String2Enum<T>(string str) where T : Enum {
@@ -92,6 +93,14 @@ namespace KianCommons {
                 //Log.Debug($"Copied field:<{fieldInfo.Name}> value:<{strValue}>");
             }
         }
+
+        internal static string GetPrettyFunctionName(MethodInfo m) {
+            string s = m.Name;
+            string[] ss = s.Split(new[] { "g__", "|" }, System.StringSplitOptions.RemoveEmptyEntries);
+            if (ss.Length == 3)
+                return ss[1];
+            return s;
+        }
     }
 
     internal static class StringExtensions {
@@ -138,14 +147,30 @@ namespace KianCommons {
     }
 
     internal static class Assertion {
+        [Conditional("DEBUG")]
+        internal static void AssertDebug(bool con, string m = "") => Assert(con, m);
+
+        [Conditional("DEBUG")]
+        internal static void AssertNotNullDebug(object obj, string m = "") => AssertNotNull(obj, m);
+
+        [Conditional("DEBUG")]
+        internal static void AssertEqualDebug<T>(T a, T b, string m = "")
+            where T : IComparable
+            => AssertEqual(a, b, m);
+
+        [Conditional("DEBUG")]
+        internal static void AssertNeqDebug<T>(T a, T b, string m = "")
+            where T : IComparable
+            => AssertNeq(a, b, m);
+
         internal static void AssertNotNull(object obj, string m = "") =>
             Assert(obj != null, " unexpected null " + m);
 
-        internal static void AssertEqual(int a, int b, string m = "") =>
-            Assert(a == b, "expected {a} == {b} | " + m);
+        internal static void AssertEqual<T>(T a, T b, string m = "") where T:IComparable=>
+            Assert(a.CompareTo(b) == 0, $"expected {a} == {b} | " + m);
 
-        internal static void AssertNeq(int a, int b, string m = "") =>
-            Assert(a != b, "expected {a} != {b} | " + m);
+        internal static void AssertNeq<T>(T a, T b, string m = "") where T : IComparable =>
+            Assert(a.CompareTo(b) != 0, $"expected {a} != {b} | " + m);
 
         internal static void Assert(bool con, string m = "") {
             if (!con) {
@@ -189,14 +214,19 @@ namespace KianCommons {
             catch { }
             return false;
         }
+
+        /// <summary>
+        /// determines if simulation is inside game/editor. useful to detect hot-reload.
+        /// </summary>
+        internal static bool InGameOrEditor =>         
+            SceneManager.GetActiveScene().name != "IntroScreen" &&
+            SceneManager.GetActiveScene().name != "Startup";
+
         internal static bool InGame => CheckGameMode(AppMode.Game);
         internal static bool InAssetEditor => CheckGameMode(AppMode.AssetEditor);
-        internal static bool IsActive =>
-#if DEBUG
-            InGame || InAssetEditor;
-#else
-            InGame;
-#endif
+
+        [Obsolete]
+        internal static bool IsActive => InGameOrEditor;
 
         /// <summary>
         /// returns a new List calling Clone() on all items.

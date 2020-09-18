@@ -7,7 +7,7 @@ namespace KianCommons {
 
     public static class HarmonyUtil {
         static bool harmonyInstalled_ = false;
-        public static void AssertHarmonyInstalled() {
+        public static void AssertCitiesHarmonyInstalled() {
             if (!HarmonyHelper.IsHarmonyInstalled) {
                 string m =
                     "****** ERRRROOORRRRRR!!!!!!!!!! **************\n" +
@@ -31,7 +31,7 @@ namespace KianCommons {
                 Log.Info("skipping harmony installation because its already installed");
                 return;
             }
-            AssertHarmonyInstalled();
+            AssertCitiesHarmonyInstalled();
             Log.Info("Patching...");
             PatchAll(harmonyID);
             harmonyInstalled_ = true;
@@ -49,7 +49,7 @@ namespace KianCommons {
         }
 
         public static void UninstallHarmony(string harmonyID) {
-            AssertHarmonyInstalled();
+            AssertCitiesHarmonyInstalled();
             Log.Info("UnPatching...");
             UnpatchAll(harmonyID);
             harmonyInstalled_ = false;

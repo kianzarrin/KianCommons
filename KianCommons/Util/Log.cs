@@ -118,6 +118,10 @@ namespace KianCommons {
             }
         }
 
+        [Obsolete("kept for backward compatibility")]
+        public static void Warning(string m)
+            => Error("Warning:" + m);
+
         /// <summary>
         /// Logs error message and also outputs a stack trace.
         /// </summary>
@@ -139,13 +143,16 @@ namespace KianCommons {
         /// <param name="level">Logging level. If set to <see cref="LogLevel.Error"/> a stack trace will be appended.</param>
         private static void LogToFile(string message, LogLevel level) {
             try {
+                var ticks = Timer.ElapsedTicks;
                 using StreamWriter w = File.AppendText(LogFilePath);
                 if (ShowLevel) {
-                    w.Write("{0, -8}", $"[{level.ToString()}] ");
+                    w.Write("{0, -8}", $"[{level}] ");
                 }
 
                 if (ShowTimestamp) {
-                    w.Write("{0, 15}", Timer.ElapsedTicks + " | ");
+                    long secs = ticks / Stopwatch.Frequency;
+                    long fraction = ticks % Stopwatch.Frequency;
+                    w.Write($"{secs:n0}.{fraction:D7} | ");
                 }
 
                 w.WriteLine(message);
