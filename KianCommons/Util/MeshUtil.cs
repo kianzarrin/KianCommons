@@ -30,6 +30,9 @@ namespace KianCommons {
             }
         }
 
+        /// <summary>
+        /// drops unused vertices.
+        /// </summary>
         public static Mesh CutMesh(this Mesh mesh, bool keepLeftSide) {
             const int EMPTY = -2;
 
@@ -88,6 +91,9 @@ namespace KianCommons {
             return newMesh;
         }
 
+        /// <summary>
+        /// does not drop unused vertices.
+        /// </summary>
         public static Mesh CutMesh2(this Mesh mesh, bool keepLeftSide) {
             List<int> indexList = new List<int>(mesh.vertexCount);
             for (int i = 0; i < indexList.Count; ++i) indexList[i] = i; // create linear list
@@ -119,6 +125,10 @@ namespace KianCommons {
         }
 
         public delegate bool IsGoodHandler(Vector3 vertex);
+
+        /// <summary>
+        /// does not drop unused vertices.
+        /// </summary>
         public static Mesh CutMeshGeneric2(this Mesh mesh, IsGoodHandler IsGoodFunc) {
             List<int> indexList = new List<int>(mesh.vertexCount);
             for (int i = 0; i < indexList.Count; ++i) indexList[i] = i; // create linear list
@@ -148,6 +158,9 @@ namespace KianCommons {
             return newMesh;
         }
 
+        /// <summary>
+        /// drops unused vertices.
+        /// </summary>
         public static Mesh CutMeshGeneric(this Mesh mesh, IsGoodHandler IsGoodFunc) {
             const int EMPTY = -2;
 
