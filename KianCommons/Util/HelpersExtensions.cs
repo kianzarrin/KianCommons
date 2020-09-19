@@ -144,6 +144,19 @@ namespace KianCommons {
             return ret;
         }
 
+        internal static string ToSTR<T>(this IEnumerable<T> list, string format) {
+            MethodInfo mToString = typeof(T).GetMethod("ToString", new[] { typeof(string)})
+                ?? throw new Exception($"{typeof(T).Name}.ToString(string) was not found");
+            var arg = new object[] { format };
+            string ret = "{ ";
+            foreach (T item in list) {
+                var s = mToString.Invoke(item, arg);
+                ret += $"{s}, ";
+            }
+            ret.Remove(ret.Length - 2, 2);
+            ret += " }";
+            return ret;
+        }
     }
 
     internal static class Assertion {
