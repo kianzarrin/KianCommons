@@ -6,7 +6,7 @@ namespace KianCommons {
     using ICities;
     using System.Diagnostics;
     using System.Reflection;
-
+    using UnityEngine.SceneManagement;
 
     internal static class StackHelpers {
         public static string ToStringPretty(this StackTrace st, bool fullPath=false, bool nameSpace=false, bool showArgs = false) {
@@ -141,6 +141,12 @@ namespace KianCommons {
 #else
             InGame;
 #endif
+
+        internal static bool InStartup =>
+            SceneManager.GetActiveScene().name == "IntroScreen" ||
+            SceneManager.GetActiveScene().name == "Startup";
+
+
 
         /// <summary>
         /// returns a new List calling Clone() on all items.
