@@ -82,16 +82,20 @@ namespace KianCommons.UI {
             SlicedSprite.width = SlicedSprite.parent.width - 2 * Padding;
         }
 
+
+        public static Color MixedValuesColor = Color.Lerp(Color.yellow, Color.white, 0.7f);
         private bool _mixedValues = false;
         public virtual bool MixedValues {
             set {
-                _mixedValues = value;
-                if (!value) {
-                    thumbObject.color = Color.white;
-                    thumbObject.opacity = 1;
-                } else {
-                    thumbObject.color = Color.grey;
-                    thumbObject.opacity = 0.2f;
+                if (_mixedValues != value) {
+                    _mixedValues = value;
+                    if (!value) {
+                        thumbObject.color = Color.white;
+                        thumbObject.opacity = 1;
+                    } else {
+                        thumbObject.color = MixedValuesColor;
+                        thumbObject.opacity = 0.9f;
+                    }
                 }
             }
             get => _mixedValues;
