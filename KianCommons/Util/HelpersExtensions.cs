@@ -218,6 +218,7 @@ namespace KianCommons {
 
         internal static string ToSTR<T>(this IEnumerable<T> list)
         {
+            if (list == null) return "null";
             string ret = "{ ";
             foreach (T item in list)
             {
