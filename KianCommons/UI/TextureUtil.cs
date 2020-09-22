@@ -4,7 +4,7 @@ namespace KianCommons.UI {
     using System.IO;
     using System.Reflection;
     using UnityEngine;
-    using static HelpersExtensions;
+    using static KianCommons.Assertion;
     using Object = UnityEngine.Object;
 
     public static class TextureUtil {

@@ -1,6 +1,5 @@
 namespace KianCommons {
     using System;
-    using System.Data;
     using System.Diagnostics;
     using System.IO;
     using System.Reflection;
@@ -75,7 +74,7 @@ namespace KianCommons {
         static DateTime[] times_ = new DateTime[MAX_WAIT_ID];
 
         [Conditional("DEBUG")]
-        public static void DebugWait(string message, int id, float seconds=0.5f, bool copyToGameLog = true) {
+        public static void DebugWait(string message,int id, float seconds = 0.5f, bool copyToGameLog = true) {
             float diff = seconds + 1;
             if (id < 0) id = -id;
             id = System.Math.Abs(id % MAX_WAIT_ID);
@@ -100,83 +99,97 @@ namespace KianCommons {
         /// <summary>
         /// Logs debug trace, only in <c>DEBUG</c> builds.
         /// </summary>
-        /// 
         /// <param name="message">Log entry text.</param>
         /// <param name="copyToGameLog">If <c>true</c> will copy to the main game log file.</param>
         [Conditional("DEBUG")]
-        public static void Debug(string message, bool copyToGameLog = true)
-        {
+        public static void Debug(string message, bool copyToGameLog = true) {
             LogToFile(message, LogLevel.Debug);
             if (copyToGameLog)
                 UnityEngine.Debug.Log(message);
-}
-
-/// <summary>
-/// Logs info message.
-/// </summary>
-/// 
-/// <param name="message">Log entry text.</param>
-/// <param name="copyToGameLog">If <c>true</c> will copy to the main game log file.</param>
-public static void Info(string message, bool copyToGameLog = false) {
-    LogToFile(message, LogLevel.Info);
-    if (copyToGameLog) {
-        UnityEngine.Debug.Log(typeof(Log).Assembly.GetName().Name + " : " + message);
-    }
-}
-
-/// <summary>
-/// Logs error message and also outputs a stack trace.
-/// </summary>
-/// 
-/// <param name="message">Log entry text.</param>
-/// <param name="copyToGameLog">If <c>true</c> will copy to the main game log file.</param>
-public static void Error(string message, bool copyToGameLog = true) {
-    LogToFile(message, LogLevel.Error);
-    if (copyToGameLog) {
-        UnityEngine.Debug.LogError(message);
-    }
-}
-
-/// <summary>
-/// Write a message to log file.
-/// </summary>
-/// 
-/// <param name="message">Log entry text.</param>
-/// <param name="level">Logging level. If set to <see cref="LogLevel.Error"/> a stack trace will be appended.</param>
-private static void LogToFile(string message, LogLevel level) {
-    try {
-        using StreamWriter w = File.AppendText(LogFilePath);
-        if (ShowLevel) {
-            w.Write("{0, -8}", $"[{level.ToString()}] ");
         }
 
-        if (ShowTimestamp) {
-            w.Write("{0, 15}", Timer.ElapsedTicks + " | ");
+        /// <summary>
+        /// Logs info message.
+        /// </summary>
+        /// 
+        /// <param name="message">Log entry text.</param>
+        /// <param name="copyToGameLog">If <c>true</c> will copy to the main game log file.</param>
+        public static void Info(string message, bool copyToGameLog = false) {
+            LogToFile(message, LogLevel.Info);
+            if (copyToGameLog) {
+                UnityEngine.Debug.Log(typeof(Log).Assembly.GetName().Name + " : " + message);
+            }
         }
 
-        w.WriteLine(message);
-
-        if (level == LogLevel.Error) {
-            w.WriteLine(new StackTrace(true).ToString());
-            w.WriteLine();
+        /// <summary>
+        /// Logs error message and also outputs a stack trace.
+        /// </summary>
+        /// 
+        /// <param name="message">Log entry text.</param>
+        /// <param name="copyToGameLog">If <c>true</c> will copy to the main game log file.</param>
+        public static void Error(string message, bool copyToGameLog = true) {
+            LogToFile(message, LogLevel.Error);
+            if (copyToGameLog) {
+                UnityEngine.Debug.LogError(message);
+            }
         }
-    }
-    catch {
-        // ignore
-    }
-}
 
-internal static void LogToFileSimple(string file, string message) {
-    try {
-        using StreamWriter w = File.AppendText(file);
-        w.WriteLine(message);
-        w.WriteLine(new StackTrace().ToString());
-        w.WriteLine();
-    }
-    catch {
-        // ignore
-    }
-}
+        /// <summary>
+        /// Write a message to log file.
+        /// </summary>
+        /// 
+        /// <param name="message">Log entry text.</param>
+        /// <param name="level">Logging level. If set to <see cref="LogLevel.Error"/> a stack trace will be appended.</param>
+        private static void LogToFile(string message, LogLevel level) {
+            try {
+                var ticks = Timer.ElapsedTicks;
+                using StreamWriter w = File.AppendText(LogFilePath);
+                if (ShowLevel) {
+                    w.Write("{0, -8}", $"[{level}] ");
+                }
 
+                if (ShowTimestamp) {
+                    long secs = ticks / Stopwatch.Frequency;
+                    long fraction = ticks % Stopwatch.Frequency;
+                    w.Write($"{secs:n0}.{fraction:D7} | ");
+                }
+
+                w.WriteLine(message);
+
+                if (level == LogLevel.Error) {
+                    w.WriteLine(new StackTrace(true).ToString());
+                    w.WriteLine();
+                }
+            }
+            catch {
+                // ignore
+            }
+        }
+
+        internal static void LogToFileSimple(string file, string message) {
+            try {
+                using StreamWriter w = File.AppendText(file);
+                w.WriteLine(message);
+                w.WriteLine(new StackTrace().ToString());
+                w.WriteLine();
+            }
+            catch {
+                // ignore
+            }
+        }
+
+    }
+
+    internal static class LogExtensions {
+        /// <summary>
+        /// useful for easily debuggin inline functions
+        /// to be used like this example:
+        /// TYPE inlinefunctionname(...) => expression
+        /// TYPE inlinefunctionname(...) => expression.LogRet("messege");
+        /// </summary>
+        internal static T LogRet<T>(this T a, string m) {
+            Log.Debug(m + a);
+            return a;
+        }
     }
 }

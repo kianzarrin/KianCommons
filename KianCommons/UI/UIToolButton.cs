@@ -6,7 +6,7 @@ using System.Reflection;
 /* A lot of copy-pasting from Crossings mod by Spectra and Roundabout Mod by Strad. The sprites are partly copied as well. */
 
 namespace KianCommons.UI {
-    using static HelpersExtensions;
+    using static KianCommons.Assertion;
 
     public class UIToolButton : UIButton {
         public static UIToolButton Instace { get; private set;}

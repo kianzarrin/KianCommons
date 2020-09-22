@@ -1,3 +1,5 @@
+using static KianCommons.Assertion;
+
 namespace KianCommons {
     using System;
     using System.Collections.Generic;
@@ -46,61 +48,29 @@ namespace KianCommons {
 
     }
 
-    public static class HelpersExtensions
-    {
-        internal static bool InSimulationThread() =>
-            System.Threading.Thread.CurrentThread == SimulationManager.instance.m_simulationThread;
-
-        public static bool VERBOSE = false;
-
-        public static bool[] ALL_BOOL = new bool[] { false, true};
-         
-        public static Version Version(this Assembly asm) =>
-            asm.GetName().Version;
-
-        public static Version VersionOf(this Type t) =>
-            t.Assembly.GetName().Version;
-
-        public static Version VersionOf(this object obj) =>
-            VersionOf(obj.GetType());
-
-        public static void CopyProperties(object target, object origin) {
-            var t1 = target.GetType();
-            var t2 = origin.GetType();
-            Assert(t1 == t2 || t1.IsSubclassOf(t2));
-            FieldInfo[] fields = origin.GetType().GetFields();
-            foreach (FieldInfo fieldInfo in fields) {
-                //Extensions.Log($"Copying field:<{fieldInfo.Name}> ...>");
-                object value = fieldInfo.GetValue(origin);
-                string strValue = value?.ToString() ?? "null";
-                //Extensions.Log($"Got field value:<{strValue}> ...>");
-                fieldInfo.SetValue(target, value);
-                //Extensions.Log($"Copied field:<{fieldInfo.Name}> value:<{strValue}>");
-            }
-        }
-
-        public static void CopyProperties<T>(object target, object origin) {
-            Assert(target is T, "target is T");
-            Assert(origin is T, "origin is T");
-            FieldInfo[] fields = typeof(T).GetFields();
-            foreach (FieldInfo fieldInfo in fields) {
-                //Extensions.Log($"Copying field:<{fieldInfo.Name}> ...>");
-                object value = fieldInfo.GetValue(origin);
-                //string strValue = value?.ToString() ?? "null";
-                //Extensions.Log($"Got field value:<{strValue}> ...>");
-                fieldInfo.SetValue(target, value);
-                //Extensions.Log($"Copied field:<{fieldInfo.Name}> value:<{strValue}>");
-            }
-        }
-
-        public static int String2Enum<T>(string str) where T: Enum {
+    internal static class EnumBitMaskExtensions {
+        internal static int String2Enum<T>(string str) where T : Enum {
             return Array.IndexOf(Enum.GetNames(typeof(T)), str);
         }
 
-        public static T GetMaxEnumValue<T>() =>
+        internal static T Max<T>()
+            where T : Enum =>
+            Enum.GetValues(typeof(T)).Cast<T>().Max();
+
+        internal static void SetBit(this ref byte b, int idx) => b |= (byte)(1 << idx);
+        internal static void ClearBit(this ref byte b, int idx) => b &= ((byte)~(1 << idx));
+        internal static bool GetBit(this byte b, int idx) => (b & (byte)(1 << idx)) != 0;
+        internal static void SetBit(this ref byte b, int idx, bool value) {
+            if (value)
+                b.SetBit(idx);
+            else
+                b.ClearBit(idx);
+        }
+
+        internal static T GetMaxEnumValue<T>() =>
             System.Enum.GetValues(typeof(T)).Cast<T>().Max();
 
-        public static int GetEnumCount<T>() =>
+        internal static int GetEnumCount<T>() =>
             System.Enum.GetValues(typeof(T)).Length;
 
         private static void CheckEnumWithFlags<T>() {
@@ -112,79 +82,66 @@ namespace KianCommons {
             }
         }
 
-        public static bool CheckFlags(this NetNode.Flags value, NetNode.Flags required, NetNode.Flags forbidden) =>
-            (value & (required|forbidden)) == required;
-
-
-        public static bool CheckFlags(this NetSegment.Flags value, NetSegment.Flags required, NetSegment.Flags forbidden) =>
+        internal static bool CheckFlags(this NetNode.Flags value, NetNode.Flags required, NetNode.Flags forbidden) =>
             (value & (required | forbidden)) == required;
 
-        public static bool CheckFlags(this NetLane.Flags value, NetLane.Flags required, NetLane.Flags forbidden) =>
+
+        internal static bool CheckFlags(this NetSegment.Flags value, NetSegment.Flags required, NetSegment.Flags forbidden) =>
             (value & (required | forbidden)) == required;
 
-        internal static AppMode currentMode => SimulationManager.instance.m_ManagersWrapper.loading.currentMode;
-        internal static bool CheckGameMode(AppMode mode)
-        {
-            try
-            {
-                if (currentMode == mode)
-                    return true;
-            }
-            catch { }
-            return false;
-        }
-        internal static bool InGame => CheckGameMode(AppMode.Game);
-        internal static bool InAssetEditor => CheckGameMode(AppMode.AssetEditor);
-        internal static bool IsActive =>
-#if DEBUG
-            InGame || InAssetEditor;
-#else
-            InGame;
-#endif
+        internal static bool CheckFlags(this NetLane.Flags value, NetLane.Flags required, NetLane.Flags forbidden) =>
+            (value & (required | forbidden)) == required;
+    }
 
-        internal static bool InStartup =>
-            SceneManager.GetActiveScene().name == "IntroScreen" ||
-            SceneManager.GetActiveScene().name == "Startup";
+    internal static class AssemblyTypeExtensions {
+        internal static Version Version(this Assembly asm) =>
+          asm.GetName().Version;
 
+        internal static Version VersionOf(this Type t) =>
+            t.Assembly.GetName().Version;
 
+        internal static Version VersionOf(this object obj) =>
+            VersionOf(obj.GetType());
 
-        /// <summary>
-        /// returns a new List calling Clone() on all items.
-        /// </summary>
-        internal static List<T> Clone1<T>(this IList<T> listToClone) where T : ICloneable =>
-            listToClone.Select(item => (T)item.Clone()).ToList();
-
-        /// <summary>
-        /// returns a new List copying all item
-        /// </summary>
-        internal static List<T> Clone0<T>(this IList<T> listToClone) =>
-            listToClone.Select(item=>item).ToList();
-
-
-        /// <summary>
-        /// useful for easily debuggin inline functions
-        /// to be used like this example:
-        /// TYPE inlinefunctionname(...) => expression
-        /// TYPE inlinefunctionname(...) => expression.LogRet("messege");
-        /// </summary>
-        internal static T LogRet<T>(this T a, string m)
-        {
-            Log.Debug(m + a);
-            return a;
-        }
-
-        static Stopwatch ticks = null;
-        internal static void LogWait(string m) {
-            if (ticks == null) {
-                Log.Info(m);
-                ticks = Stopwatch.StartNew();
-            } else if (ticks.Elapsed.TotalSeconds > .5) {
-                Log.Info(m);
-                ticks.Reset();
-                ticks.Start();
+        internal static void CopyProperties(object target, object origin) {
+            var t1 = target.GetType();
+            var t2 = origin.GetType();
+            Assert(t1 == t2 || t1.IsSubclassOf(t2));
+            FieldInfo[] fields = origin.GetType().GetFields();
+            foreach (FieldInfo fieldInfo in fields) {
+                //Log.Debug($"Copying field:<{fieldInfo.Name}> ...>");
+                object value = fieldInfo.GetValue(origin);
+                string strValue = value?.ToString() ?? "null";
+                //Log.Debug($"Got field value:<{strValue}> ...>");
+                fieldInfo.SetValue(target, value);
+                //Log.Debug($"Copied field:<{fieldInfo.Name}> value:<{strValue}>");
             }
         }
 
+        internal static void CopyProperties<T>(object target, object origin) {
+            Assert(target is T, "target is T");
+            Assert(origin is T, "origin is T");
+            FieldInfo[] fields = typeof(T).GetFields();
+            foreach (FieldInfo fieldInfo in fields) {
+                //Log.Debug($"Copying field:<{fieldInfo.Name}> ...>");
+                object value = fieldInfo.GetValue(origin);
+                //string strValue = value?.ToString() ?? "null";
+                //Log.Debug($"Got field value:<{strValue}> ...>");
+                fieldInfo.SetValue(target, value);
+                //Log.Debug($"Copied field:<{fieldInfo.Name}> value:<{strValue}>");
+            }
+        }
+
+        internal static string GetPrettyFunctionName(MethodInfo m) {
+            string s = m.Name;
+            string[] ss = s.Split(new[] { "g__", "|" }, System.StringSplitOptions.RemoveEmptyEntries);
+            if (ss.Length == 3)
+                return ss[1];
+            return s;
+        }
+    }
+
+    internal static class StringExtensions {
         /// <summary>
         /// returns false if string is null or empty. otherwise returns true.
         /// </summary>
@@ -210,8 +167,7 @@ namespace KianCommons {
         }
 
 
-        internal static string CenterString(this string stringToCenter, int totalLength)
-        {
+        internal static string CenterString(this string stringToCenter, int totalLength) {
             int leftPadding = ((totalLength - stringToCenter.Length) / 2) + stringToCenter.Length;
             return stringToCenter.PadLeft(leftPadding).PadRight(totalLength);
         }
@@ -220,8 +176,7 @@ namespace KianCommons {
         {
             if (list == null) return "null";
             string ret = "{ ";
-            foreach (T item in list)
-            {
+            foreach (T item in list) {
                 ret += $"{item}, ";
             }
             ret.Remove(ret.Length - 2, 2);
@@ -229,17 +184,46 @@ namespace KianCommons {
             return ret;
         }
 
-        internal static bool ShiftIsPressed => Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+        internal static string ToSTR<T>(this IEnumerable<T> list, string format) {
+            MethodInfo mToString = typeof(T).GetMethod("ToString", new[] { typeof(string)})
+                ?? throw new Exception($"{typeof(T).Name}.ToString(string) was not found");
+            var arg = new object[] { format };
+            string ret = "{ ";
+            foreach (T item in list) {
+                var s = mToString.Invoke(item, arg);
+                ret += $"{s}, ";
+            }
+            ret.Remove(ret.Length - 2, 2);
+            ret += " }";
+            return ret;
+        }
+    }
 
-        internal static bool ControlIsPressed => Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+    internal static class Assertion {
+        [Conditional("DEBUG")]
+        internal static void AssertDebug(bool con, string m = "") => Assert(con, m);
 
-        internal static bool AltIsPressed => Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt);
+        [Conditional("DEBUG")]
+        internal static void AssertNotNullDebug(object obj, string m = "") => AssertNotNull(obj, m);
+
+        [Conditional("DEBUG")]
+        internal static void AssertEqualDebug<T>(T a, T b, string m = "")
+            where T : IComparable
+            => AssertEqual(a, b, m);
+
+        [Conditional("DEBUG")]
+        internal static void AssertNeqDebug<T>(T a, T b, string m = "")
+            where T : IComparable
+            => AssertNeq(a, b, m);
 
         internal static void AssertNotNull(object obj, string m = "") =>
             Assert(obj != null, " unexpected null " + m);
 
-        internal static void AssertEqual(int a, int b, string m = "") =>
-            Assert(a==b, "expected {a} == {b} | " + m);
+        internal static void AssertEqual<T>(T a, T b, string m = "") where T:IComparable=>
+            Assert(a.CompareTo(b) == 0, $"expected {a} == {b} | " + m);
+
+        internal static void AssertNeq<T>(T a, T b, string m = "") where T : IComparable =>
+            Assert(a.CompareTo(b) != 0, $"expected {a} != {b} | " + m);
 
         internal static void Assert(bool con, string m = "") {
             if (!con) {
@@ -258,5 +242,65 @@ namespace KianCommons {
                 throw e;
             }
         }
+    }
+
+    internal static class HelpersExtensions
+    {
+        internal static bool InSimulationThread() =>
+            System.Threading.Thread.CurrentThread == SimulationManager.instance.m_simulationThread;
+
+        internal static bool VERBOSE = false;
+
+        internal static bool[] ALL_BOOL = new bool[] { false, true};
+         
+        internal static AppMode currentMode => SimulationManager.instance.m_ManagersWrapper.loading.currentMode;
+        internal static bool CheckGameMode(AppMode mode)
+        {
+            try
+            {
+                if (currentMode == mode)
+                    return true;
+            }
+            catch { }
+            return false;
+        }
+
+        /// <summary>
+        /// determines if simulation is inside game/editor. useful to detect hot-reload.
+        /// </summary>
+        internal static bool InGameOrEditor =>         
+            SceneManager.GetActiveScene().name != "IntroScreen" &&
+            SceneManager.GetActiveScene().name != "Startup";
+
+        internal static bool InGame => CheckGameMode(AppMode.Game);
+        internal static bool InAssetEditor => CheckGameMode(AppMode.AssetEditor);
+
+        [Obsolete]
+        internal static bool IsActive => InGameOrEditor;
+
+        internal static bool InStartup =>
+            SceneManager.GetActiveScene().name == "IntroScreen" ||
+            SceneManager.GetActiveScene().name == "Startup";   
+
+        /// <summary>
+        /// returns a new List calling Clone() on all items.
+        /// </summary>
+        internal static List<T> Clone1<T>(this IList<T> listToClone) where T : ICloneable =>
+            listToClone.Select(item => (T)item.Clone()).ToList();
+
+        /// <summary>
+        /// returns a new List copying all item
+        /// </summary>
+        internal static List<T> Clone0<T>(this IList<T> listToClone) =>
+            listToClone.Select(item=>item).ToList();
+
+
+        internal static bool ShiftIsPressed => Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+
+        internal static bool ControlIsPressed => Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+
+        internal static bool AltIsPressed => Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt);
+
+
     }
 }
