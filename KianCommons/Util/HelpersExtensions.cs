@@ -172,12 +172,23 @@ namespace KianCommons {
             return stringToCenter.PadLeft(leftPadding).PadRight(totalLength);
         }
 
+        internal static string ToSTR(this InstanceID instanceID)
+            => $"{instanceID.Type}:{instanceID.Index}";
+
+        internal static string ToSTR(this KeyValuePair<InstanceID, InstanceID> map)
+            => $"[{map.Key.ToSTR()}:{map.Value.ToSTR()}]";
+
         internal static string ToSTR<T>(this IEnumerable<T> list)
         {
             if (list == null) return "null";
             string ret = "{ ";
             foreach (T item in list) {
-                ret += $"{item}, ";
+                string s;
+                if (item is KeyValuePair<InstanceID, InstanceID> map)
+                    s = map.ToSTR();
+                else
+                    s = item.ToString();
+                ret += $"{s}, ";
             }
             ret.Remove(ret.Length - 2, 2);
             ret += " }";
