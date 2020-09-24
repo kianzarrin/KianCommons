@@ -141,13 +141,13 @@ namespace KianCommons {
                 using StreamWriter w = File.AppendText(LogFilePath);
                 string m = "";
                 if (ShowLevel) {
-                    m += string.Format("{0, -8}", $"[{level}] ");
+                    m += string.Format("{0, -6}", $"[{level}] ");
                 }
 
                 if (ShowTimestamp) {
                     long secs = ticks / Stopwatch.Frequency;
                     long fraction = ticks % Stopwatch.Frequency;
-                    m += $"{ secs: n0}.{ fraction: D7} | ";
+                    m += string.Format($"{secs.ToString("n0")}.{fraction.ToString("D7")} | ");
                 }
 
                 string nl = Environment.NewLine;

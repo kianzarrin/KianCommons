@@ -186,7 +186,8 @@ namespace KianCommons.Patches {
             if (count != counter) {
                 throw new InstructionNotFoundException(" Did not found instruction[s]. Comperator =  " + comperator);
             }
-            Log("Found : \n" + new[] { codes[index], codes[index + 1] }.IL2STR());
+            if(VERBOSE)
+                Log("Found : \n" + new[] { codes[index], codes[index + 1] }.IL2STR());
             return index;
         }
 
