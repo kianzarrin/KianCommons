@@ -3,6 +3,7 @@ using static KianCommons.Assertion;
 namespace KianCommons {
     using System;
     using System.Collections.Generic;
+    using System.Collections;
     using System.Linq;
     using UnityEngine;
     using ICities;
@@ -139,6 +140,11 @@ namespace KianCommons {
                 return ss[1];
             return s;
         }
+
+        internal static bool HasAttribute<T>(this MemberInfo member, bool inherit=true) where T: Attribute {
+            var att = member.GetCustomAttributes(typeof(T), inherit);
+            return !att.IsNullorEmpty();
+        }
     }
 
     internal static class StringExtensions {
@@ -255,6 +261,33 @@ namespace KianCommons {
         }
     }
 
+    internal static class EnumerationExtensions {
+        /// <summary>
+        /// returns a new List of cloned items.
+        /// </summary>
+        internal static List<T> Clone1<T>(this IEnumerable<T> orig) where T : ICloneable =>
+            orig.Select(item => (T)item.Clone()).ToList();
+
+        /// <summary>
+        /// fast way of determining if collection is null or empty
+        /// </summary>
+        internal static bool IsNullorEmpty<T>(this ICollection<T> a)
+            => a == null || a.Count == 0;
+
+        /// <summary>
+        /// generic way of determining if IEnumerable is null or empty
+        /// </summary>
+        internal static bool IsNullorEmpty<T>(this IEnumerable<T> a) {
+            if (a == null)
+                return true;
+            else if (a is ICollection collection)
+                return collection.Count == 0;
+            else
+                return a.Count() == 0;
+        }
+
+    }
+
     internal static class HelpersExtensions
     {
         internal static bool InSimulationThread() =>
@@ -292,18 +325,6 @@ namespace KianCommons {
         internal static bool InStartup =>
             SceneManager.GetActiveScene().name == "IntroScreen" ||
             SceneManager.GetActiveScene().name == "Startup";   
-
-        /// <summary>
-        /// returns a new List calling Clone() on all items.
-        /// </summary>
-        internal static List<T> Clone1<T>(this IList<T> listToClone) where T : ICloneable =>
-            listToClone.Select(item => (T)item.Clone()).ToList();
-
-        /// <summary>
-        /// returns a new List copying all item
-        /// </summary>
-        internal static List<T> Clone0<T>(this IList<T> listToClone) =>
-            listToClone.Select(item=>item).ToList();
 
 
         internal static bool ShiftIsPressed => Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
