@@ -4,6 +4,7 @@ namespace KianCommons {
     using System.IO;
     using System.Reflection;
     using UnityEngine;
+    using System.Linq;
 
     /// <summary>
     /// A simple logging class.
@@ -69,6 +70,7 @@ namespace KianCommons {
             Debug,
             Info,
             Error,
+            Exception,
         }
 
 
@@ -105,7 +107,7 @@ namespace KianCommons {
         /// <param name="copyToGameLog">If <c>true</c> will copy to the main game log file.</param>
         [Conditional("DEBUG")]
         public static void Debug(string message, bool copyToGameLog = true) {
-            LogToFile(message, LogLevel.Debug, copyToGameLog);
+            LogImpl(message, LogLevel.Debug, copyToGameLog);
         }
 
         /// <summary>
@@ -115,7 +117,7 @@ namespace KianCommons {
         /// <param name="message">Log entry text.</param>
         /// <param name="copyToGameLog">If <c>true</c> will copy to the main game log file.</param>
         public static void Info(string message, bool copyToGameLog = false) {
-            LogToFile(message, LogLevel.Info, copyToGameLog);
+            LogImpl(message, LogLevel.Info, copyToGameLog);
         }
 
         /// <summary>
@@ -125,9 +127,18 @@ namespace KianCommons {
         /// <param name="message">Log entry text.</param>
         /// <param name="copyToGameLog">If <c>true</c> will copy to the main game log file.</param>
         public static void Error(string message, bool copyToGameLog = true) {
-            LogToFile(message, LogLevel.Error, copyToGameLog);
+            LogImpl(message, LogLevel.Error, copyToGameLog);
 
         }
+
+        internal static void LogException(Exception e, string m = "") {
+            string message = e.ToString() + $"\n\t-- {assemblyName_}:end of inner stack trace --";
+            if (!m.IsNullorEmpty())
+                message = m + " -> \n" + message;
+            LogImpl(message, LogLevel.Exception, true);
+        }
+
+        static string nl = Environment.NewLine;
 
         /// <summary>
         /// Write a message to log file.
@@ -135,13 +146,13 @@ namespace KianCommons {
         /// 
         /// <param name="message">Log entry text.</param>
         /// <param name="level">Logging level. If set to <see cref="LogLevel.Error"/> a stack trace will be appended.</param>
-        private static void LogToFile(string message, LogLevel level, bool copyToGameLog) {
+        private static void LogImpl(string message, LogLevel level, bool copyToGameLog) {
             try {
                 var ticks = Timer.ElapsedTicks;
-                using StreamWriter w = File.AppendText(LogFilePath);
                 string m = "";
                 if (ShowLevel) {
-                    m += string.Format("{0, -6}", $"[{level}] ");
+                    int maxLen = Enum.GetNames(typeof(LogLevel)).Select(str => str.Length).Max();
+                    m += string.Format($"{{0, -{maxLen}}}", $"[{level}] ");
                 }
 
                 if (ShowTimestamp) {
@@ -150,19 +161,21 @@ namespace KianCommons {
                     m += string.Format($"{secs.ToString("n0")}.{fraction.ToString("D7")} | ");
                 }
 
-                string nl = Environment.NewLine;
                 m += message + nl;
 
-                if (level == LogLevel.Error) {
+                if (level == LogLevel.Error || level == LogLevel.Exception) {
                     m += new StackTrace(true).ToString() + nl + nl;
                 }
 
-                w.Write(m);
+                using (StreamWriter w = File.AppendText(LogFilePath)) {
+                    w.Write(m);
+                }
 
                 if (copyToGameLog) {
                     m = assemblyName_ + " | " + m;
                     switch (level) {
                         case LogLevel.Error:
+                        case LogLevel.Exception:
                             UnityEngine.Debug.LogError(m);
                             break;
                         default:
@@ -176,6 +189,7 @@ namespace KianCommons {
             }
         }
 
+        [Obsolete]
         internal static void LogToFileSimple(string file, string message) {
             using (StreamWriter w = File.AppendText(file)) {
                 w.WriteLine(message);
@@ -183,6 +197,7 @@ namespace KianCommons {
                 w.WriteLine();
             }
         }
+
 
     }
 

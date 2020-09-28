@@ -10,6 +10,7 @@ namespace KianCommons {
     using System.Diagnostics;
     using System.Reflection;
     using UnityEngine.SceneManagement;
+    using ColossalFramework;
 
     internal static class StackHelpers {
         public static string ToStringPretty(this StackTrace st, bool fullPath=false, bool nameSpace=false, bool showArgs = false) {
@@ -75,11 +76,23 @@ namespace KianCommons {
             System.Enum.GetValues(typeof(T)).Length;
 
         private static void CheckEnumWithFlags<T>() {
+            // copy of:
+            // private static void ColossalFramework.EnumExtensions.CheckEnumWithFlags<T>()
             if (!typeof(T).IsEnum) {
                 throw new ArgumentException(string.Format("Type '{0}' is not an enum", typeof(T).FullName));
             }
             if (!Attribute.IsDefined(typeof(T), typeof(FlagsAttribute))) {
                 throw new ArgumentException(string.Format("Type '{0}' doesn't have the 'Flags' attribute", typeof(T).FullName));
+            }
+        }
+        private static void CheckEnumWithFlags(Type t) {
+            // copy of:
+            // private static void ColossalFramework.EnumExtensions.CheckEnumWithFlags<T>()
+            if (!t.IsEnum) {
+                throw new ArgumentException(string.Format("Type '{0}' is not an enum", t.FullName));
+            }
+            if (!Attribute.IsDefined(t, typeof(FlagsAttribute))) {
+                throw new ArgumentException(string.Format("Type '{0}' doesn't have the 'Flags' attribute", t.FullName));
             }
         }
 
@@ -92,6 +105,31 @@ namespace KianCommons {
 
         internal static bool CheckFlags(this NetLane.Flags value, NetLane.Flags required, NetLane.Flags forbidden) =>
             (value & (required | forbidden)) == required;
+
+        static bool IsPow2(ulong x) => x != 0 && (x & (x - 1)) == 0;
+        public static IEnumerable<T> GetPow2ValuesU32<T>() where T : struct, IConvertible {
+            CheckEnumWithFlags<T>();
+            Array values = Enum.GetValues(typeof(T));
+            foreach (object val in values) {
+                if (IsPow2((ulong)val))
+                    yield return (T)val;
+            }
+        }
+        public static IEnumerable<T> ExtractPow2Flags<T>(this T flags) where T : struct, IConvertible {
+            foreach(T value in GetPow2ValuesU32<T>()) {
+                if (flags.IsFlagSet(value))
+                    yield return value;
+            }
+        }
+
+        public static IEnumerable<uint> GetPow2ValuesU32(Type enumType) {
+            CheckEnumWithFlags(enumType);
+            Array values = Enum.GetValues(enumType);
+            foreach (object val in values) {
+                if (IsPow2((uint)val))
+                    yield return (uint)val;
+            }
+        }
     }
 
     internal static class AssemblyTypeExtensions {
@@ -285,7 +323,6 @@ namespace KianCommons {
             else
                 return a.Count() == 0;
         }
-
     }
 
     internal static class HelpersExtensions
