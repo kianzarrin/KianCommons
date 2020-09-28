@@ -189,7 +189,6 @@ namespace KianCommons {
             }
         }
 
-        [Obsolete]
         internal static void LogToFileSimple(string file, string message) {
             using (StreamWriter w = File.AppendText(file)) {
                 w.WriteLine(message);
@@ -197,8 +196,6 @@ namespace KianCommons {
                 w.WriteLine();
             }
         }
-
-
     }
 
     internal static class LogExtensions {

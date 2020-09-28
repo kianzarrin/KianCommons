@@ -415,7 +415,7 @@ namespace KianCommons {
                 message += m1 + m2;
             }
             Log.Error(message, true);
-            Log.LogToFileSimple(file: "NodeControler.Strage.log", message: message);
+            Log.LogToFileSimple(file: "NodeControler.Strange.log", message: message);
         }
 
         public static IEnumerable<uint> IterateNodeLanes(ushort nodeId) {
