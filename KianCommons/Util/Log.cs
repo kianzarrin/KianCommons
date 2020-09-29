@@ -131,7 +131,7 @@ namespace KianCommons {
 
         }
 
-        internal static void LogException(Exception e, string m = "") {
+        internal static void Exception(Exception e, string m = "") {
             string message = e.ToString() + $"\n\t-- {assemblyName_}:end of inner stack trace --";
             if (!m.IsNullorEmpty())
                 message = m + " -> \n" + message;
