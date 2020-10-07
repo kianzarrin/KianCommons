@@ -34,7 +34,7 @@ namespace KianCommons.UI.Helpers {
         }
         public override void Start() {
             base.Start();
-            atlas = TextureUtil.GetAtlas("InMapEditor");
+            atlas = TextureUtil.InMapEditor;
             size = SIZE;
             listBackground = "GenericPanelLight";
             itemHeight = 10;

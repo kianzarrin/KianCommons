@@ -20,7 +20,7 @@ namespace KianCommons.UI {
             autoSize = true;
             canFocus = false;
             textPadding = new RectOffset(5, 5, 5, 5);
-            atlas = TextureUtil.GetAtlas("Ingame");
+            atlas = TextureUtil.Ingame;
         }
 
         public override void Start() {

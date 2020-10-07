@@ -41,6 +41,7 @@ namespace KianCommons.UI {
             stepSize = 0.5f;
             base.stepSize = stepSize * 0.0001f; // work around quantize negative problem.
             scrollWheelAmount = 1f;
+            atlas = TextureUtil.Ingame;
         }
 
         public float Padding = 0; // modify to add padding
@@ -62,12 +63,14 @@ namespace KianCommons.UI {
 
             //Log.Debug("parent:" + parent);
             SlicedSprite = AddUIComponent<UISlicedSprite>();
+            SlicedSprite.atlas = TextureUtil.Ingame;
             SlicedSprite.spriteName = "ScrollbarTrack";
             SlicedSprite.height = 12;
             SlicedSprite.width = width;
             SlicedSprite.relativePosition = new Vector3(Padding, 2f);
 
             UISprite thumbSprite = AddUIComponent<UISprite>();
+            thumbSprite.atlas = TextureUtil.Ingame;
             thumbSprite.spriteName = "ScrollbarThumb";
             thumbSprite.height = 20f;
             thumbSprite.width = 7f;

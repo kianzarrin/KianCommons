@@ -36,7 +36,7 @@ namespace KianCommons.UI.Helpers {
 
             var button = AddUIComponent<UIButton>();
             triggerButton = button;
-            button.atlas = TextureUtil.GetAtlas("Ingame");
+            atlas = TextureUtil.Ingame;
             button.text = "";
             button.size = size;
             button.relativePosition = new Vector3(0f, 0f);
