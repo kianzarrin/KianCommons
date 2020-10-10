@@ -40,7 +40,7 @@ namespace KianCommons.Patches {
         internal static MethodInfo GetMethod(Type type, string name) =>
             AccessTools.DeclaredMethod(type, name) ?? throw new Exception($"Method not found: {type.Name}.{name}");
 
-        public static List<CodeInstruction> ToCodeList(IEnumerable<CodeInstruction> instructions) {
+        public static List<CodeInstruction> ToCodeList(this IEnumerable<CodeInstruction> instructions) {
             var originalCodes = new List<CodeInstruction>(instructions);
             var codes = new List<CodeInstruction>(originalCodes);
             return codes;
@@ -174,17 +174,23 @@ namespace KianCommons.Patches {
             }
         }
 
-        public delegate bool Comperator(int idx);
-        public static int SearchGeneric(List<CodeInstruction> codes, Comperator comperator, int index, int dir = +1, int counter = 1) {
+        public static int SearchGeneric(List<CodeInstruction> codes, Func<int,bool> predicate, int index, int dir = +1, int counter = 1, bool throwOnError=true) {
+            
             int count = 0;
             for (; 0 <= index && index < codes.Count; index += dir) {
-                if (comperator(index)) {
+                if (predicate(index)) {
                     if (++count == counter)
                         break;
                 }
             }
             if (count != counter) {
-                throw new InstructionNotFoundException(" Did not found instruction[s]. Comperator =  " + comperator);
+                if (throwOnError == true)
+                    throw new InstructionNotFoundException(" Did not found instruction[s].");
+                else {
+                    if (VERBOSE)
+                        Log("Did not found instruction[s].\n" + Environment.StackTrace);
+                    return -1;
+                }
             }
             if(VERBOSE)
                 Log("Found : \n" + new[] { codes[index], codes[index + 1] }.IL2STR());

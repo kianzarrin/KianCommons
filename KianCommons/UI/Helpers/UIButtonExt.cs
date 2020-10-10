@@ -4,11 +4,13 @@ namespace KianCommons.UI {
 
     public class UIButtonExt : UIButton {
         public static UIButtonExt Instance { get; private set; }
+        public bool ParentWith;
 
         public override void Awake() {
             base.Awake();
+            ParentWith = true;
             Instance = this;
-            name = nameof(UIButtonExt);
+            name = GetType().FullName;
 
             height = 30f;
             textScale = 0.9f;
@@ -25,7 +27,11 @@ namespace KianCommons.UI {
 
         public override void Start() {
             base.Start();
-            width = parent.width;
+            if (ParentWith) {
+                width = parent.width;
+                if (parent is UIPanel panel)
+                    width -= panel.padding.horizontal;
+            }
         }
     }
 }
