@@ -3,12 +3,52 @@ using static KianCommons.Assertion;
 namespace KianCommons {
     using System;
     using System.Collections.Generic;
+    using System.Collections;
     using System.Linq;
     using UnityEngine;
     using ICities;
     using System.Diagnostics;
     using System.Reflection;
     using UnityEngine.SceneManagement;
+    using ColossalFramework;
+
+    internal static class StackHelpers {
+        public static string ToStringPretty(this StackTrace st, bool fullPath=false, bool nameSpace=false, bool showArgs = false) {
+            string ret = "";
+            foreach (var frame in st.GetFrames()) {
+                var f = frame.GetFileName();
+                if (f == null) {
+                    ret += "    at " + frame + "\n";
+                    continue;
+                }
+
+                //MethodBase m = frame.GetMethod();
+                //var t = m.DeclaringType;
+                //var args = m.GetParameters().Select(a=>a.ToString()).ToArray();
+                //var genericArgs = m.GetGenericArguments();
+                //if (nameSpace)
+                //    ret += t.FullName;
+                //else
+                //    ret += t.Name;
+                //ret += "." + m.Name;
+                //if (m.IsGenericMethod)
+                //    ret += "<" + m.GetGenericArguments() + ">";
+                //if (showArgs)
+                //    ret += "(" + string.Join(", ", args) + ")";
+                //else
+                //    ret += "()";
+
+                if (!fullPath) {
+                    f = f.Split('\\').LastOrDefault();
+                }
+                var l = frame.GetFileLineNumber();
+                ret += $"    at {frame.GetMethod()} in {f}:{l}\n";
+            }
+
+            return ret;
+        }
+
+    }
 
     internal static class EnumBitMaskExtensions {
         internal static int String2Enum<T>(string str) where T : Enum {
@@ -36,11 +76,23 @@ namespace KianCommons {
             System.Enum.GetValues(typeof(T)).Length;
 
         private static void CheckEnumWithFlags<T>() {
+            // copy of:
+            // private static void ColossalFramework.EnumExtensions.CheckEnumWithFlags<T>()
             if (!typeof(T).IsEnum) {
                 throw new ArgumentException(string.Format("Type '{0}' is not an enum", typeof(T).FullName));
             }
             if (!Attribute.IsDefined(typeof(T), typeof(FlagsAttribute))) {
                 throw new ArgumentException(string.Format("Type '{0}' doesn't have the 'Flags' attribute", typeof(T).FullName));
+            }
+        }
+        private static void CheckEnumWithFlags(Type t) {
+            // copy of:
+            // private static void ColossalFramework.EnumExtensions.CheckEnumWithFlags<T>()
+            if (!t.IsEnum) {
+                throw new ArgumentException(string.Format("Type '{0}' is not an enum", t.FullName));
+            }
+            if (!Attribute.IsDefined(t, typeof(FlagsAttribute))) {
+                throw new ArgumentException(string.Format("Type '{0}' doesn't have the 'Flags' attribute", t.FullName));
             }
         }
 
@@ -53,6 +105,69 @@ namespace KianCommons {
 
         internal static bool CheckFlags(this NetLane.Flags value, NetLane.Flags required, NetLane.Flags forbidden) =>
             (value & (required | forbidden)) == required;
+
+        static bool IsPow2(ulong x) => x != 0 && (x & (x - 1)) == 0;
+        static bool IsPow2(long x) => x != 0 && (x & (x - 1)) == 0;
+
+        public static IEnumerable<T> GetPow2ValuesU32<T>() where T : struct, IConvertible {
+            CheckEnumWithFlags<T>();
+            Array values = Enum.GetValues(typeof(T));
+            foreach (object val in values) {
+                if (IsPow2((ulong)val))
+                    yield return (T)val;
+            }
+        }
+        public static IEnumerable<T> ExtractPow2Flags<T>(this T flags) where T : struct, IConvertible {
+            foreach(T value in GetPow2ValuesU32<T>()) {
+                if (flags.IsFlagSet(value))
+                    yield return value;
+            }
+        }
+
+        public static IEnumerable<uint> GetPow2ValuesU32(Type enumType) {
+            CheckEnumWithFlags(enumType);
+            Array values = Enum.GetValues(enumType);
+            foreach (object val in values) {
+                if (IsPow2((uint)val))
+                    yield return (uint)val;
+            }
+        }
+
+        public static IEnumerable<int> GetPow2ValuesI32(Type enumType) {
+            CheckEnumWithFlags(enumType);
+            Array values = Enum.GetValues(enumType);
+            foreach (object val in values) {
+                if (IsPow2((int)val))
+                    yield return (int)val;
+            }
+        }
+
+
+        public static void DropElement<T>(this T[] array, int i) {
+            int n1 = array.Length;
+            T[] ret = new T[n1 - 1];
+            int i1 = 0, i2 = 0;
+
+            while (i1 < n1) {
+                if (i1 != i) {
+                    ret[i2] = array[i1];
+                    i2++;
+                }
+                i1++;
+            }
+        }
+
+        public static void AppendElement<T>(this T[] array, T element) {
+            int n1 = array.Length;
+            T[] ret = new T[n1 + 1];
+
+            for (int i = 0; i < n1; ++i)
+                ret[i] = array[i];
+
+            ret.Last() = element;
+        }
+
+        public static ref T Last<T>(this T[] array) => ref array[array.Length - 1];
     }
 
     internal static class AssemblyTypeExtensions {
@@ -101,6 +216,11 @@ namespace KianCommons {
                 return ss[1];
             return s;
         }
+
+        internal static bool HasAttribute<T>(this MemberInfo member, bool inherit=true) where T: Attribute {
+            var att = member.GetCustomAttributes(typeof(T), inherit);
+            return !att.IsNullorEmpty();
+        }
     }
 
     internal static class StringExtensions {
@@ -134,10 +254,23 @@ namespace KianCommons {
             return stringToCenter.PadLeft(leftPadding).PadRight(totalLength);
         }
 
-        internal static string ToSTR<T>(this IEnumerable<T> list) {
+        internal static string ToSTR(this InstanceID instanceID)
+            => $"{instanceID.Type}:{instanceID.Index}";
+
+        internal static string ToSTR(this KeyValuePair<InstanceID, InstanceID> map)
+            => $"[{map.Key.ToSTR()}:{map.Value.ToSTR()}]";
+
+        internal static string ToSTR<T>(this IEnumerable<T> list)
+        {
+            if (list == null) return "null";
             string ret = "{ ";
             foreach (T item in list) {
-                ret += $"{item}, ";
+                string s;
+                if (item is KeyValuePair<InstanceID, InstanceID> map)
+                    s = map.ToSTR();
+                else
+                    s = item.ToString();
+                ret += $"{s}, ";
             }
             ret.Remove(ret.Length - 2, 2);
             ret += " }";
@@ -204,8 +337,31 @@ namespace KianCommons {
         }
     }
 
-    //internal static class StackHelpers {
-    //}
+    internal static class EnumerationExtensions {
+        /// <summary>
+        /// returns a new List of cloned items.
+        /// </summary>
+        internal static List<T> Clone1<T>(this IEnumerable<T> orig) where T : ICloneable =>
+            orig.Select(item => (T)item.Clone()).ToList();
+
+        /// <summary>
+        /// fast way of determining if collection is null or empty
+        /// </summary>
+        internal static bool IsNullorEmpty<T>(this ICollection<T> a)
+            => a == null || a.Count == 0;
+
+        /// <summary>
+        /// generic way of determining if IEnumerable is null or empty
+        /// </summary>
+        internal static bool IsNullorEmpty<T>(this IEnumerable<T> a) {
+            if (a == null)
+                return true;
+            else if (a is ICollection collection)
+                return collection.Count == 0;
+            else
+                return a.Count() == 0;
+        }
+    }
 
     internal static class HelpersExtensions
     {
@@ -241,17 +397,9 @@ namespace KianCommons {
         [Obsolete]
         internal static bool IsActive => InGameOrEditor;
 
-        /// <summary>
-        /// returns a new List calling Clone() on all items.
-        /// </summary>
-        internal static List<T> Clone1<T>(this IList<T> listToClone) where T : ICloneable =>
-            listToClone.Select(item => (T)item.Clone()).ToList();
-
-        /// <summary>
-        /// returns a new List copying all item
-        /// </summary>
-        internal static List<T> Clone0<T>(this IList<T> listToClone) =>
-            listToClone.Select(item=>item).ToList();
+        internal static bool InStartup =>
+            SceneManager.GetActiveScene().name == "IntroScreen" ||
+            SceneManager.GetActiveScene().name == "Startup";   
 
 
         internal static bool ShiftIsPressed => Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);

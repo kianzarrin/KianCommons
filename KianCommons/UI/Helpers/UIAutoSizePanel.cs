@@ -10,8 +10,8 @@ namespace KianCommons.UI {
             autoLayout = true;
             autoSize = true;
             autoLayoutDirection = LayoutDirection.Vertical;
-            name = "UIAutoSizePanel"; 
-            atlas = TextureUtil.GetAtlas("Ingame"); 
+            name = "UIAutoSizePanel";
+            atlas = TextureUtil.Ingame;
         }
 
         public override void Start() {

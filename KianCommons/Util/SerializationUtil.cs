@@ -14,13 +14,23 @@ namespace KianCommons {
         static BinaryFormatter GetBinaryFormatter =>
             new BinaryFormatter { AssemblyFormat = FormatterAssemblyStyle.Simple };
 
-        public static object Deserialize(byte[] data) {
+
+        public static object Deserialize(byte[] data, Version version) {
             if (data == null || data.Length==0) return null;
-            //Log.Debug($"SerializationUtil.Deserialize(data): data.Length={data?.Length}");
-            var memoryStream = new MemoryStream();
-            memoryStream.Write(data, 0, data.Length);
-            memoryStream.Position = 0;
-            return GetBinaryFormatter.Deserialize(memoryStream);
+            try {
+                DeserializationVersion = version;
+                //Log.Debug($"SerializationUtil.Deserialize(data): data.Length={data?.Length}");
+                var memoryStream = new MemoryStream();
+                memoryStream.Write(data, 0, data.Length);
+                memoryStream.Position = 0;
+                return GetBinaryFormatter.Deserialize(memoryStream);
+            }
+            catch {
+                return null;
+            } finally {
+                DeserializationVersion = null;
+            }
+
         }
 
         public static byte[] Serialize(object obj) {

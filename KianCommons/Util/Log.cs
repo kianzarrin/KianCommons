@@ -4,6 +4,8 @@ namespace KianCommons {
     using System.IO;
     using System.Reflection;
     using UnityEngine;
+    using System.Linq;
+    using ColossalFramework.UI;
 
     /// <summary>
     /// A simple logging class.
@@ -22,11 +24,13 @@ namespace KianCommons {
         /// </summary>
         private static readonly bool ShowTimestamp = true;
 
+        private static string assemblyName_ = Assembly.GetExecutingAssembly().GetName().Name;
+
         /// <summary>
         /// File name for log file.
         /// </summary>
         private static readonly string LogFileName
-            = Path.Combine(Application.dataPath, Assembly.GetExecutingAssembly().GetName().Name + ".log");
+            = Path.Combine(Application.dataPath, assemblyName_ + ".log");
 
         /// <summary>
         /// Full path and file name of log file.
@@ -67,6 +71,7 @@ namespace KianCommons {
             Debug,
             Info,
             Error,
+            Exception,
         }
 
 
@@ -74,7 +79,7 @@ namespace KianCommons {
         static DateTime[] times_ = new DateTime[MAX_WAIT_ID];
 
         [Conditional("DEBUG")]
-        public static void DebugWait(string message, int id = 0, float seconds = 0.5f, bool copyToGameLog = true) {
+        public static void DebugWait(string message, int id, float seconds = 0.5f, bool copyToGameLog = true) {
             float diff = seconds + 1;
             if (id < 0) id = -id;
             id = System.Math.Abs(id % MAX_WAIT_ID);
@@ -88,21 +93,22 @@ namespace KianCommons {
             }
         }
 
-        public static void DebugWait(string message, object id, float seconds = 0.5f, bool copyToGameLog = true)
-            => DebugWait(message, id.GetHashCode(), seconds, copyToGameLog);
+        [Conditional("DEBUG")]
+        public static void DebugWait(string message, object id = null, float seconds = 0.5f, bool copyToGameLog = true) {
+            if (id == null)
+                id = Environment.StackTrace + message;
+            DebugWait(message, id.GetHashCode(), seconds, copyToGameLog);
+
+        }
 
         /// <summary>
         /// Logs debug trace, only in <c>DEBUG</c> builds.
         /// </summary>
-        /// 
         /// <param name="message">Log entry text.</param>
         /// <param name="copyToGameLog">If <c>true</c> will copy to the main game log file.</param>
         [Conditional("DEBUG")]
         public static void Debug(string message, bool copyToGameLog = true) {
-            LogToFile(message, LogLevel.Debug);
-            if (copyToGameLog) {
-                UnityEngine.Debug.Log(message);
-            }
+            LogImpl(message, LogLevel.Debug, copyToGameLog);
         }
 
         /// <summary>
@@ -112,15 +118,8 @@ namespace KianCommons {
         /// <param name="message">Log entry text.</param>
         /// <param name="copyToGameLog">If <c>true</c> will copy to the main game log file.</param>
         public static void Info(string message, bool copyToGameLog = false) {
-            LogToFile(message, LogLevel.Info);
-            if (copyToGameLog) {
-                UnityEngine.Debug.Log(typeof(Log).Assembly.GetName().Name + " : " + message);
-            }
+            LogImpl(message, LogLevel.Info, copyToGameLog);
         }
-
-        [Obsolete("kept for backward compatibility")]
-        public static void Warning(string m)
-            => Error("Warning:" + m);
 
         /// <summary>
         /// Logs error message and also outputs a stack trace.
@@ -129,11 +128,20 @@ namespace KianCommons {
         /// <param name="message">Log entry text.</param>
         /// <param name="copyToGameLog">If <c>true</c> will copy to the main game log file.</param>
         public static void Error(string message, bool copyToGameLog = true) {
-            LogToFile(message, LogLevel.Error);
-            if (copyToGameLog) {
-                UnityEngine.Debug.LogError(message);
-            }
+            LogImpl(message, LogLevel.Error, copyToGameLog);
+
         }
+
+        internal static void Exception(Exception e, string m = "", bool showInPanel=true) {
+            string message = e.ToString() + $"\n\t-- {assemblyName_}:end of inner stack trace --";
+            if (!m.IsNullorEmpty())
+                message = m + " -> \n" + message;
+            LogImpl(message, LogLevel.Exception, true);
+            if(showInPanel)
+                UIView.ForwardException(e);
+        }
+
+        static string nl = Environment.NewLine;
 
         /// <summary>
         /// Write a message to log file.
@@ -141,25 +149,42 @@ namespace KianCommons {
         /// 
         /// <param name="message">Log entry text.</param>
         /// <param name="level">Logging level. If set to <see cref="LogLevel.Error"/> a stack trace will be appended.</param>
-        private static void LogToFile(string message, LogLevel level) {
+        private static void LogImpl(string message, LogLevel level, bool copyToGameLog) {
             try {
                 var ticks = Timer.ElapsedTicks;
-                using StreamWriter w = File.AppendText(LogFilePath);
+                string m = "";
                 if (ShowLevel) {
-                    w.Write("{0, -8}", $"[{level}] ");
+                    int maxLen = Enum.GetNames(typeof(LogLevel)).Select(str => str.Length).Max();
+                    m += string.Format($"{{0, -{maxLen}}}", $"[{level}] ");
                 }
 
                 if (ShowTimestamp) {
                     long secs = ticks / Stopwatch.Frequency;
                     long fraction = ticks % Stopwatch.Frequency;
-                    w.Write($"{secs:n0}.{fraction:D7} | ");
+                    m += string.Format($"{secs.ToString("n0")}.{fraction.ToString("D7")} | ");
                 }
 
-                w.WriteLine(message);
+                m += message + nl;
 
-                if (level == LogLevel.Error) {
-                    w.WriteLine(new StackTrace(true).ToString());
-                    w.WriteLine();
+                if (level == LogLevel.Error || level == LogLevel.Exception) {
+                    m += new StackTrace(true).ToString() + nl + nl;
+                }
+
+                using (StreamWriter w = File.AppendText(LogFilePath)) {
+                    w.Write(m);
+                }
+
+                if (copyToGameLog) {
+                    m = assemblyName_ + " | " + m;
+                    switch (level) {
+                        case LogLevel.Error:
+                        case LogLevel.Exception:
+                            UnityEngine.Debug.LogError(m);
+                            break;
+                        default:
+                            UnityEngine.Debug.Log(m);
+                            break;
+                    }
                 }
             }
             catch {
@@ -168,17 +193,12 @@ namespace KianCommons {
         }
 
         internal static void LogToFileSimple(string file, string message) {
-            try {
-                using StreamWriter w = File.AppendText(file);
+            using (StreamWriter w = File.AppendText(file)) {
                 w.WriteLine(message);
                 w.WriteLine(new StackTrace().ToString());
                 w.WriteLine();
             }
-            catch {
-                // ignore
-            }
         }
-
     }
 
     internal static class LogExtensions {

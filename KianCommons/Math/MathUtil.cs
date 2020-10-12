@@ -8,5 +8,7 @@ namespace KianCommons.Math {
             float diff = a - b;
             return (diff > -error) & (diff < error);
         }
+
+        public static bool IsPow2(ulong x) => x != 0 && (x & (x - 1)) == 0;
     }
 }
