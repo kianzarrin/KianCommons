@@ -136,7 +136,7 @@ namespace KianCommons {
         #region Math
 
         /// Note: inverted flag or LHT does not influce the beizer.
-        internal static Bezier3 CalculateSegmentBezier3(this ref NetSegment seg, bool bStartNode=true) {
+        internal static Bezier3 CalculateSegmentBezier3(this ref NetSegment seg, bool bStartNode = true) {
             ref NetNode startNode = ref seg.m_startNode.ToNode();
             ref NetNode endNode = ref seg.m_endNode.ToNode();
             Bezier3 bezier = new Bezier3 {
@@ -533,6 +533,10 @@ namespace KianCommons {
             get => (NetLane.Flags)Lane.m_flags;
             set => LaneID.ToLane().m_flags = (ushort)value;
         }
+
+        public readonly bool LeftSide => LaneInfo.m_position < 0 != Segment.m_flags.IsFlagSet(NetSegment.Flags.Invert);
+        public readonly bool RightSide => !LeftSide;
+
         public readonly Bezier3 Bezier => Lane.m_bezier;
         public override string ToString() => $"LaneData:[segment:{SegmentID} node:{NodeID} lane ID:{LaneID} {LaneInfo.m_laneType} {LaneInfo.m_vehicleType}]";
     }
