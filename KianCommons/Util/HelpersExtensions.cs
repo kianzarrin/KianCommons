@@ -182,6 +182,12 @@ namespace KianCommons {
             }
         }
 
+        internal static T ShalowClone<T>(this T source) where T: class {
+            T target = typeof(T).GetConstructor(Type.EmptyTypes).Invoke(null) as T;
+            CopyProperties<T>(target, source);
+            return target;
+        }
+
         internal static string GetPrettyFunctionName(MethodInfo m) {
             string s = m.Name;
             string[] ss = s.Split(new[] { "g__", "|" }, System.StringSplitOptions.RemoveEmptyEntries);
