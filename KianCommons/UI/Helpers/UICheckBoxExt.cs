@@ -16,9 +16,13 @@ namespace KianCommons.UI {
             sprite.spriteName = "ToggleBase";
             sprite.size = new Vector2(height, height);
             sprite.relativePosition = new Vector2(0, (height - sprite.height) / 2);
+            sprite.atlas = TextureUtil.Ingame;
 
-            checkedBoxObject = sprite.AddUIComponent<UISprite>();
-            ((UISprite)checkedBoxObject).spriteName = "ToggleBaseFocused";
+
+            var sprite2 = sprite.AddUIComponent<UISprite>();
+            sprite2.atlas = TextureUtil.Ingame;
+            sprite2.spriteName = "ToggleBaseFocused";
+            checkedBoxObject = sprite2;
             checkedBoxObject.size = sprite.size;
             checkedBoxObject.relativePosition = Vector3.zero;
 

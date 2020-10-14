@@ -5,6 +5,7 @@ namespace KianCommons {
     using System.Reflection;
     using UnityEngine;
     using System.Linq;
+    using ColossalFramework.UI;
 
     /// <summary>
     /// A simple logging class.
@@ -131,11 +132,13 @@ namespace KianCommons {
 
         }
 
-        internal static void Exception(Exception e, string m = "") {
+        internal static void Exception(Exception e, string m = "", bool showInPanel=true) {
             string message = e.ToString() + $"\n\t-- {assemblyName_}:end of inner stack trace --";
             if (!m.IsNullorEmpty())
                 message = m + " -> \n" + message;
             LogImpl(message, LogLevel.Exception, true);
+            if(showInPanel)
+                UIView.ForwardException(e);
         }
 
         static string nl = Environment.NewLine;

@@ -97,5 +97,19 @@ namespace KianCommons.Math {
             return v;
         }
         #endregion
+
+
+        /// <summary>
+        /// calculates if <paramref name="target"/> angle is to the right of 0 and <paramref name="source"/> angle.
+        /// assuming input angles are (-pi,pi) CCW.
+        /// assuming all angles are unique non-zero
+        /// </summary>
+        /// <param name="source">angle to compare with</param>
+        /// <param name="target">angle being comapred</param>
+        public static bool CompareAngles_CCW_Right(float source, float target) {
+            if (source > 0)
+                return (0 < target) & (target < source);
+            return !CompareAngles_CCW_Right(-source, -target);
+        }
     }
 }

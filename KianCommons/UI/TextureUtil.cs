@@ -8,8 +8,23 @@ namespace KianCommons.UI {
     using Object = UnityEngine.Object;
 
     public static class TextureUtil {
-        public static UITextureAtlas Ingame => GetAtlas("Ingame");
-        public static UITextureAtlas InMapEditor => GetAtlas("InMapEditor");
+
+        static UITextureAtlas inGame_;
+        static UITextureAtlas inMapEditor_;
+        public static UITextureAtlas Ingame {
+            get {
+                if(!inGame_)
+                    inGame_ = GetAtlas("Ingame");
+                return inGame_;
+            }
+        }
+        public static UITextureAtlas InMapEditor {
+            get {
+                if (!inMapEditor_)
+                    inMapEditor_ = GetAtlas("InMapEditor");
+                return inMapEditor_;
+            }
+        }
 
         static string PATH => typeof(TextureUtil).Assembly.GetName().Name + ".Resources.";
         static string ModPath => PluginUtil.GetPlugin().modPath;

@@ -517,6 +517,19 @@ namespace KianCommons {
             return ret;
         }
 
+        public static int GetLaneIndex(uint laneID) {
+            ushort segmentId = laneID.ToLane().m_segment;
+            var id = segmentId.ToSegment().m_lanes;
+            
+            for(int i = 0;
+                i< segmentId.ToSegment().Info.m_lanes.Length && id != 0;
+                i++) {
+                if (id == laneID)
+                    return i;
+                id = id.ToLane().m_nextLane;
+            }
+            return -1;
+        }
 
     }
 
@@ -525,6 +538,20 @@ namespace KianCommons {
         public int LaneIndex;
         public NetInfo.Lane LaneInfo;
         public bool StartNode;
+
+        public LaneData(uint laneID, int laneIndex = -1) {
+            LaneID = laneID;
+            if (laneIndex < 0)
+                laneIndex = NetUtil.GetLaneIndex(laneID);
+            LaneIndex = laneIndex;
+
+            ushort segmentID = LaneID.ToLane().m_segment;
+            LaneInfo = segmentID.ToSegment().Info.m_lanes[LaneIndex];
+            bool forward = LaneInfo.m_finalDirection == NetInfo.Direction.Forward;
+            bool inverted = segmentID.ToSegment().m_flags.IsFlagSet(NetSegment.Flags.Invert);
+            StartNode = forward ^ !inverted;
+        }
+
         public readonly ushort SegmentID => Lane.m_segment;
         public readonly ref NetSegment Segment => ref SegmentID.ToSegment();
         public readonly ref NetLane Lane => ref LaneID.ToLane();
@@ -540,5 +567,7 @@ namespace KianCommons {
         public readonly Bezier3 Bezier => Lane.m_bezier;
         public override string ToString() => $"LaneData:[segment:{SegmentID} node:{NodeID} lane ID:{LaneID} {LaneInfo.m_laneType} {LaneInfo.m_vehicleType}]";
     }
+
+
 }
 
