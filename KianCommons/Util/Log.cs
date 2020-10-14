@@ -209,7 +209,7 @@ namespace KianCommons {
         /// TYPE inlinefunctionname(...) => expression.LogRet("messege");
         /// </summary>
         internal static T LogRet<T>(this T a, string m) {
-            Log.Debug(m + a);
+            Log.Debug(m + " -> " + a);
             return a;
         }
     }

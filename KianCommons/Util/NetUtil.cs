@@ -565,7 +565,15 @@ namespace KianCommons {
         public readonly bool RightSide => !LeftSide;
 
         public readonly Bezier3 Bezier => Lane.m_bezier;
-        public override string ToString() => $"LaneData:[segment:{SegmentID} node:{NodeID} lane ID:{LaneID} {LaneInfo.m_laneType} {LaneInfo.m_vehicleType}]";
+        public override string ToString() {
+            try {
+                return $"LaneData:[segment:{SegmentID} node:{NodeID} laneID:{LaneID} Index={LaneIndex} {LaneInfo?.m_laneType} { LaneInfo?.m_vehicleType}]";
+            }
+            catch (NullReferenceException) {
+                return $"LaneData:[segment:{SegmentID} node:{NodeID} lane ID:{LaneID} null";
+            }
+        }
+        
     }
 
 
