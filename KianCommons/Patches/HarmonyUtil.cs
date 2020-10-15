@@ -7,7 +7,7 @@ namespace KianCommons {
 
     public static class HarmonyUtil {
         static bool harmonyInstalled_ = false;
-        public static void AssertCitiesHarmonyInstalled() {
+        internal static void AssertCitiesHarmonyInstalled() {
             if (!HarmonyHelper.IsHarmonyInstalled) {
                 string m =
                     "****** ERRRROOORRRRRR!!!!!!!!!! **************\n" +
@@ -26,7 +26,7 @@ namespace KianCommons {
             }
         }
 
-        public static void InstallHarmony(string harmonyID) {
+        internal static void InstallHarmony(string harmonyID) {
             if (harmonyInstalled_) {
                 Log.Info("skipping harmony installation because its already installed");
                 return;
@@ -48,7 +48,7 @@ namespace KianCommons {
             harmony.PatchAll();
         }
 
-        public static void UninstallHarmony(string harmonyID) {
+        internal static void UninstallHarmony(string harmonyID) {
             AssertCitiesHarmonyInstalled();
             Log.Info("UnPatching...");
             UnpatchAll(harmonyID);
@@ -64,5 +64,31 @@ namespace KianCommons {
             var harmony = new Harmony(harmonyID);
             harmony.UnpatchAll(harmonyID);
         }
+
+        internal static void ManualPatch(Type t, string harmonyID) {
+            AssertCitiesHarmonyInstalled();
+            ManualPatchUnSafe(t, harmonyID);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        static void ManualPatchUnSafe(Type t,string harmonyID) {
+            MethodBase targetMethod = AccessTools.DeclaredMethod(t, "TargetMethod");
+            Assertion.AssertNotNull(targetMethod, "targetMethod");
+            var prefix = GetHarmonyMethod(t, "Prefix");
+            var postfix = GetHarmonyMethod(t, "Postfix");
+            var transpiler = GetHarmonyMethod(t, "Transpiler");
+            var finalizer = GetHarmonyMethod(t, "Finalizer");
+            var harmony = new Harmony(harmonyID);
+            harmony.Patch(original: targetMethod, prefix: prefix, postfix: postfix, transpiler: transpiler, finalizer: finalizer);
+        }
+
+        public static HarmonyMethod GetHarmonyMethod(Type t, string name) {
+            var m = AccessTools.DeclaredMethod(t, name);
+            if (m == null) return null;
+            Assertion.Assert(m.IsStatic, $"{m}.IsStatic");
+            return new HarmonyMethod(m);
+        }
+
+
     }
 }
