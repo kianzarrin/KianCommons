@@ -16,12 +16,15 @@ namespace KianCommons {
         public static ulong GetWorkshopID(this PluginInfo plugin) => plugin.publishedFileID.AsUInt64;
 
         public static bool IsActive(this PluginInfo pluggin) => pluggin?.isEnabled ?? false;
+
+        public static Assembly MainAssembly(this PluginInfo pluggin) => pluggin?.GetAssemblies()?[0];
     }
 
     public static class PluginUtil {
         static PluginManager man => PluginManager.instance;
 
         public static PluginInfo GetCSUR() => GetPlugin("CSUR ToolBox", 1959342332ul);
+        public static PluginInfo GetAdaptiveRoads() => PluginUtil.GetPlugin("AdaptiveRoads");
 
         [Obsolete]
         internal static bool CSUREnabled;
