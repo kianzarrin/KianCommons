@@ -141,33 +141,6 @@ namespace KianCommons {
                     yield return (int)val;
             }
         }
-
-
-        public static void DropElement<T>(this T[] array, int i) {
-            int n1 = array.Length;
-            T[] ret = new T[n1 - 1];
-            int i1 = 0, i2 = 0;
-
-            while (i1 < n1) {
-                if (i1 != i) {
-                    ret[i2] = array[i1];
-                    i2++;
-                }
-                i1++;
-            }
-        }
-
-        public static void AppendElement<T>(this T[] array, T element) {
-            int n1 = array.Length;
-            T[] ret = new T[n1 + 1];
-
-            for (int i = 0; i < n1; ++i)
-                ret[i] = array[i];
-
-            ret.Last() = element;
-        }
-
-        public static ref T Last<T>(this T[] array) => ref array[array.Length - 1];
     }
 
     internal static class AssemblyTypeExtensions {
@@ -207,6 +180,12 @@ namespace KianCommons {
                 fieldInfo.SetValue(target, value);
                 //Log.Debug($"Copied field:<{fieldInfo.Name}> value:<{strValue}>");
             }
+        }
+
+        internal static T ShalowClone<T>(this T source) where T: class {
+            T target = typeof(T).GetConstructor(Type.EmptyTypes).Invoke(null) as T;
+            CopyProperties<T>(target, source);
+            return target;
         }
 
         internal static string GetPrettyFunctionName(MethodInfo m) {
@@ -361,6 +340,34 @@ namespace KianCommons {
             else
                 return a.Count() == 0;
         }
+
+        public static void DropElement<T>(ref T[] array, int i) {
+            int n1 = array.Length;
+            T[] ret = new T[n1 - 1];
+            int i1 = 0, i2 = 0;
+
+            while (i1 < n1) {
+                if (i1 != i) {
+                    ret[i2] = array[i1];
+                    i2++;
+                }
+                i1++;
+            }
+            array = ret;
+        }
+
+        public static void AppendElement<T>(ref T[] array, T element) {
+            int n1 = array.Length;
+            T[] ret = new T[n1 + 1];
+
+            for (int i = 0; i < n1; ++i)
+                ret[i] = array[i];
+
+            ret.Last() = element;
+            array = ret;
+        }
+
+        public static ref T Last<T>(this T[] array) => ref array[array.Length - 1];
     }
 
     internal static class HelpersExtensions
