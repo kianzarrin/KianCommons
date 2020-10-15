@@ -25,7 +25,8 @@ namespace KianCommons {
                 memoryStream.Position = 0;
                 return GetBinaryFormatter.Deserialize(memoryStream);
             }
-            catch {
+            catch (Exception e) {
+                Log.Exception(e,showInPanel:false);
                 return null;
             } finally {
                 DeserializationVersion = null;
