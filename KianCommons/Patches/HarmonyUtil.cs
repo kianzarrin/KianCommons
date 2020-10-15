@@ -65,6 +65,10 @@ namespace KianCommons {
             harmony.UnpatchAll(harmonyID);
         }
 
+        internal static void ManualPatch<T>(string harmonyID) {
+            AssertCitiesHarmonyInstalled();
+            ManualPatchUnSafe(typeof(T), harmonyID);
+        }
         internal static void ManualPatch(Type t, string harmonyID) {
             AssertCitiesHarmonyInstalled();
             ManualPatchUnSafe(t, harmonyID);
