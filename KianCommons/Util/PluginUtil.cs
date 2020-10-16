@@ -17,7 +17,7 @@ namespace KianCommons {
 
         public static bool IsActive(this PluginInfo pluggin) => pluggin?.isEnabled ?? false;
 
-        public static Assembly MainAssembly(this PluginInfo pluggin) => pluggin?.GetAssemblies()?[0];
+        public static Assembly GetMainAssembly(this PluginInfo pluggin) => pluggin?.userModInstance.GetType().Assembly;
     }
 
     public static class PluginUtil {
@@ -137,7 +137,7 @@ namespace KianCommons {
                     match = match || Match(current.name, searchName, searchOptions);
 
                 if (searchOptions.IsFlagSet(SearchOptionT.AssemblyName)) {
-                    Assembly asm = current.GetAssemblies()[0];
+                    Assembly asm = current.GetMainAssembly();
                     match = match || Match(asm.GetName().Name, searchName, searchOptions);
                 }
 
