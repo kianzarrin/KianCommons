@@ -37,10 +37,7 @@ namespace KianCommons {
         /// throws exception if unsucessful.
         /// </summary>
         internal static LaneData GetLaneData(uint laneId) {
-            Assertion.Assert(laneId != 0, "laneId!=0");
-            var flags = laneId.ToLane().Flags();
-            bool valid = (flags & NetLane.Flags.Created | NetLane.Flags.Deleted) != NetLane.Flags.Created;
-            Assertion.Assert(valid, "valid");
+            Assertion.Assert(IsLaneValid(laneId) , string.Format($"laneId={laneId} laneFlags={laneId.ToLane().Flags()}"));
             foreach (var laneData in IterateSegmentLanes(laneId.ToLane().m_segment))
                 if (laneData.LaneID == laneId)
                     return laneData;
@@ -263,11 +260,10 @@ namespace KianCommons {
         }
 
         public static bool IsLaneValid(uint laneId) {
-            if (laneId != 0) {
-                return laneId.ToLane().Flags().
-                    CheckFlags(required: NetLane.Flags.Created, forbidden: NetLane.Flags.Deleted);
-            }
-            return false;
+            if (laneId != 0)
+                return false;
+            return laneId.ToLane().Flags().
+                CheckFlags(required: NetLane.Flags.Created, forbidden: NetLane.Flags.Deleted);
         }
 
         public static ushort GetHeadNode(ref NetSegment segment) {
