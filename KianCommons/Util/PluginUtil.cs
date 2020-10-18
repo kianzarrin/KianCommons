@@ -26,7 +26,7 @@ namespace KianCommons {
         public static PluginInfo GetCSUR() => GetPlugin("CSUR ToolBox", 1959342332ul);
         public static PluginInfo GetAdaptiveRoads() => PluginUtil.GetPlugin("AdaptiveRoads");
         public static PluginInfo GetHideCrossings() => PluginUtil.GetPlugin(
-            "HideCrosswaks",
+            "HideCrosswalks",
             searchOptions: SearchOptionT.AssemblyName | SearchOptionT.Equals | SearchOptionT.AllOptions);
 
         [Obsolete]

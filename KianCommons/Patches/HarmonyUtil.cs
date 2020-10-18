@@ -75,15 +75,23 @@ namespace KianCommons {
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        static void ManualPatchUnSafe(Type t,string harmonyID) {
-            MethodBase targetMethod = AccessTools.DeclaredMethod(t, "TargetMethod");
-            Assertion.AssertNotNull(targetMethod, "targetMethod");
-            var prefix = GetHarmonyMethod(t, "Prefix");
-            var postfix = GetHarmonyMethod(t, "Postfix");
-            var transpiler = GetHarmonyMethod(t, "Transpiler");
-            var finalizer = GetHarmonyMethod(t, "Finalizer");
-            var harmony = new Harmony(harmonyID);
-            harmony.Patch(original: targetMethod, prefix: prefix, postfix: postfix, transpiler: transpiler, finalizer: finalizer);
+        static void ManualPatchUnSafe(Type t, string harmonyID) {
+            try {
+                MethodBase targetMethod =
+                    AccessTools.DeclaredMethod(t, "TargetMethod")
+                    .Invoke(null, null) as MethodBase ;
+                Log.Info($"{t.FullName}.TorgetMethod()->{targetMethod}", true);
+                Assertion.AssertNotNull(targetMethod, $"{t.FullName}.TargetMethod() returned null");
+                var prefix = GetHarmonyMethod(t, "Prefix");
+                var postfix = GetHarmonyMethod(t, "Postfix");
+                var transpiler = GetHarmonyMethod(t, "Transpiler");
+                var finalizer = GetHarmonyMethod(t, "Finalizer");
+                var harmony = new Harmony(harmonyID);
+                harmony.Patch(original: targetMethod, prefix: prefix, postfix: postfix, transpiler: transpiler, finalizer: finalizer);
+            }
+            catch(Exception e) {
+                Log.Exception(e);
+            }
         }
 
         public static HarmonyMethod GetHarmonyMethod(Type t, string name) {
