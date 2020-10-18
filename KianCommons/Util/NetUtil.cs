@@ -3,7 +3,6 @@ using ColossalFramework.Math;
 using KianCommons.Math;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using UnityEngine;
 
@@ -37,7 +36,7 @@ namespace KianCommons {
         /// throws exception if unsucessful.
         /// </summary>
         internal static LaneData GetLaneData(uint laneId) {
-            Assertion.Assert(IsLaneValid(laneId) , string.Format($"laneId={laneId} laneFlags={laneId.ToLane().Flags()}"));
+            Assertion.Assert(IsLaneValid(laneId), string.Format($"laneId={laneId} laneFlags={laneId.ToLane().Flags()}"));
             foreach (var laneData in IterateSegmentLanes(laneId.ToLane().m_segment))
                 if (laneData.LaneID == laneId)
                     return laneData;
@@ -516,9 +515,9 @@ namespace KianCommons {
         public static int GetLaneIndex(uint laneID) {
             ushort segmentId = laneID.ToLane().m_segment;
             var id = segmentId.ToSegment().m_lanes;
-            
-            for(int i = 0;
-                i< segmentId.ToSegment().Info.m_lanes.Length && id != 0;
+
+            for (int i = 0;
+                i < segmentId.ToSegment().Info.m_lanes.Length && id != 0;
                 i++) {
                 if (id == laneID)
                     return i;
@@ -569,9 +568,7 @@ namespace KianCommons {
                 return $"LaneData:[segment:{SegmentID} node:{NodeID} lane ID:{LaneID} null";
             }
         }
-        
     }
-
-
 }
+
 
