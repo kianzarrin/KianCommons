@@ -200,6 +200,12 @@ namespace KianCommons {
             var att = member.GetCustomAttributes(typeof(T), inherit);
             return !att.IsNullorEmpty();
         }
+
+        internal static IEnumerable<FieldInfo> GetFieldsWithAttribute<T>(
+            this object obj, bool inherit = true) where T : Attribute {
+            return obj.GetType().GetFields()
+                .Where(_field => _field.HasAttribute<T>(inherit));
+        }
     }
 
     internal static class StringExtensions {
@@ -365,6 +371,16 @@ namespace KianCommons {
 
             ret.Last() = element;
             array = ret;
+        }
+
+        public static void ReplaceElement<T>(this T[] array, T oldVal, T newVal) {
+            int index = (array as IList).IndexOf(oldVal);
+            array[index] = newVal;
+        }
+
+        public static void ReplaceElement(this Array array, object oldVal, object newVal) {
+            int index = (array as IList).IndexOf(oldVal);
+            array.SetValue(newVal, index);
         }
 
         public static ref T Last<T>(this T[] array) => ref array[array.Length - 1];
