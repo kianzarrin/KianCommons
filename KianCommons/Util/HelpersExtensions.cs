@@ -206,6 +206,31 @@ namespace KianCommons {
             return obj.GetType().GetFields()
                 .Where(_field => _field.HasAttribute<T>(inherit));
         }
+
+        internal static object GetDeclaredFieldValue(string fieldName, object target) {
+            BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+            var type = target.GetType();
+            var field = type.GetField(fieldName, bindingFlags)
+                ?? throw new Exception($"{type}.{fieldName} not found");
+            return field.GetValue(target);
+        }
+
+        internal static object GetDeclaredFieldValue<TargetType>(string fieldName, object target) {
+            BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+            var type = typeof(TargetType);
+            var field = type.GetField(fieldName, bindingFlags)
+                ?? throw new Exception($"{type}.{fieldName} not found");
+            return field.GetValue(target);
+        }
+
+        internal static object GetDeclaredFieldValue<TargetType>(string fieldName) {
+            BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
+            var type = typeof(TargetType);
+            var field = type.GetField(fieldName, bindingFlags)
+                ?? throw new Exception($"{type}.{fieldName} not found");
+            return field.GetValue(null);
+        }
+
     }
 
     internal static class StringExtensions {
@@ -346,6 +371,8 @@ namespace KianCommons {
             else
                 return a.Count() == 0;
         }
+
+        public static int IndexOf<T>(this T[] array, T element) => (array as IList).IndexOf(element);
 
         public static void DropElement<T>(ref T[] array, int i) {
             int n1 = array.Length;

@@ -530,6 +530,16 @@ namespace KianCommons {
             }
             return -1;
         }
+        public static uint GetlaneID(ushort segmentID, int laneIndex) {
+            uint laneID = segmentID.ToSegment().m_lanes;
+            int n = segmentID.ToSegment().Info.m_lanes.Length;
+            for (int i = 0; i < n && laneID != 0; i++) {
+                if (i == laneIndex)
+                    return laneID;
+                laneID = laneID.ToLane().m_nextLane;
+            }
+            return 0;
+        }
 
     }
 

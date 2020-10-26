@@ -217,8 +217,6 @@ namespace KianCommons.UI {
             RenderLine(line, cameraInfo, color);
         }
 
-
-
         public static void RenderGrid(RenderManager.CameraInfo cameraInfo, GridVector grid, Color color) {
             var corner0 = grid.GetGirdStartCorner();
             var corner3 = new GridVector(grid.x + 1, grid.y + 1).GetGirdStartCorner();
