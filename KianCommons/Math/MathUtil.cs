@@ -1,6 +1,3 @@
-using System;
-using UnityEngine;
-
 namespace KianCommons.Math {
     public static class MathUtil {
         public const float Epsilon = 0.001f;
@@ -10,5 +7,10 @@ namespace KianCommons.Math {
         }
 
         public static bool IsPow2(ulong x) => x != 0 && (x & (x - 1)) == 0;
+        public static bool IsPow2(long x) => x != 0 && (x & (x - 1)) == 0;
+
+        // these are required to support negative numbers.
+        public static bool IsPow2(int x) => x != 0 && (x & (x - 1)) == 0;
+        public static bool IsPow2(short x) => x != 0 && (x & (x - 1)) == 0;
     }
 }

@@ -1,10 +1,29 @@
 using ColossalFramework.UI;
-using KianCommons;
-using KianCommons.UI;
+using HarmonyLib;
+using System;
+using System.Linq;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 
 namespace KianCommons.UI.Helpers {
+    public static class Extensions {
+        static FieldInfo fPopop = AccessTools.DeclaredField(typeof(UICheckboxDropDown), "m_Popup")
+            ?? throw new Exception("m_Popup not found");
+
+        public static int GetHoverIndex(this UICheckboxDropDown dd) {
+            var popup = fPopop.GetValue(dd) as UIScrollablePanel;
+            //Log.Debug("GetHoverIndex() popup=" + Popup);
+            if (popup == null || !popup.isVisible)
+                return -1;
+            foreach (var c in popup.GetComponentsInChildren<UICheckBox>()) {
+                if (c.containsMouse)
+                    return (int)c.objectUserData;
+            }
+            return -1;
+        }
+    }
+
     // usage: sub to eventCheckChanged.
     // set Title
     public class UICheckboxDropDownExt : UICheckboxDropDown {

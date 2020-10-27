@@ -11,6 +11,7 @@ namespace KianCommons {
     using System.Reflection;
     using UnityEngine.SceneManagement;
     using ColossalFramework;
+    using static KianCommons.Math.MathUtil;
 
     internal static class StackHelpers {
         public static string ToStringPretty(this StackTrace st, bool fullPath=false, bool nameSpace=false, bool showArgs = false) {
@@ -105,9 +106,6 @@ namespace KianCommons {
 
         internal static bool CheckFlags(this NetLane.Flags value, NetLane.Flags required, NetLane.Flags forbidden) =>
             (value & (required | forbidden)) == required;
-
-        static bool IsPow2(ulong x) => x != 0 && (x & (x - 1)) == 0;
-        static bool IsPow2(long x) => x != 0 && (x & (x - 1)) == 0;
 
         public static IEnumerable<T> GetPow2ValuesU32<T>() where T : struct, IConvertible {
             CheckEnumWithFlags<T>();
