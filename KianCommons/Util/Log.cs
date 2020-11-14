@@ -35,7 +35,7 @@ namespace KianCommons {
         /// <summary>
         /// Full path and file name of log file.
         /// </summary>
-        private static readonly string LogFilePath = Path.Combine(Application.dataPath, LogFileName);
+        private static readonly string LogFilePath;
 
         /// <summary>
         /// Stopwatch used if <see cref="ShowTimestamp"/> is <c>true</c>.
@@ -48,6 +48,8 @@ namespace KianCommons {
         /// </summary>
         static Log() {
             try {
+                LogFilePath = Path.Combine(Application.dataPath, "Logs");
+                LogFilePath = Path.Combine(LogFilePath, LogFileName);
                 if (File.Exists(LogFilePath)) {
                     File.Delete(LogFilePath);
                 }
