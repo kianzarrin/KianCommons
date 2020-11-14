@@ -362,12 +362,7 @@ namespace KianCommons {
         /// generic way of determining if IEnumerable is null or empty
         /// </summary>
         internal static bool IsNullorEmpty<T>(this IEnumerable<T> a) {
-            if (a == null)
-                return true;
-            else if (a is ICollection collection)
-                return collection.Count == 0;
-            else
-                return a.Count() == 0;
+            return a == null || !a.Any();
         }
 
         public static int IndexOf<T>(this T[] array, T element) => (array as IList).IndexOf(element);
