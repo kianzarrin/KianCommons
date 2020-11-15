@@ -59,7 +59,8 @@ namespace KianCommons {
                 }
 
                 AssemblyName details = typeof(Log).Assembly.GetName();
-                Info($"{details.Name} v{details.Version.ToString()}", true);
+                Info($"Log file at " + LogFilePath, true);
+                Info($"{details.Name} v{details.Version}", true);
             }
             catch {
                 // ignore
