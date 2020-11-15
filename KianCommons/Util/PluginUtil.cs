@@ -17,7 +17,7 @@ namespace KianCommons {
 
         public static bool IsActive(this PluginInfo pluggin) => pluggin?.isEnabled ?? false;
 
-        public static Assembly GetMainAssembly(this PluginInfo pluggin) => pluggin?.userModInstance.GetType().Assembly;
+        public static Assembly GetMainAssembly(this PluginInfo pluggin) => pluggin?.userModInstance?.GetType()?.Assembly;
     }
 
     public static class PluginUtil {
