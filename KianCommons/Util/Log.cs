@@ -29,8 +29,7 @@ namespace KianCommons {
         /// <summary>
         /// File name for log file.
         /// </summary>
-        private static readonly string LogFileName
-            = Path.Combine(Application.dataPath, assemblyName_ + ".log");
+        private static readonly string LogFileName = assemblyName_ + ".log";
 
         /// <summary>
         /// Full path and file name of log file.
