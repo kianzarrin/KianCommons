@@ -42,7 +42,7 @@ namespace KianCommons.Patches {
 
         public static List<CodeInstruction> ToCodeList(this IEnumerable<CodeInstruction> instructions) {
             var originalCodes = new List<CodeInstruction>(instructions);
-            var codes = new List<CodeInstruction>(originalCodes);
+            var codes = new List<CodeInstruction>(originalCodes); // is this redundant?
             return codes;
         }
 

@@ -1,11 +1,11 @@
 namespace KianCommons {
+    using ColossalFramework.UI;
     using System;
     using System.Diagnostics;
     using System.IO;
+    using System.Linq;
     using System.Reflection;
     using UnityEngine;
-    using System.Linq;
-    using ColossalFramework.UI;
 
     /// <summary>
     /// A simple logging class.
@@ -41,6 +41,11 @@ namespace KianCommons {
         /// </summary>
         private static readonly Stopwatch Timer;
 
+        public static Stopwatch GetSharedTimer() {
+            var t = Type.GetType("LoadOrderIPatch.Patches.LoggerPatch, LoadOrderIPatch", throwOnError: false);
+            return t?.GetField("m_Timer")?.GetValue(null) as Stopwatch;
+        }
+
         /// <summary>
         /// Initializes static members of the <see cref="Log"/> class.
         /// Resets log file on startup.
@@ -54,14 +59,13 @@ namespace KianCommons {
                 }
 
                 if (ShowTimestamp) {
-                    Timer = Stopwatch.StartNew();
+                    Timer = GetSharedTimer() ?? Stopwatch.StartNew();
                 }
 
                 AssemblyName details = typeof(Log).Assembly.GetName();
                 Info($"Log file at " + LogFilePath, true);
                 Info($"{details.Name} v{details.Version}", true);
-            }
-            catch {
+            } catch {
                 // ignore
             }
         }
@@ -134,12 +138,12 @@ namespace KianCommons {
 
         }
 
-        internal static void Exception(Exception e, string m = "", bool showInPanel=true) {
+        internal static void Exception(Exception e, string m = "", bool showInPanel = true) {
             string message = e.ToString() + $"\n\t-- {assemblyName_}:end of inner stack trace --";
             if (!string.IsNullOrEmpty(m))
                 message = m + " -> \n" + message;
             LogImpl(message, LogLevel.Exception, true);
-            if(showInPanel)
+            if (showInPanel)
                 UIView.ForwardException(e);
         }
 
@@ -188,8 +192,7 @@ namespace KianCommons {
                             break;
                     }
                 }
-            }
-            catch {
+            } catch {
                 // ignore
             }
         }
