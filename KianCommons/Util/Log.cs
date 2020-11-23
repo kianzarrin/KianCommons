@@ -165,9 +165,7 @@ namespace KianCommons {
                 }
 
                 if (ShowTimestamp) {
-                    long secs = ticks / Stopwatch.Frequency;
-                    long fraction = ticks % Stopwatch.Frequency;
-                    m += string.Format($"{secs.ToString("n0")}.{fraction.ToString("D7")} | ");
+                    m += Timer.ElapsedMilliseconds.ToString("0,0") + "ms | ";
                 }
 
                 m += message + nl;
