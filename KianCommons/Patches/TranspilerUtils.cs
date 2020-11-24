@@ -49,6 +49,13 @@ namespace KianCommons.Patches {
         internal static MethodInfo GetMethod(Type type, string name) =>
             AccessTools.DeclaredMethod(type, name) ?? throw new Exception($"Method not found: {type.Name}.{name}");
 
+        internal static MethodInfo GetCoroutineMoveNext(Type declaringType, string name) {
+            Type t = declaringType.GetNestedTypes(ALL)
+                .Single(_t => _t.Name.Contains($"<{name}>"));
+            return GetMethod(t,"MoveNext");
+        }
+
+
         public static List<CodeInstruction> ToCodeList(this IEnumerable<CodeInstruction> instructions) {
             var originalCodes = new List<CodeInstruction>(instructions);
             var codes = new List<CodeInstruction>(originalCodes); // is this redundant?

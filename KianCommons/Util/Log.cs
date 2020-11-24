@@ -165,7 +165,7 @@ namespace KianCommons {
                 }
 
                 if (ShowTimestamp) {
-                    m += Timer.ElapsedMilliseconds.ToString("0,0") + "ms | ";
+                    m += Timer.ElapsedMilliseconds.ToString("#,0") + "ms | ";
                 }
 
                 m += message + nl;
