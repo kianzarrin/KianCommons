@@ -86,7 +86,7 @@ namespace KianCommons.Patches {
         /// <returns>
         /// returns the argument location to be used in LdArg instruction.
         /// </returns>
-        public static byte GetArgLoc(MethodInfo method, string argName) {
+        public static byte GetArgLoc(MethodBase method, string argName) {
             byte idx = (byte)GetParameterLoc(method, argName);
             if (!method.IsStatic)
                 idx++; // first argument is object instance.
@@ -96,7 +96,7 @@ namespace KianCommons.Patches {
         /// <summary>
         /// Post condtion: for instnace method add one to get argument location
         /// </summary>
-        public static byte GetParameterLoc(MethodInfo method, string name) {
+        public static byte GetParameterLoc(MethodBase method, string name) {
             var parameters = method.GetParameters();
             for (byte i = 0; i < parameters.Length; ++i) {
                 if (parameters[i].Name == name) {
