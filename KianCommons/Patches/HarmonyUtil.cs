@@ -7,9 +7,7 @@ namespace KianCommons {
 
     public static class HarmonyUtil {
         static bool harmonyInstalled_ = false;
-        internal static void AssertCitiesHarmonyInstalled() {
-            if (!HarmonyHelper.IsHarmonyInstalled) {
-                string m =
+        const string errorMessage_ =
                     "****** ERRRROOORRRRRR!!!!!!!!!! **************\n" +
                     "**********************************************\n" +
                     "    HARMONY MOD DEPENDANCY IS NOT INSTALLED!\n\n" +
@@ -21,21 +19,32 @@ namespace KianCommons {
                     " - run the game again.\n" +
                     "**********************************************\n" +
                     "**********************************************\n";
-                Log.Error(m);
-                throw new Exception(m);
+
+        internal static void AssertCitiesHarmonyInstalled() {
+            if (!HarmonyHelper.IsHarmonyInstalled) {
+                throw new Exception(errorMessage_);
             }
         }
 
         internal static void InstallHarmony(string harmonyID) {
-            if (harmonyInstalled_) {
-                Log.Info("skipping harmony installation because its already installed");
-                return;
+            try {
+                if (harmonyInstalled_) {
+                    Log.Info("skipping harmony installation because its already installed");
+                    return;
+                }
+                AssertCitiesHarmonyInstalled();
+                Log.Info("Patching...");
+                PatchAll(harmonyID);
+                harmonyInstalled_ = true;
+                Log.Info("Patched.");
+
+
+
+            } catch (TypeLoadException ex) {
+                Log.Exception(new TypeLoadException(errorMessage_, ex));
+            } catch (Exception ex){
+                Log.Exception(ex);
             }
-            AssertCitiesHarmonyInstalled();
-            Log.Info("Patching...");
-            PatchAll(harmonyID);
-            harmonyInstalled_ = true;
-            Log.Info("Patched.");
         }
 
         /// <summary>
@@ -46,6 +55,10 @@ namespace KianCommons {
         static void PatchAll(string harmonyID) {
             var harmony = new Harmony(harmonyID);
             harmony.PatchAll();
+            foreach(var method in harmony.GetPatchedMethods()) {
+                Log.Info($"harmony({harmonyID}) patched: {method.DeclaringType.FullName}::{method.Name}",true);
+            }
+            
         }
 
         internal static void UninstallHarmony(string harmonyID) {
