@@ -13,13 +13,16 @@ namespace KianCommons.Patches {
         }
 
         public const BindingFlags ALL = BindingFlags.Public
-        | BindingFlags.NonPublic
-        | BindingFlags.Instance
-        | BindingFlags.Static
-        | BindingFlags.GetField
-        | BindingFlags.SetField
-        | BindingFlags.GetProperty
-        | BindingFlags.SetProperty;
+            | BindingFlags.NonPublic
+            | BindingFlags.Instance
+            | BindingFlags.Static
+            | BindingFlags.GetField
+            | BindingFlags.SetField
+            | BindingFlags.GetProperty
+            | BindingFlags.SetProperty;
+
+        public static string FullName(MethodBase m) =>
+            m.DeclaringType.FullName + "::" + m.Name;
 
         /// <typeparam name="TDelegate">delegate type</typeparam>
         /// <returns>Type[] represeting arguments of the delegate.</returns>
