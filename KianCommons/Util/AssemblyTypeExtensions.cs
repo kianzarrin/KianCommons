@@ -15,6 +15,8 @@ namespace KianCommons {
         internal static Version VersionOf(this object obj) =>
             VersionOf(obj.GetType());
 
+        internal static string Name(this Assembly assembly) => assembly.GetName().Name;
+
         internal static void CopyProperties(object target, object origin) {
             var t1 = target.GetType();
             var t2 = origin.GetType();
@@ -44,12 +46,6 @@ namespace KianCommons {
             }
         }
 
-        internal static T ShalowClone<T>(this T source) where T : class {
-            T target = typeof(T).GetConstructor(Type.EmptyTypes).Invoke(null) as T;
-            CopyProperties<T>(target, source);
-            return target;
-        }
-
         internal static string GetPrettyFunctionName(MethodInfo m) {
             string s = m.Name;
             string[] ss = s.Split(new[] { "g__", "|" }, System.StringSplitOptions.RemoveEmptyEntries);
@@ -60,7 +56,7 @@ namespace KianCommons {
 
         internal static bool HasAttribute<T>(this MemberInfo member, bool inherit = true) where T : Attribute {
             var att = member.GetCustomAttributes(typeof(T), inherit);
-            return !att.IsNullorEmpty();
+            return att != null && att.Length != 0;
         }
 
         internal static IEnumerable<FieldInfo> GetFieldsWithAttribute<T>(

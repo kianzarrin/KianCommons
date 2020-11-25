@@ -41,6 +41,33 @@ namespace KianCommons {
         /// </summary>
         private static readonly Stopwatch Timer;
 
+        private static StreamWriter filerWrier_;
+
+        /// <summary>
+        /// buffered logging is much faster but does not support hot-reload/external modification
+        /// to use Buffered mod with hot-reload: set when mod is enabled and reset when mod is disabled.
+        /// </summary>
+        internal static bool Buffered {
+            get => filerWrier_ != null;
+            set {
+                if (value == Buffered) return;
+                if (value) {
+                    filerWrier_ = new StreamWriter(LogFilePath, true);
+                } else {
+                    filerWrier_.Flush();
+                    filerWrier_.Dispose();
+                    filerWrier_ = null;
+                }
+            }
+        }
+
+        internal static void Flush() {
+            if (filerWrier_ != null) {
+                lock (filerWrier_)
+                    filerWrier_.Flush();
+            }
+        }
+
         public static Stopwatch GetSharedTimer() {
             var t = Type.GetType("LoadOrderIPatch.Patches.LoggerPatch, LoadOrderIPatch", throwOnError: false);
             return t?.GetField("m_Timer")?.GetValue(null) as Stopwatch;
@@ -174,8 +201,13 @@ namespace KianCommons {
                     m += new StackTrace(true).ToString() + nl + nl;
                 }
 
-                using (StreamWriter w = File.AppendText(LogFilePath)) {
-                    w.Write(m);
+
+                if (filerWrier_ != null)
+                    lock(filerWrier_)
+                        filerWrier_.Write(m);
+                else {
+                    using (StreamWriter w = File.AppendText(LogFilePath)) 
+                        w.Write(m);
                 }
 
                 if (copyToGameLog) {
