@@ -43,6 +43,10 @@ namespace KianCommons {
 
         private static StreamWriter filerWrier_;
 
+        internal static bool ShowGap = false;
+
+        private static long prev_ms_;
+
         /// <summary>
         /// buffered logging is much faster but does not support hot-reload/external modification
         /// to use Buffered mod with hot-reload: set when mod is enabled and reset when mod is disabled.
@@ -192,7 +196,13 @@ namespace KianCommons {
                 }
 
                 if (ShowTimestamp) {
-                    m += Timer.ElapsedMilliseconds.ToString("#,0") + "ms | ";
+                    long ms = Timer.ElapsedMilliseconds;
+                    m += $"{ms:#,0}ms | ";
+                    if (ShowGap) {
+                        long gapms = ms - prev_ms_;
+                        prev_ms_ = ms;
+                        m += $"gap={gapms:#,0}ms | ";
+                    }
                 }
 
                 m += message + nl;
