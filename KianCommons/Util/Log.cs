@@ -48,8 +48,9 @@ namespace KianCommons {
         private static long prev_ms_;
 
         /// <summary>
-        /// buffered logging is much faster but does not support hot-reload/external modification
-        /// to use Buffered mod with hot-reload: set when mod is enabled and reset when mod is disabled.
+        /// buffered logging is much faster but requires extra care for hot-reload/external modifications.
+        /// to use Buffered mode with hot-reload: set when mod is enabled and unset when mod is disabled.
+        /// Note: buffered mode is 20 times faster but only if you do not copy to game log.
         /// </summary>
         internal static bool Buffered {
             get => filerWrier_ != null;
