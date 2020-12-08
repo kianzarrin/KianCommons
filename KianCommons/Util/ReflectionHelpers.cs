@@ -65,13 +65,21 @@ namespace KianCommons {
                 .Where(_field => _field.HasAttribute<T>(inherit));
         }
 
+        public const BindingFlags ALL = BindingFlags.Public
+            | BindingFlags.NonPublic
+            | BindingFlags.Instance
+            | BindingFlags.Static
+            | BindingFlags.GetField
+            | BindingFlags.SetField
+            | BindingFlags.GetProperty
+            | BindingFlags.SetProperty;
+
         /// <summary>
         /// get value of the instant field target.Field.
         /// </summary>
         internal static object GetFieldValue(string fieldName, object target) {
-            BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
             var type = target.GetType();
-            var field = type.GetField(fieldName, bindingFlags)
+            var field = type.GetField(fieldName, ALL)
                 ?? throw new Exception($"{type}.{fieldName} not found");
             return field.GetValue(target);
         }
@@ -86,8 +94,7 @@ namespace KianCommons {
         /// Get value of a static field from type.fieldName
         /// </summary>
         internal static object GetFieldValue(string fieldName, Type type) {
-            BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
-            var field = type.GetField(fieldName, bindingFlags)
+            var field = type.GetField(fieldName, ALL)
                 ?? throw new Exception($"{type}.{fieldName} not found");
             return field.GetValue(null);
         }
