@@ -4,8 +4,8 @@ namespace KianCommons {
     using System.Linq;
     using System.Reflection;
     using static KianCommons.Assertion;
-    [Obsolete("use reflection extension")]
-    internal static class AssemblyTypeExtensions {
+
+    internal static class ReflectionHelpers {
         internal static Version Version(this Assembly asm) =>
           asm.GetName().Version;
 
@@ -65,7 +65,10 @@ namespace KianCommons {
                 .Where(_field => _field.HasAttribute<T>(inherit));
         }
 
-        internal static object GetDeclaredFieldValue(string fieldName, object target) {
+        /// <summary>
+        /// get value of the instant field target.Field.
+        /// </summary>
+        internal static object GetFieldValue(string fieldName, object target) {
             BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
             var type = target.GetType();
             var field = type.GetField(fieldName, bindingFlags)
@@ -73,17 +76,17 @@ namespace KianCommons {
             return field.GetValue(target);
         }
 
-        internal static object GetDeclaredFieldValue<TargetType>(string fieldName, object target) {
-            BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
-            var type = typeof(TargetType);
-            var field = type.GetField(fieldName, bindingFlags)
-                ?? throw new Exception($"{type}.{fieldName} not found");
-            return field.GetValue(target);
-        }
+        /// <summary>
+        /// Get value of a static field from T.fieldName
+        /// </summary>
+        internal static object GetFieldValue<T>(string fieldName)
+            => GetFieldValue(fieldName, typeof(T));
 
-        internal static object GetDeclaredFieldValue<TargetType>(string fieldName) {
+        /// <summary>
+        /// Get value of a static field from type.fieldName
+        /// </summary>
+        internal static object GetFieldValue(string fieldName, Type type) {
             BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
-            var type = typeof(TargetType);
             var field = type.GetField(fieldName, bindingFlags)
                 ?? throw new Exception($"{type}.{fieldName} not found");
             return field.GetValue(null);
