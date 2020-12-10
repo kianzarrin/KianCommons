@@ -66,6 +66,10 @@ namespace KianCommons {
             }
         }
 
+        /// <summary>
+        /// if buffered then lock the file and flush.
+        /// otherwise return silently.
+        /// </summary>
         internal static void Flush() {
             if (filerWrier_ != null) {
                 lock (filerWrier_)
@@ -206,22 +210,24 @@ namespace KianCommons {
                     }
                 }
 
-                m += message + nl;
-
+                m += message;
                 if (level == LogLevel.Error || level == LogLevel.Exception) {
-                    m += new StackTrace(true).ToString() + nl + nl;
+                    m += nl + new StackTrace(true).ToString() + nl;
                 }
 
 
-                if (filerWrier_ != null)
-                    lock(filerWrier_)
-                        filerWrier_.Write(m);
-                else {
-                    using (StreamWriter w = File.AppendText(LogFilePath)) 
-                        w.Write(m);
+                if (filerWrier_ != null) {
+                    lock (filerWrier_)
+                        filerWrier_.WriteLine(m);
+                } else {
+                    using (StreamWriter w = File.AppendText(LogFilePath))
+                        w.WriteLine(m);
                 }
 
                 if (copyToGameLog) {
+                    // copying to game log is slow anyways so
+                    // this is a good time to flush if neccessary.
+                    Flush();
                     m = assemblyName_ + " | " + m;
                     switch (level) {
                         case LogLevel.Error:
