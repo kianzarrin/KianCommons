@@ -99,5 +99,37 @@ namespace KianCommons {
             return field.GetValue(null);
         }
 
+        /// <summary>
+        /// but throws suitable exception if method not found.
+        /// </summary>
+        internal static MethodInfo GetMethod(Type type, string method, bool throwOnError=true) {
+            if (type == null) throw new ArgumentNullException("type");
+            var ret = type.GetMethod(method, ALL);
+            if (throwOnError && ret == null)
+                throw new Exception($"Method not found: {type.Name}.{method}");
+            return ret;
+        }
+
+        /// <summary>
+        /// Invokes static method of any access type.
+        /// like: type.method()
+        /// </summary>
+        /// <param name="method">static method without parameters</param>
+        /// <returns>return value of the function if any. null otherwise</returns>
+        internal static object InvokeMethod(Type type, string method, bool throwOnError = true) {
+            return GetMethod(type, method, throwOnError)?.Invoke(null, null);
+        }
+
+        /// <summary>
+        /// Invokes static method of any access type.
+        /// like: qualifiedType.method()
+        /// </summary>
+        /// <param name="method">static method without parameters</param>
+        /// <returns>return value of the function if any. null otherwise</returns>
+        internal static object InvokeMethod(string qualifiedType, string method, bool throwOnError=true) {
+            var type = Type.GetType(qualifiedType, throwOnError);
+            return InvokeMethod(type, method);
+        }
+
     }
 }
