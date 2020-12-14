@@ -1,19 +1,11 @@
 namespace KianCommons {
     using System;
     using System.Collections.Generic;
+    using System.Collections;
     using System.Reflection;
+    using System.Linq;
 
     internal static class StringExtensions {
-        /// <summary>
-        /// returns false if string is null or empty. otherwise returns true.
-        /// </summary>
-        internal static bool ToBool(this string str) => !(str == null || str == "");
-
-        internal static string STR(this object obj) => obj == null ? "<null>" : obj.ToString();
-
-        internal static string STR(this InstanceID instanceID) =>
-            instanceID.Type + ":" + instanceID.Index;
-
         internal static string BIG(string m) {
             string mul(string s, int i) {
                 string ret_ = "";
@@ -34,6 +26,26 @@ namespace KianCommons {
             return stringToCenter.PadLeft(leftPadding).PadRight(totalLength);
         }
 
+
+        /// <summary>
+        /// returns false if string is null or empty. otherwise returns true.
+        /// </summary>
+        internal static bool ToBool(this string str) => !string.IsNullOrEmpty(str);
+
+        [Obsolete("use ToSTR")]
+        internal static string STR(this object obj) => obj == null ? "<null>" : obj.ToString();
+        [Obsolete("use ToSTR")]
+        internal static string STR(this InstanceID instanceID) =>
+            instanceID.Type + ":" + instanceID.Index;
+
+
+        internal static string ToSTR(this object obj) {
+            if (obj == null) return "<null>";
+            if (obj is IEnumerable list)
+                return list.ToSTR();
+            return obj.ToString();
+        }
+
         internal static string ToSTR(this InstanceID instanceID)
             => $"{instanceID.Type}:{instanceID.Index}";
 
@@ -41,7 +53,7 @@ namespace KianCommons {
             => $"[{map.Key.ToSTR()}:{map.Value.ToSTR()}]";
 
         internal static string ToSTR<T>(this IEnumerable<T> list) {
-            if (list == null) return "null";
+            if (list == null) return "<null>";
             string ret = "{ ";
             foreach (T item in list) {
                 string s;
@@ -69,5 +81,17 @@ namespace KianCommons {
             ret += " }";
             return ret;
         }
+
+        internal static string[] Split(this string str, string separator) =>
+            str.Split(new [] { separator }, StringSplitOptions.None);
+
+        internal static string[] SplitLines(this string str) =>
+            str.Split(Environment.NewLine);
+
+        internal static string Join(this IEnumerable<string> str, string separator)
+            => string.Join(separator, str.ToArray());
+
+        internal static string JoinLines(this IEnumerable<string> str)
+            => str.Join(Environment.NewLine);
     }
 }

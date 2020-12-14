@@ -245,7 +245,7 @@ namespace KianCommons.Patches {
             return index;
         }
 
-
+        [Obsolete]
         public static int SearchInstruction(List<CodeInstruction> codes, CodeInstruction instruction, int index, int dir = +1, int counter = 1) {
             try {
                 return SearchGeneric(codes, idx => IsSameInstruction(codes[idx], instruction), index, dir, counter);

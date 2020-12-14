@@ -4,6 +4,7 @@ namespace KianCommons {
     using System.Linq;
     using System.Reflection;
     using static KianCommons.Assertion;
+    using System.Diagnostics;
 
     internal static class ReflectionHelpers {
         internal static Version Version(this Assembly asm) =>
@@ -16,6 +17,10 @@ namespace KianCommons {
             VersionOf(obj.GetType());
 
         internal static string Name(this Assembly assembly) => assembly.GetName().Name;
+
+        public static string FullName(this MethodBase m) =>
+            m.DeclaringType.FullName + "." + m.Name;
+
 
         internal static void CopyProperties(object target, object origin) {
             var t1 = target.GetType();
@@ -100,7 +105,7 @@ namespace KianCommons {
         }
 
         /// <summary>
-        /// but throws suitable exception if method not found.
+        /// gets method of any access type.
         /// </summary>
         internal static MethodInfo GetMethod(Type type, string method, bool throwOnError=true) {
             if (type == null) throw new ArgumentNullException("type");
@@ -116,8 +121,8 @@ namespace KianCommons {
         /// </summary>
         /// <param name="method">static method without parameters</param>
         /// <returns>return value of the function if any. null otherwise</returns>
-        internal static object InvokeMethod(Type type, string method, bool throwOnError = true) {
-            return GetMethod(type, method, throwOnError)?.Invoke(null, null);
+        internal static object InvokeMethod(Type type, string method) {
+            return GetMethod(type, method, true)?.Invoke(null, null);
         }
 
         /// <summary>
@@ -126,10 +131,69 @@ namespace KianCommons {
         /// </summary>
         /// <param name="method">static method without parameters</param>
         /// <returns>return value of the function if any. null otherwise</returns>
-        internal static object InvokeMethod(string qualifiedType, string method, bool throwOnError=true) {
-            var type = Type.GetType(qualifiedType, throwOnError);
+        internal static object InvokeMethod(string qualifiedType, string method) {
+            var type = Type.GetType(qualifiedType, true);
             return InvokeMethod(type, method);
         }
 
+        /// <summary>
+        /// Invokes instance method of any access type.
+        /// like: qualifiedType.method()
+        /// </summary>
+        /// <param name="method">instance method without parameters</param>
+        /// <returns>return value of the function if any. null otherwise</returns>
+        internal static object InvokeMethod(object instance, string method) {
+            var type = instance.GetType();
+            return GetMethod(type, method, true)?.Invoke(instance, null);
+        }
+
+        //instance
+        internal static void InvokeEvent(object instance, string eventName, bool verbose = false) {
+            var d = GetEventDelegates(instance, eventName);
+            if (verbose) Log.Info($"Executing event `{instance.GetType().FullName}.{eventName}` ...");
+            ExecuteDelegates(d, verbose);
+        }
+
+        //static
+        internal static void InvokeEvent(Type type, string eventName, bool verbose = false) {
+            var d = GetEventDelegates(type, eventName);
+            if (verbose) Log.Info($"Executing event `{type.FullName}.{eventName}` ...");
+            ExecuteDelegates(d, verbose);
+        }
+
+        //static
+        internal static Delegate[] GetEventDelegates(Type type, string eventName) {
+            MulticastDelegate eventDelagate =
+                (MulticastDelegate)type
+                .GetField(eventName, ALL)
+                .GetValue(null);
+            return eventDelagate.GetInvocationList();
+        }
+
+        //instance
+        internal static Delegate[] GetEventDelegates(object instance, string eventName) {
+            MulticastDelegate eventDelagate =
+                (MulticastDelegate)instance.GetType()
+                .GetField(eventName, ALL)
+                .GetValue(instance);
+            return eventDelagate.GetInvocationList();
+        }
+
+        internal static void ExecuteDelegates(Delegate[] delegates, bool verbose = false) {
+            if (delegates is null) throw new ArgumentNullException("delegates");
+            var timer = new Stopwatch();
+            foreach (Delegate dlg in delegates) {
+                if (dlg == null) continue;
+                if (verbose) {
+                    Log.Info($"Executing {dlg.Target}:{dlg.Method.Name} ...");
+                    timer.Reset(); timer.Start();
+                }
+                dlg.Method.Invoke(dlg.Target, null);
+                if (verbose) {
+                    var ms = timer.ElapsedMilliseconds;
+                    Log.Info($"Done executing {dlg.Target}:{dlg.Method.Name}! duration={ms:#,0}ms");
+                }
+            }
+        }
     }
 }
