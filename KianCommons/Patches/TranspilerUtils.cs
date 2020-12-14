@@ -55,7 +55,7 @@ namespace KianCommons.Patches {
         internal static MethodInfo GetCoroutineMoveNext(Type declaringType, string name) {
             Type t = declaringType.GetNestedTypes(ALL)
                 .Single(_t => _t.Name.Contains($"<{name}>"));
-            return GetMethod(t,"MoveNext");
+            return GetMethod(t, "MoveNext");
         }
 
 
@@ -107,7 +107,7 @@ namespace KianCommons.Patches {
         }
 
         public static bool HasParameter(MethodInfo method, string name) {
-            foreach(var param in method.GetParameters()) {
+            foreach (var param in method.GetParameters()) {
                 if (param.Name == name)
                     return true;
             }
@@ -201,7 +201,7 @@ namespace KianCommons.Patches {
         public static int Search(
             this List<CodeInstruction> codes,
             Func<CodeInstruction, bool> predicate,
-            int startIndex = 0, int count = 1, bool throwOnError=true) {
+            int startIndex = 0, int count = 1, bool throwOnError = true) {
             try {
                 return codes.Search(
                     (int i) => predicate(codes[i]),
@@ -249,14 +249,13 @@ namespace KianCommons.Patches {
         public static int SearchInstruction(List<CodeInstruction> codes, CodeInstruction instruction, int index, int dir = +1, int counter = 1) {
             try {
                 return SearchGeneric(codes, idx => IsSameInstruction(codes[idx], instruction), index, dir, counter);
-            }
-            catch (InstructionNotFoundException) {
+            } catch (InstructionNotFoundException) {
                 throw new InstructionNotFoundException(" Did not found instruction: " + instruction);
             }
         }
 
-        public static int SearchGeneric(List<CodeInstruction> codes, Func<int,bool> predicate, int index, int dir = +1, int counter = 1, bool throwOnError=true) {
-            
+        public static int SearchGeneric(List<CodeInstruction> codes, Func<int, bool> predicate, int index, int dir = +1, int counter = 1, bool throwOnError = true) {
+
             int count = 0;
             for (; 0 <= index && index < codes.Count; index += dir) {
                 if (predicate(index)) {
@@ -273,7 +272,7 @@ namespace KianCommons.Patches {
                     return -1;
                 }
             }
-            if(VERBOSE)
+            if (VERBOSE)
                 Log("Found : \n" + new[] { codes[index], codes[index + 1] }.IL2STR());
             return index;
         }
@@ -304,7 +303,7 @@ namespace KianCommons.Patches {
             foreach (var code in insertion)
                 if (code == null)
                     throw new Exception("Bad Instructions:\n" + insertion.IL2STR());
-            if(VERBOSE)
+            if (VERBOSE)
                 Log($"replacing <{codes[index]}>\nInsert between: <{codes[index - 1]}>  and  <{codes[index + 1]}>");
 
             MoveLabels(codes[index], insertion[0]);
@@ -317,7 +316,7 @@ namespace KianCommons.Patches {
                 Log("PEEK (RESULTING CODE):\n" + codes.GetRange(index - 4, insertion.Length + 8).IL2STR());
         }
 
-        public static void InsertInstructions(List<CodeInstruction> codes, CodeInstruction[] insertion, int index, bool moveLabels=true) {
+        public static void InsertInstructions(List<CodeInstruction> codes, CodeInstruction[] insertion, int index, bool moveLabels = true) {
             foreach (var code in insertion)
                 if (code == null)
                     throw new Exception("Bad Instructions:\n" + insertion.IL2STR());
@@ -330,7 +329,27 @@ namespace KianCommons.Patches {
             if (VERBOSE)
                 Log("\n" + insertion.IL2STR());
             if (VERBOSE)
-                Log("PEEK:\n" + codes.GetRange(index - 4, insertion.Length+12).IL2STR());
+                Log("PEEK:\n" + codes.GetRange(index - 4, insertion.Length + 12).IL2STR());
+        }
+    }
+
+    internal static class TranspilerExtensions {
+        public static void InsertInstructions(
+            this List<CodeInstruction> codes, int index, CodeInstruction[] insertion, bool moveLabels = true) {
+            TranspilerUtils.InsertInstructions(codes, insertion, index, moveLabels);
+        }
+
+        /// <summary>
+        /// replaces one instruction at the given index with multiple instrutions
+        /// </summary>
+        public static void ReplaceInstruction(
+            this List<CodeInstruction> codes, int index, CodeInstruction[] insertion) {
+            TranspilerUtils.ReplaceInstructions(codes, insertion, index);
+        }
+
+        public static void ReplaceInstruction(
+            this List<CodeInstruction> codes, int index, CodeInstruction insertion) {
+            TranspilerUtils.ReplaceInstructions(codes, new[] { insertion }, index);
         }
     }
 }
