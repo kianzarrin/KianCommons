@@ -8,13 +8,13 @@ using System.Linq;
 using UnityEngine;
 
 namespace KianCommons {
-    public class NetServiceException : Exception {
+    internal class NetServiceException : Exception {
         public NetServiceException(string m) : base(m) { }
         public NetServiceException() : base() { }
         public NetServiceException(string m, Exception e) : base(m, e) { }
     }
 
-    public static class NetUtil {
+    internal static class NetUtil {
         public const float SAFETY_NET = 0.02f;
 
         public static NetManager netMan = NetManager.instance;
@@ -231,6 +231,10 @@ namespace KianCommons {
 
         public static bool IsStartNode(ushort segmentId, ushort nodeId) =>
             segmentId.ToSegment().m_startNode == nodeId;
+
+        public static bool IsStartNode(this ref NetSegment segment, ushort nodeId) =>
+            segment.m_startNode == nodeId;
+
 
         public static ushort GetSegmentNode(ushort segmentID, bool startNode) =>
             segmentID.ToSegment().GetNode(startNode);

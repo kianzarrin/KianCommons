@@ -65,8 +65,7 @@ namespace KianCommons.Patches {
             return codes;
         }
 
-        [Obsolete("use harmony extension IsLdArg(GetArgLoc(method, name)) instead")]
-        public static CodeInstruction GetLDArg(MethodInfo method, string argName, bool throwOnError = true) {
+        public static CodeInstruction GetLDArg(MethodBase method, string argName, bool throwOnError = true) {
             if (!throwOnError && !HasParameter(method, argName))
                 return null;
             byte idx = (byte)GetArgLoc(method, argName);
@@ -106,7 +105,7 @@ namespace KianCommons.Patches {
             throw new Exception($"did not found parameter with name:<{name}>");
         }
 
-        public static bool HasParameter(MethodInfo method, string name) {
+        public static bool HasParameter(MethodBase method, string name) {
             foreach (var param in method.GetParameters()) {
                 if (param.Name == name)
                     return true;
@@ -351,5 +350,71 @@ namespace KianCommons.Patches {
             this List<CodeInstruction> codes, int index, CodeInstruction insertion) {
             TranspilerUtils.ReplaceInstructions(codes, new[] { insertion }, index);
         }
+
+        public static bool IsLdLoc(this CodeInstruction code,  out int loc) {
+            if (code.opcode == OpCodes.Ldloc_0) {
+                loc = 0;
+            } else if (code.opcode == OpCodes.Ldloc_1) {
+                loc = 1;
+            } else if (code.opcode == OpCodes.Ldloc_2) {
+                loc = 2;
+            } else if (code.opcode == OpCodes.Ldloc_3) {
+                loc = 3;
+            } else if (code.opcode == OpCodes.Ldloc_S) {
+                if (code.operand is LocalBuilder lb)
+                    loc = lb.LocalIndex;
+                else
+                    loc = (int)code.operand;
+            } else if (code.opcode == OpCodes.Ldloc) {
+                if (code.operand is LocalBuilder lb)
+                    loc = lb.LocalIndex;
+                else
+                    loc = (int)code.operand;
+            } else {
+                loc = -1;
+                return false;
+            }
+            return true;
+        }
+
+        public static bool IsLdLoc(this CodeInstruction code, int loc) {
+            if (!code.IsLdLoc(out int loc0))
+                return false;
+            return loc == loc0;
+        }
+
+        public static bool IsStLoc(this CodeInstruction code, out int loc) {
+            if (code.opcode == OpCodes.Stloc_0) {
+                loc = 0;
+            } else if (code.opcode == OpCodes.Stloc_1) {
+                loc = 1;
+            } else if (code.opcode == OpCodes.Stloc_2) {
+                loc = 2;
+            } else if (code.opcode == OpCodes.Stloc_3) {
+                loc = 3;
+            } else if (code.opcode == OpCodes.Stloc_S) {
+                if (code.operand is LocalBuilder lb)
+                    loc = lb.LocalIndex;
+                else
+                    loc = (int)code.operand;
+
+            } else if (code.opcode == OpCodes.Stloc) {
+                if (code.operand is LocalBuilder lb)
+                    loc = lb.LocalIndex;
+                else
+                    loc = (int)code.operand;
+            } else {
+                loc = -1;
+                return false;
+            }
+            return true;
+        }
+
+        public static bool IsStLoc(this CodeInstruction code, int loc) {
+            if (!code.IsStLoc(out int loc0))
+                return false;
+            return loc == loc0;
+        }
+
     }
 }
