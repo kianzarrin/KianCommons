@@ -1,11 +1,11 @@
 namespace KianCommons {
+    using ColossalFramework.UI;
     using System;
     using System.Diagnostics;
     using System.IO;
+    using System.Linq;
     using System.Reflection;
     using UnityEngine;
-    using System.Linq;
-    using ColossalFramework.UI;
 
     /// <summary>
     /// A simple logging class.
@@ -29,18 +29,58 @@ namespace KianCommons {
         /// <summary>
         /// File name for log file.
         /// </summary>
-        private static readonly string LogFileName
-            = Path.Combine(Application.dataPath, assemblyName_ + ".log");
+        private static readonly string LogFileName = assemblyName_ + ".log";
 
         /// <summary>
         /// Full path and file name of log file.
         /// </summary>
-        private static readonly string LogFilePath = Path.Combine(Application.dataPath, LogFileName);
+        private static readonly string LogFilePath;
 
         /// <summary>
         /// Stopwatch used if <see cref="ShowTimestamp"/> is <c>true</c>.
         /// </summary>
         private static readonly Stopwatch Timer;
+
+        private static StreamWriter filerWrier_;
+
+        internal static bool ShowGap = false;
+
+        private static long prev_ms_;
+
+        /// <summary>
+        /// buffered logging is much faster but requires extra care for hot-reload/external modifications.
+        /// to use Buffered mode with hot-reload: set when mod is enabled and unset when mod is disabled.
+        /// Note: buffered mode is 20 times faster but only if you do not copy to game log.
+        /// </summary>
+        internal static bool Buffered {
+            get => filerWrier_ != null;
+            set {
+                if (value == Buffered) return;
+                if (value) {
+                    filerWrier_ = new StreamWriter(LogFilePath, true);
+                } else {
+                    filerWrier_.Flush();
+                    filerWrier_.Dispose();
+                    filerWrier_ = null;
+                }
+            }
+        }
+
+        /// <summary>
+        /// if buffered then lock the file and flush.
+        /// otherwise return silently.
+        /// </summary>
+        internal static void Flush() {
+            if (filerWrier_ != null) {
+                lock (filerWrier_)
+                    filerWrier_.Flush();
+            }
+        }
+
+        public static Stopwatch GetSharedTimer() {
+            var t = Type.GetType("LoadOrderIPatch.Patches.LoggerPatch, LoadOrderIPatch", throwOnError: false);
+            return t?.GetField("m_Timer")?.GetValue(null) as Stopwatch;
+        }
 
         /// <summary>
         /// Initializes static members of the <see cref="Log"/> class.
@@ -48,18 +88,20 @@ namespace KianCommons {
         /// </summary>
         static Log() {
             try {
+                LogFilePath = Path.Combine(Application.dataPath, "Logs");
+                LogFilePath = Path.Combine(LogFilePath, LogFileName);
                 if (File.Exists(LogFilePath)) {
                     File.Delete(LogFilePath);
                 }
 
                 if (ShowTimestamp) {
-                    Timer = Stopwatch.StartNew();
+                    Timer = GetSharedTimer() ?? Stopwatch.StartNew();
                 }
 
                 AssemblyName details = typeof(Log).Assembly.GetName();
-                Info($"{details.Name} v{details.Version.ToString()}", true);
-            }
-            catch {
+                Info($"Log file at " + LogFilePath, true);
+                Info($"{details.Name} v{details.Version}", true);
+            } catch {
                 // ignore
             }
         }
@@ -132,7 +174,7 @@ namespace KianCommons {
 
         }
 
-        internal static void Exception(Exception e, string m = "", bool showInPanel=true) {
+        internal static void Exception(Exception e, string m = "", bool showInPanel = true) {
             if (e == null)
                 Log.Error("null argument e was passed to Log.Exception()");
             try {
@@ -142,7 +184,7 @@ namespace KianCommons {
                 LogImpl(message, LogLevel.Exception, true);
                 if (showInPanel)
                     UIView.ForwardException(e);
-            }catch(Exception e2) {
+            } catch (Exception e2) {
                 Log.Error($"Log.Exception throw an exceotion:{e.STR()} \n {e2.STR()}");
             }
         }
@@ -165,22 +207,33 @@ namespace KianCommons {
                 }
 
                 if (ShowTimestamp) {
-                    long secs = ticks / Stopwatch.Frequency;
-                    long fraction = ticks % Stopwatch.Frequency;
-                    m += string.Format($"{secs.ToString("n0")}.{fraction.ToString("D7")} | ");
+                    long ms = Timer.ElapsedMilliseconds;
+                    m += $"{ms:#,0}ms | ";
+                    if (ShowGap) {
+                        long gapms = ms - prev_ms_;
+                        prev_ms_ = ms;
+                        m += $"gap={gapms:#,0}ms | ";
+                    }
                 }
 
-                m += message + nl;
-
+                m += message;
                 if (level == LogLevel.Error || level == LogLevel.Exception) {
-                    m += new StackTrace(true).ToString() + nl + nl;
+                    m += nl + new StackTrace(true).ToString() + nl;
                 }
 
-                using (StreamWriter w = File.AppendText(LogFilePath)) {
-                    w.Write(m);
+
+                if (filerWrier_ != null) {
+                    lock (filerWrier_)
+                        filerWrier_.WriteLine(m);
+                } else {
+                    using (StreamWriter w = File.AppendText(LogFilePath))
+                        w.WriteLine(m);
                 }
 
                 if (copyToGameLog) {
+                    // copying to game log is slow anyways so
+                    // this is a good time to flush if neccessary.
+                    Flush();
                     m = assemblyName_ + " | " + m;
                     switch (level) {
                         case LogLevel.Error:
@@ -192,8 +245,7 @@ namespace KianCommons {
                             break;
                     }
                 }
-            }
-            catch {
+            } catch {
                 // ignore
             }
         }

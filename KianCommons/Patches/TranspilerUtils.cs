@@ -12,6 +12,18 @@ namespace KianCommons.Patches {
             KianCommons.Log.Info("TRANSPILER " + message);
         }
 
+        public const BindingFlags ALL = BindingFlags.Public
+            | BindingFlags.NonPublic
+            | BindingFlags.Instance
+            | BindingFlags.Static
+            | BindingFlags.GetField
+            | BindingFlags.SetField
+            | BindingFlags.GetProperty
+            | BindingFlags.SetProperty;
+
+        public static string FullName(MethodBase m) =>
+            m.DeclaringType.FullName + "::" + m.Name;
+
         /// <typeparam name="TDelegate">delegate type</typeparam>
         /// <returns>Type[] represeting arguments of the delegate.</returns>
         internal static Type[] GetParameterTypes<TDelegate>() where TDelegate : Delegate {
@@ -40,18 +52,23 @@ namespace KianCommons.Patches {
         internal static MethodInfo GetMethod(Type type, string name) =>
             AccessTools.DeclaredMethod(type, name) ?? throw new Exception($"Method not found: {type.Name}.{name}");
 
+        internal static MethodInfo GetCoroutineMoveNext(Type declaringType, string name) {
+            Type t = declaringType.GetNestedTypes(ALL)
+                .Single(_t => _t.Name.Contains($"<{name}>"));
+            return GetMethod(t, "MoveNext");
+        }
+
+
         public static List<CodeInstruction> ToCodeList(this IEnumerable<CodeInstruction> instructions) {
             var originalCodes = new List<CodeInstruction>(instructions);
-            var codes = new List<CodeInstruction>(originalCodes);
+            var codes = new List<CodeInstruction>(originalCodes); // is this redundant?
             return codes;
         }
 
-        public static CodeInstruction GetLDArg(MethodInfo method, string argName, bool throwOnError = true) {
+        public static CodeInstruction GetLDArg(MethodBase method, string argName, bool throwOnError = true) {
             if (!throwOnError && !HasParameter(method, argName))
                 return null;
-            byte idx = (byte)GetParameterLoc(method, argName);
-            if (!method.IsStatic)
-                idx++; // first argument is object instance.
+            byte idx = (byte)GetArgLoc(method, argName);
             if (idx == 0) {
                 return new CodeInstruction(OpCodes.Ldarg_0);
             } else if (idx == 1) {
@@ -65,10 +82,20 @@ namespace KianCommons.Patches {
             }
         }
 
+        /// <returns>
+        /// returns the argument location to be used in LdArg instruction.
+        /// </returns>
+        public static byte GetArgLoc(MethodBase method, string argName) {
+            byte idx = (byte)GetParameterLoc(method, argName);
+            if (!method.IsStatic)
+                idx++; // first argument is object instance.
+            return idx;
+        }
+
         /// <summary>
         /// Post condtion: for instnace method add one to get argument location
         /// </summary>
-        public static byte GetParameterLoc(MethodInfo method, string name) {
+        public static byte GetParameterLoc(MethodBase method, string name) {
             var parameters = method.GetParameters();
             for (byte i = 0; i < parameters.Length; ++i) {
                 if (parameters[i].Name == name) {
@@ -78,15 +105,16 @@ namespace KianCommons.Patches {
             throw new Exception($"did not found parameter with name:<{name}>");
         }
 
-        public static bool HasParameter(MethodInfo method, string name) {
-            foreach(var param in method.GetParameters()) {
+        public static bool HasParameter(MethodBase method, string name) {
+            foreach (var param in method.GetParameters()) {
                 if (param.Name == name)
                     return true;
             }
             return false;
         }
 
-        public static bool IsSameInstruction(CodeInstruction a, CodeInstruction b, bool debug = false) {
+        [Obsolete("use harmony extension `Is()` instead")]
+        public static bool IsSameInstruction(this CodeInstruction a, CodeInstruction b) {
             if (a.opcode == b.opcode) {
                 if (a.operand == b.operand) {
                     return true;
@@ -99,6 +127,8 @@ namespace KianCommons.Patches {
             }
         }
 
+
+        [Obsolete("use harmony extension instead")]
         public static bool IsLdLoc(CodeInstruction instruction) {
             return (instruction.opcode == OpCodes.Ldloc_0 || instruction.opcode == OpCodes.Ldloc_1 ||
                     instruction.opcode == OpCodes.Ldloc_2 || instruction.opcode == OpCodes.Ldloc_3
@@ -106,6 +136,7 @@ namespace KianCommons.Patches {
                 );
         }
 
+        [Obsolete("use harmony extension instead")]
         public static bool IsStLoc(CodeInstruction instruction) {
             return (instruction.opcode == OpCodes.Stloc_0 || instruction.opcode == OpCodes.Stloc_1 ||
                     instruction.opcode == OpCodes.Stloc_2 || instruction.opcode == OpCodes.Stloc_3
@@ -116,7 +147,7 @@ namespace KianCommons.Patches {
         /// <summary>
         /// Get the instruction to load the variable which is stored here.
         /// </summary>
-        public static CodeInstruction BuildLdLocFromStLoc(CodeInstruction instruction) {
+        public static CodeInstruction BuildLdLocFromStLoc(this CodeInstruction instruction) {
             if (instruction.opcode == OpCodes.Stloc_0) {
                 return new CodeInstruction(OpCodes.Ldloc_0);
             } else if (instruction.opcode == OpCodes.Stloc_1) {
@@ -133,7 +164,8 @@ namespace KianCommons.Patches {
                 throw new Exception("instruction is not stloc! : " + instruction);
             }
         }
-        public static CodeInstruction BuildStLocFromLdLoc(CodeInstruction instruction) {
+
+        public static CodeInstruction BuildStLocFromLdLoc(this CodeInstruction instruction) {
             if (instruction.opcode == OpCodes.Ldloc_0) {
                 return new CodeInstruction(OpCodes.Stloc_0);
             } else if (instruction.opcode == OpCodes.Ldloc_1) {
@@ -162,20 +194,67 @@ namespace KianCommons.Patches {
         public class InstructionNotFoundException : Exception {
             public InstructionNotFoundException() : base() { }
             public InstructionNotFoundException(string m) : base(m) { }
-
         }
 
+        /// <param name="count">Number of occurances. Negative count searches backward</param>
+        public static int Search(
+            this List<CodeInstruction> codes,
+            Func<CodeInstruction, bool> predicate,
+            int startIndex = 0, int count = 1, bool throwOnError = true) {
+            try {
+                return codes.Search(
+                    (int i) => predicate(codes[i]),
+                    startIndex: startIndex,
+                    count: count,
+                    throwOnError: throwOnError);
+            } catch (InstructionNotFoundException) {
+                throw new InstructionNotFoundException(" Did not found instruction");
+            }
+        }
+
+        /// <param name="count">negative count searches backward</param>
+        public static int Search(
+            this List<CodeInstruction> codes,
+            Func<int, bool> predicate,
+            int startIndex = 0, int count = 1, bool throwOnError = true) {
+            if (count == 0)
+                throw new ArgumentOutOfRangeException("count can't be zero");
+            int dir = count > 0 ? 1 : -1;
+            int counter = Math.Abs(count);
+            int n = 0;
+            int index = startIndex;
+
+            for (; 0 <= index && index < codes.Count; index += dir) {
+                if (predicate(index)) {
+                    if (++n == counter)
+                        break;
+                }
+            }
+            if (n != counter) {
+                if (throwOnError == true)
+                    throw new InstructionNotFoundException("Did not found instruction[s].");
+                else {
+                    if (VERBOSE)
+                        Log("Did not found instruction[s].\n" + Environment.StackTrace);
+                    return -1;
+                }
+            }
+            if (VERBOSE)
+                Log("Found : \n" + new[] { codes[index], codes[index + 1] }.IL2STR());
+            return index;
+        }
+
+        [Obsolete]
         public static int SearchInstruction(List<CodeInstruction> codes, CodeInstruction instruction, int index, int dir = +1, int counter = 1) {
             try {
                 return SearchGeneric(codes, idx => IsSameInstruction(codes[idx], instruction), index, dir, counter);
-            }
-            catch (InstructionNotFoundException) {
+            } catch (InstructionNotFoundException) {
                 throw new InstructionNotFoundException(" Did not found instruction: " + instruction);
             }
         }
 
-        public static int SearchGeneric(List<CodeInstruction> codes, Func<int,bool> predicate, int index, int dir = +1, int counter = 1, bool throwOnError=true) {
-            
+        public static int SearchGeneric(List<CodeInstruction> codes, Func<int, bool> predicate, int index, int dir = +1, int counter = 1, bool throwOnError = true) {
+
             int count = 0;
             for (; 0 <= index && index < codes.Count; index += dir) {
                 if (predicate(index)) {
@@ -192,19 +271,20 @@ namespace KianCommons.Patches {
                     return -1;
                 }
             }
-            if(VERBOSE)
+            if (VERBOSE)
                 Log("Found : \n" + new[] { codes[index], codes[index + 1] }.IL2STR());
             return index;
         }
 
+        [Obsolete("unreliable")]
         public static Label GetContinueLabel(List<CodeInstruction> codes, int index, int counter = 1, int dir = -1) {
             // continue command is in form of branch into the end of for loop.
-            index = SearchGeneric(codes, idx => IsBR32(codes[idx].opcode), index, dir: dir, counter: counter);
+            index = SearchGeneric(codes, idx => codes[idx].Branches(out _), index, dir: dir, counter: counter);
             return (Label)codes[index].operand;
         }
 
+        [Obsolete("use harmoyn extension Branches() instead")]
         public static bool IsBR32(OpCode opcode) {
-            // TODO complete list.
             return opcode == OpCodes.Br || opcode == OpCodes.Brtrue || opcode == OpCodes.Brfalse || opcode == OpCodes.Beq;
         }
 
@@ -222,7 +302,7 @@ namespace KianCommons.Patches {
             foreach (var code in insertion)
                 if (code == null)
                     throw new Exception("Bad Instructions:\n" + insertion.IL2STR());
-            if(VERBOSE)
+            if (VERBOSE)
                 Log($"replacing <{codes[index]}>\nInsert between: <{codes[index - 1]}>  and  <{codes[index + 1]}>");
 
             MoveLabels(codes[index], insertion[0]);
@@ -235,7 +315,7 @@ namespace KianCommons.Patches {
                 Log("PEEK (RESULTING CODE):\n" + codes.GetRange(index - 4, insertion.Length + 8).IL2STR());
         }
 
-        public static void InsertInstructions(List<CodeInstruction> codes, CodeInstruction[] insertion, int index, bool moveLabels=true) {
+        public static void InsertInstructions(List<CodeInstruction> codes, CodeInstruction[] insertion, int index, bool moveLabels = true) {
             foreach (var code in insertion)
                 if (code == null)
                     throw new Exception("Bad Instructions:\n" + insertion.IL2STR());
@@ -248,7 +328,93 @@ namespace KianCommons.Patches {
             if (VERBOSE)
                 Log("\n" + insertion.IL2STR());
             if (VERBOSE)
-                Log("PEEK:\n" + codes.GetRange(index - 4, insertion.Length+12).IL2STR());
+                Log("PEEK:\n" + codes.GetRange(index - 4, insertion.Length + 12).IL2STR());
         }
+    }
+
+    internal static class TranspilerExtensions {
+        public static void InsertInstructions(
+            this List<CodeInstruction> codes, int index, CodeInstruction[] insertion, bool moveLabels = true) {
+            TranspilerUtils.InsertInstructions(codes, insertion, index, moveLabels);
+        }
+
+        /// <summary>
+        /// replaces one instruction at the given index with multiple instrutions
+        /// </summary>
+        public static void ReplaceInstruction(
+            this List<CodeInstruction> codes, int index, CodeInstruction[] insertion) {
+            TranspilerUtils.ReplaceInstructions(codes, insertion, index);
+        }
+
+        public static void ReplaceInstruction(
+            this List<CodeInstruction> codes, int index, CodeInstruction insertion) {
+            TranspilerUtils.ReplaceInstructions(codes, new[] { insertion }, index);
+        }
+
+        public static bool IsLdLoc(this CodeInstruction code,  out int loc) {
+            if (code.opcode == OpCodes.Ldloc_0) {
+                loc = 0;
+            } else if (code.opcode == OpCodes.Ldloc_1) {
+                loc = 1;
+            } else if (code.opcode == OpCodes.Ldloc_2) {
+                loc = 2;
+            } else if (code.opcode == OpCodes.Ldloc_3) {
+                loc = 3;
+            } else if (code.opcode == OpCodes.Ldloc_S) {
+                if (code.operand is LocalBuilder lb)
+                    loc = lb.LocalIndex;
+                else
+                    loc = (int)code.operand;
+            } else if (code.opcode == OpCodes.Ldloc) {
+                if (code.operand is LocalBuilder lb)
+                    loc = lb.LocalIndex;
+                else
+                    loc = (int)code.operand;
+            } else {
+                loc = -1;
+                return false;
+            }
+            return true;
+        }
+
+        public static bool IsLdLoc(this CodeInstruction code, int loc) {
+            if (!code.IsLdLoc(out int loc0))
+                return false;
+            return loc == loc0;
+        }
+
+        public static bool IsStLoc(this CodeInstruction code, out int loc) {
+            if (code.opcode == OpCodes.Stloc_0) {
+                loc = 0;
+            } else if (code.opcode == OpCodes.Stloc_1) {
+                loc = 1;
+            } else if (code.opcode == OpCodes.Stloc_2) {
+                loc = 2;
+            } else if (code.opcode == OpCodes.Stloc_3) {
+                loc = 3;
+            } else if (code.opcode == OpCodes.Stloc_S) {
+                if (code.operand is LocalBuilder lb)
+                    loc = lb.LocalIndex;
+                else
+                    loc = (int)code.operand;
+
+            } else if (code.opcode == OpCodes.Stloc) {
+                if (code.operand is LocalBuilder lb)
+                    loc = lb.LocalIndex;
+                else
+                    loc = (int)code.operand;
+            } else {
+                loc = -1;
+                return false;
+            }
+            return true;
+        }
+
+        public static bool IsStLoc(this CodeInstruction code, int loc) {
+            if (!code.IsStLoc(out int loc0))
+                return false;
+            return loc == loc0;
+        }
+
     }
 }
