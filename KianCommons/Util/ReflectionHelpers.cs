@@ -22,6 +22,12 @@ namespace KianCommons {
             m.DeclaringType.FullName + "." + m.Name;
 
 
+        internal static T ShalowClone<T>(this T source) where T : class, new() {
+            T target = new T();
+            CopyProperties<T>(target, source);
+            return target;
+        }
+
         internal static void CopyProperties(object target, object origin) {
             var t1 = target.GetType();
             var t2 = origin.GetType();
