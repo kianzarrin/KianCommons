@@ -113,7 +113,9 @@ namespace KianCommons.Patches {
             return false;
         }
 
-        [Obsolete("use harmony extension `Is()` instead")]
+        /// <summary>
+        /// shortcut for a.opcode == b.opcode && a.operand == b.operand
+        /// </summary>
         public static bool IsSameInstruction(this CodeInstruction a, CodeInstruction b) {
             if (a.opcode == b.opcode) {
                 if (a.operand == b.operand) {
@@ -298,7 +300,7 @@ namespace KianCommons.Patches {
         /// <summary>
         /// replaces one instruction at the given index with multiple instrutions
         /// </summary>
-        public static void ReplaceInstructions(List<CodeInstruction> codes, CodeInstruction[] insertion, int index) {
+        public static void ReplaceInstructions(List<CodeInstruction> codes, CodeInstruction [] insertion, int index) {
             foreach (var code in insertion)
                 if (code == null)
                     throw new Exception("Bad Instructions:\n" + insertion.IL2STR());
@@ -315,7 +317,7 @@ namespace KianCommons.Patches {
                 Log("PEEK (RESULTING CODE):\n" + codes.GetRange(index - 4, insertion.Length + 8).IL2STR());
         }
 
-        public static void InsertInstructions(List<CodeInstruction> codes, CodeInstruction[] insertion, int index, bool moveLabels = true) {
+        public static void InsertInstructions(List<CodeInstruction> codes, CodeInstruction [] insertion, int index, bool moveLabels = true) {
             foreach (var code in insertion)
                 if (code == null)
                     throw new Exception("Bad Instructions:\n" + insertion.IL2STR());
@@ -334,16 +336,32 @@ namespace KianCommons.Patches {
 
     internal static class TranspilerExtensions {
         public static void InsertInstructions(
-            this List<CodeInstruction> codes, int index, CodeInstruction[] insertion, bool moveLabels = true) {
+            this List<CodeInstruction> codes, int index, CodeInstruction [] insertion, bool moveLabels = true) {
             TranspilerUtils.InsertInstructions(codes, insertion, index, moveLabels);
         }
+
+        public static void InsertInstructions(
+            this List<CodeInstruction> codes, int index, IEnumerable<CodeInstruction> insertion, bool moveLabels = true) {
+            TranspilerUtils.InsertInstructions(codes, insertion.ToArray(), index, moveLabels);
+        }
+
+        public static void InsertInstructions(
+            this List<CodeInstruction> codes, int index, CodeInstruction insertion, bool moveLabels = true) {
+            TranspilerUtils.InsertInstructions(codes, new[] { insertion }, index, moveLabels);
+        }
+
 
         /// <summary>
         /// replaces one instruction at the given index with multiple instrutions
         /// </summary>
         public static void ReplaceInstruction(
-            this List<CodeInstruction> codes, int index, CodeInstruction[] insertion) {
+            this List<CodeInstruction> codes, int index, CodeInstruction [] insertion) {
             TranspilerUtils.ReplaceInstructions(codes, insertion, index);
+        }
+
+        public static void ReplaceInstruction(
+            this List<CodeInstruction> codes, int index, IEnumerable<CodeInstruction> insertion) {
+            TranspilerUtils.ReplaceInstructions(codes, insertion.ToArray(), index);
         }
 
         public static void ReplaceInstruction(
