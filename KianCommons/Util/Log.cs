@@ -175,12 +175,18 @@ namespace KianCommons {
         }
 
         internal static void Exception(Exception e, string m = "", bool showInPanel = true) {
-            string message = e.ToString() + $"\n\t-- {assemblyName_}:end of inner stack trace --";
-            if (!string.IsNullOrEmpty(m))
-                message = m + " -> \n" + message;
-            LogImpl(message, LogLevel.Exception, true);
-            if (showInPanel)
-                UIView.ForwardException(e);
+            if (e == null)
+                Log.Error("null argument e was passed to Log.Exception()");
+            try {
+                string message = e.ToString() + $"\n\t-- {assemblyName_}:end of inner stack trace --";
+                if (!m.IsNullorEmpty())
+                    message = m + " -> \n" + message;
+                LogImpl(message, LogLevel.Exception, true);
+                if (showInPanel)
+                    UIView.ForwardException(e);
+            } catch (Exception e2) {
+                Log.Error($"Log.Exception throw an exceotion:{e.STR()} \n {e2.STR()}");
+            }
         }
 
         static string nl = Environment.NewLine;

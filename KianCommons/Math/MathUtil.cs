@@ -1,4 +1,5 @@
 namespace KianCommons.Math {
+    using UnityEngine;
     public static class MathUtil {
         public const float Epsilon = 0.001f;
         public static bool EqualAprox(float a, float b, float error = Epsilon) {
@@ -12,5 +13,7 @@ namespace KianCommons.Math {
         // these are required to support negative numbers.
         public static bool IsPow2(int x) => x != 0 && (x & (x - 1)) == 0;
         public static bool IsPow2(short x) => x != 0 && (x & (x - 1)) == 0;
+
+        internal static ushort Clamp2U16(int value) => (ushort)Mathf.Clamp(value, 0, ushort.MaxValue);
     }
 }
