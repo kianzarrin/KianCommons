@@ -15,6 +15,9 @@ namespace KianCommons {
 
         public static ulong GetWorkshopID(this PluginInfo plugin) => plugin.publishedFileID.AsUInt64;
 
+        /// <summary>
+        /// shortcut for pluggin?.isEnabled ?? false
+        /// </summary>
         public static bool IsActive(this PluginInfo pluggin) => pluggin?.isEnabled ?? false;
 
         public static Assembly GetMainAssembly(this PluginInfo pluggin) => pluggin?.userModInstance?.GetType()?.Assembly;
