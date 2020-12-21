@@ -185,7 +185,7 @@ namespace KianCommons {
                 if (showInPanel)
                     UIView.ForwardException(e);
             } catch (Exception e2) {
-                Log.Error($"Log.Exception throw an exceotion:{e.STR()} \n {e2.STR()}");
+                Log.Error($"Log.Exception throw an exceotion:{e.ToSTR()} \n {e2.ToSTR()}");
             }
         }
 
