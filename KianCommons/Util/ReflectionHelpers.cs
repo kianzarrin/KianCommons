@@ -66,9 +66,12 @@ namespace KianCommons {
         }
 
         internal static T GetAttribute<T>(this MemberInfo member, bool inherit = true) where T:Attribute {
-            return member.GetCustomAttributes(typeof(T), inherit).FirstOrDefault() as T;
+            return member.GetAttributes<T>().FirstOrDefault();
         }
-            
+
+        internal static T[] GetAttributes<T>(this MemberInfo member, bool inherit = true) where T : Attribute {
+            return member.GetCustomAttributes(typeof(T), inherit) as T[];
+        }
 
         internal static bool HasAttribute<T>(this MemberInfo member, bool inherit = true) where T : Attribute {
             var att = member.GetCustomAttributes(typeof(T), inherit);

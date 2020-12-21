@@ -4,6 +4,8 @@ namespace KianCommons {
     using System.Collections.Generic;
     using System.Linq;
     using static KianCommons.Math.MathUtil;
+    using System.Reflection;
+    using static KianCommons.ReflectionHelpers;
 
     internal static class EnumBitMaskExtensions {
         internal static int String2Enum<T>(string str) where T : Enum {
@@ -92,6 +94,15 @@ namespace KianCommons {
                 if (IsPow2((int)val))
                     yield return (int)val;
             }
+        }
+
+        public static MemberInfo GetEnumMember(this Type enumType, object value) {
+            if (enumType is null) throw new ArgumentNullException("enumType");
+            string name = Enum.GetName(enumType, value);
+            if (name == null)
+                throw new Exception($"{enumType.GetType().Name}:{value} not found");
+            return enumType.GetMember(name, ALL).FirstOrDefault() ??
+                throw new Exception($"{enumType.GetType().Name}.{name} not found");
         }
     }
 }
