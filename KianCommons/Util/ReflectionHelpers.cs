@@ -101,6 +101,18 @@ namespace KianCommons {
         }
 
         /// <summary>
+        /// sets target.fieldName to value.
+        /// this works even if target is of struct type
+        /// Post condtion: target has the new value
+        /// </summary>
+        internal static void SetFieldValue(string fieldName, object target, object value) {
+            var type = target.GetType();
+            var field = type.GetField(fieldName, ALL)
+                ?? throw new Exception($"{type}.{fieldName} not found");
+            field.SetValue(target, value);
+        }
+
+        /// <summary>
         /// Get value of a static field from T.fieldName
         /// </summary>
         internal static object GetFieldValue<T>(string fieldName)
