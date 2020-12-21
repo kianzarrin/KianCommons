@@ -15,6 +15,9 @@ namespace KianCommons {
 
         public static ulong GetWorkshopID(this PluginInfo plugin) => plugin.publishedFileID.AsUInt64;
 
+        /// <summary>
+        /// shortcut for pluggin?.isEnabled ?? false
+        /// </summary>
         public static bool IsActive(this PluginInfo pluggin) => pluggin?.isEnabled ?? false;
 
         public static Assembly GetMainAssembly(this PluginInfo pluggin) => pluggin?.userModInstance?.GetType()?.Assembly;
@@ -24,10 +27,9 @@ namespace KianCommons {
         static PluginManager man => PluginManager.instance;
 
         public static PluginInfo GetCSUR() => GetPlugin("CSUR ToolBox", 1959342332ul);
-        public static PluginInfo GetAdaptiveRoads() => PluginUtil.GetPlugin("AdaptiveRoads");
-        public static PluginInfo GetHideCrossings() => PluginUtil.GetPlugin(
-            "HideCrosswalks",
-            searchOptions: SearchOptionT.AssemblyName | SearchOptionT.Equals | SearchOptionT.AllOptions);
+        public static PluginInfo GetAdaptiveRoads() => GetPlugin("AdaptiveRoads");
+        public static PluginInfo GetHideCrossings() => GetPlugin("HideCrosswalks", searchOptions: AssemblyEquals);
+        public static PluginInfo GetTrafficManager() => GetPlugin("TrafficManager", searchOptions: AssemblyEquals);
 
         [Obsolete]
         internal static bool CSUREnabled;
@@ -105,13 +107,18 @@ namespace KianCommons {
 
 
         public const SearchOptionT DefaultsearchOptions =
-            SearchOptionT.Contains | SearchOptionT.IgnoreWhiteSpace | SearchOptionT.CaseInsensetive | SearchOptionT.UserModName;
+            SearchOptionT.Contains | SearchOptionT.AllOptions | SearchOptionT.UserModName;
 
-        public static PluginInfo GetPlugin(string searchName, ulong searchId, SearchOptionT searchOptions = DefaultsearchOptions) {
+        public const SearchOptionT AssemblyEquals =
+            SearchOptionT.Equals | SearchOptionT.AllOptions | SearchOptionT.AssemblyName;
+
+        public static PluginInfo GetPlugin(
+            string searchName, ulong searchId, SearchOptionT searchOptions = DefaultsearchOptions) {
             return GetPlugin(searchName, new[] { searchId }, searchOptions);
         }
 
-        public static PluginInfo GetPlugin(string searchName, ulong[] searchIds = null, SearchOptionT searchOptions = DefaultsearchOptions) {
+        public static PluginInfo GetPlugin(
+            string searchName, ulong[] searchIds = null, SearchOptionT searchOptions = DefaultsearchOptions) {
             foreach (PluginInfo current in PluginManager.instance.GetPluginsInfo()) {
                 if (current == null) continue;
 
