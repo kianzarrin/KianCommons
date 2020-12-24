@@ -565,6 +565,7 @@ namespace KianCommons {
 
     }
 
+    [Serializable]
     public struct LaneData {
         public uint LaneID;
         public int LaneIndex;
