@@ -24,9 +24,9 @@ namespace KianCommons {
             return a == null || !a.Any();
         }
 
-        public static int IndexOf<T>(this T[] array, T element) => (array as IList).IndexOf(element);
+        internal static int IndexOf<T>(this T[] array, T element) => (array as IList).IndexOf(element);
 
-        public static void DropElement<T>(ref T[] array, int i) {
+        internal static void DropElement<T>(ref T[] array, int i) {
             int n1 = array.Length;
             T[] ret = new T[n1 - 1];
             int i1 = 0, i2 = 0;
@@ -41,7 +41,7 @@ namespace KianCommons {
             array = ret;
         }
 
-        public static void AppendElement<T>(ref T[] array, T element) {
+        internal static void AppendElement<T>(ref T[] array, T element) {
             int n1 = array.Length;
             T[] ret = new T[n1 + 1];
 
@@ -52,16 +52,22 @@ namespace KianCommons {
             array = ret;
         }
 
-        public static void ReplaceElement<T>(this T[] array, T oldVal, T newVal) {
+        internal static void ReplaceElement<T>(this T[] array, T oldVal, T newVal) {
             int index = (array as IList).IndexOf(oldVal);
             array[index] = newVal;
         }
 
-        public static void ReplaceElement(this Array array, object oldVal, object newVal) {
+        internal static void ReplaceElement(this Array array, object oldVal, object newVal) {
             int index = (array as IList).IndexOf(oldVal);
             array.SetValue(newVal, index);
         }
 
-        public static ref T Last<T>(this T[] array) => ref array[array.Length - 1];
+        internal static ref T Last<T>(this T[] array) => ref array[array.Length - 1];
+
+        internal static void Swap<T>(this IList<T> list, int i1, int i2) {
+            var temp = list[i1];
+            list[i1] = list[i2];
+            list[i2] = temp;
+        }
     }
 }
