@@ -84,6 +84,12 @@ namespace KianCommons {
                 .Where(_field => _field.HasAttribute<T>(inherit));
         }
 
+        internal static IEnumerable<FieldInfo> GetFieldsWithAttribute<T>(
+            this Type type, bool inherit = true) where T : Attribute {
+            return type.GetFields()
+                .Where(_field => _field.HasAttribute<T>(inherit));
+        }
+
         public const BindingFlags ALL = BindingFlags.Public
             | BindingFlags.NonPublic
             | BindingFlags.Instance
