@@ -179,12 +179,32 @@ namespace KianCommons {
             return GetMethod(type, method, true)?.Invoke(instance, null);
         }
 
+
+        //instance
+        internal static T EventToDelegate<T>(object instance, string eventName)
+            where T : Delegate {
+            return (T)instance
+                .GetType()
+                .GetField(eventName, ALL)
+                .GetValue(instance);
+        }
+
+        //static
+        internal static T EventToDelegate<T>(Type type, string eventName)
+            where T : Delegate {
+            return (T)type
+                .GetField(eventName, ALL)
+                .GetValue(null);
+        }
+
         //instance
         internal static void InvokeEvent(object instance, string eventName, bool verbose = false) {
             var d = GetEventDelegates(instance, eventName);
             if (verbose) Log.Info($"Executing event `{instance.GetType().FullName}.{eventName}` ...");
             ExecuteDelegates(d, verbose);
         }
+
+
 
         //static
         internal static void InvokeEvent(Type type, string eventName, bool verbose = false) {
