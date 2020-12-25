@@ -53,14 +53,14 @@ namespace KianCommons {
             }
         }
 
-        internal static bool CheckFlags(this NetNode.Flags value, NetNode.Flags required, NetNode.Flags forbidden) =>
+        internal static bool CheckFlags(this NetNode.Flags value, NetNode.Flags required, NetNode.Flags forbidden =0) =>
             (value & (required | forbidden)) == required;
 
 
-        internal static bool CheckFlags(this NetSegment.Flags value, NetSegment.Flags required, NetSegment.Flags forbidden) =>
+        internal static bool CheckFlags(this NetSegment.Flags value, NetSegment.Flags required, NetSegment.Flags forbidden=0) =>
             (value & (required | forbidden)) == required;
 
-        internal static bool CheckFlags(this NetLane.Flags value, NetLane.Flags required, NetLane.Flags forbidden) =>
+        internal static bool CheckFlags(this NetLane.Flags value, NetLane.Flags required, NetLane.Flags forbidden=0) =>
             (value & (required | forbidden)) == required;
 
         public static IEnumerable<T> GetPow2ValuesU32<T>() where T : struct, IConvertible {
