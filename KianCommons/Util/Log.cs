@@ -218,7 +218,8 @@ namespace KianCommons {
 
                 m += message;
                 if (level == LogLevel.Error || level == LogLevel.Exception) {
-                    m += nl + new StackTrace(true).ToString() + nl;
+                    m += nl + Environment.StackTrace;
+                    m = nl + m + nl; // create line space to draw attention.
                 }
 
 

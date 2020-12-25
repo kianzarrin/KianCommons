@@ -4,6 +4,8 @@ namespace KianCommons {
     using System.Collections.Generic;
     using System.Linq;
     using static KianCommons.Math.MathUtil;
+    using System.Reflection;
+    using static KianCommons.ReflectionHelpers;
 
     internal static class EnumBitMaskExtensions {
         internal static int String2Enum<T>(string str) where T : Enum {
@@ -51,14 +53,14 @@ namespace KianCommons {
             }
         }
 
-        internal static bool CheckFlags(this NetNode.Flags value, NetNode.Flags required, NetNode.Flags forbidden) =>
+        internal static bool CheckFlags(this NetNode.Flags value, NetNode.Flags required, NetNode.Flags forbidden =0) =>
             (value & (required | forbidden)) == required;
 
 
-        internal static bool CheckFlags(this NetSegment.Flags value, NetSegment.Flags required, NetSegment.Flags forbidden) =>
+        internal static bool CheckFlags(this NetSegment.Flags value, NetSegment.Flags required, NetSegment.Flags forbidden=0) =>
             (value & (required | forbidden)) == required;
 
-        internal static bool CheckFlags(this NetLane.Flags value, NetLane.Flags required, NetLane.Flags forbidden) =>
+        internal static bool CheckFlags(this NetLane.Flags value, NetLane.Flags required, NetLane.Flags forbidden=0) =>
             (value & (required | forbidden)) == required;
 
         public static IEnumerable<T> GetPow2ValuesU32<T>() where T : struct, IConvertible {
@@ -92,6 +94,15 @@ namespace KianCommons {
                 if (IsPow2((int)val))
                     yield return (int)val;
             }
+        }
+
+        public static MemberInfo GetEnumMember(this Type enumType, object value) {
+            if (enumType is null) throw new ArgumentNullException("enumType");
+            string name = Enum.GetName(enumType, value);
+            if (name == null)
+                throw new Exception($"{enumType.GetType().Name}:{value} not found");
+            return enumType.GetMember(name, ALL).FirstOrDefault() ??
+                throw new Exception($"{enumType.GetType().Name}.{name} not found");
         }
     }
 }

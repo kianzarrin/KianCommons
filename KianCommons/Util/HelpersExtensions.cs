@@ -44,7 +44,15 @@ namespace KianCommons {
         internal static bool ControlIsPressed => Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
 
         internal static bool AltIsPressed => Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt);
-
-
     }
+
+    internal static class Helpers {
+        internal static void Swap<T>(ref T a, ref T b) {
+            var t = a;
+            a = b;
+            b = t;
+        }
+    }
+
+
 }

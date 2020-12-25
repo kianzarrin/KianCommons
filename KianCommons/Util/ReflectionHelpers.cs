@@ -65,6 +65,14 @@ namespace KianCommons {
             return s;
         }
 
+        internal static T GetAttribute<T>(this MemberInfo member, bool inherit = true) where T:Attribute {
+            return member.GetAttributes<T>().FirstOrDefault();
+        }
+
+        internal static T[] GetAttributes<T>(this MemberInfo member, bool inherit = true) where T : Attribute {
+            return member.GetCustomAttributes(typeof(T), inherit) as T[];
+        }
+
         internal static bool HasAttribute<T>(this MemberInfo member, bool inherit = true) where T : Attribute {
             var att = member.GetCustomAttributes(typeof(T), inherit);
             return att != null && att.Length != 0;
@@ -73,6 +81,12 @@ namespace KianCommons {
         internal static IEnumerable<FieldInfo> GetFieldsWithAttribute<T>(
             this object obj, bool inherit = true) where T : Attribute {
             return obj.GetType().GetFields()
+                .Where(_field => _field.HasAttribute<T>(inherit));
+        }
+
+        internal static IEnumerable<FieldInfo> GetFieldsWithAttribute<T>(
+            this Type type, bool inherit = true) where T : Attribute {
+            return type.GetFields()
                 .Where(_field => _field.HasAttribute<T>(inherit));
         }
 
@@ -93,6 +107,18 @@ namespace KianCommons {
             var field = type.GetField(fieldName, ALL)
                 ?? throw new Exception($"{type}.{fieldName} not found");
             return field.GetValue(target);
+        }
+
+        /// <summary>
+        /// sets target.fieldName to value.
+        /// this works even if target is of struct type
+        /// Post condtion: target has the new value
+        /// </summary>
+        internal static void SetFieldValue(string fieldName, object target, object value) {
+            var type = target.GetType();
+            var field = type.GetField(fieldName, ALL)
+                ?? throw new Exception($"{type}.{fieldName} not found");
+            field.SetValue(target, value);
         }
 
         /// <summary>
@@ -153,12 +179,32 @@ namespace KianCommons {
             return GetMethod(type, method, true)?.Invoke(instance, null);
         }
 
+
+        //instance
+        internal static T EventToDelegate<T>(object instance, string eventName)
+            where T : Delegate {
+            return (T)instance
+                .GetType()
+                .GetField(eventName, ALL)
+                .GetValue(instance);
+        }
+
+        //static
+        internal static T EventToDelegate<T>(Type type, string eventName)
+            where T : Delegate {
+            return (T)type
+                .GetField(eventName, ALL)
+                .GetValue(null);
+        }
+
         //instance
         internal static void InvokeEvent(object instance, string eventName, bool verbose = false) {
             var d = GetEventDelegates(instance, eventName);
             if (verbose) Log.Info($"Executing event `{instance.GetType().FullName}.{eventName}` ...");
             ExecuteDelegates(d, verbose);
         }
+
+
 
         //static
         internal static void InvokeEvent(Type type, string eventName, bool verbose = false) {

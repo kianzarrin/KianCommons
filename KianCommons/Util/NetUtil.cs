@@ -229,12 +229,30 @@ namespace KianCommons {
         public static bool CanConnectPath(this NetInfo info) =>
             info.m_netAI is RoadAI & info.m_hasPedestrianLanes;
 
+        internal static bool IsInvert(this ref NetSegment segment) =>
+            segment.m_flags.IsFlagSet(NetSegment.Flags.Invert);
+
+        internal static bool IsJunction(this ref NetNode node) =>
+            node.m_flags.IsFlagSet(NetNode.Flags.Junction);
+
+        /// <summary>
+        /// checks if vehicles move backward or bypass backward (considers LHT)
+        /// </summary>
+        /// <returns>true if vehicles move backward,
+        /// false if vehilces going ward, bi-directional, or non-directional</returns>
+        internal static bool IsGoingBackward(this NetInfo.Lane laneInfo) =>
+                (laneInfo.m_finalDirection & NetInfo.Direction.Both) == NetInfo.Direction.Backward ||
+                (laneInfo.m_finalDirection & NetInfo.Direction.AvoidBoth) == NetInfo.Direction.AvoidForward;
+
+        internal static bool IsGoingForward(this NetInfo.Lane laneInfo) =>
+                (laneInfo.m_finalDirection & NetInfo.Direction.Both) == NetInfo.Direction.Forward ||
+                (laneInfo.m_finalDirection & NetInfo.Direction.AvoidBoth) == NetInfo.Direction.AvoidForward;
+
         public static bool IsStartNode(ushort segmentId, ushort nodeId) =>
             segmentId.ToSegment().m_startNode == nodeId;
 
         public static bool IsStartNode(this ref NetSegment segment, ushort nodeId) =>
             segment.m_startNode == nodeId;
-
 
         public static ushort GetSegmentNode(ushort segmentID, bool startNode) =>
             segmentID.ToSegment().GetNode(startNode);
@@ -547,6 +565,7 @@ namespace KianCommons {
 
     }
 
+    [Serializable]
     public struct LaneData {
         public uint LaneID;
         public int LaneIndex;
