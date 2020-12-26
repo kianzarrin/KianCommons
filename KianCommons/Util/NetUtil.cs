@@ -275,6 +275,16 @@ namespace KianCommons {
                 .CheckFlags(required: NetSegment.Flags.Created, forbidden: NetSegment.Flags.Deleted);
         }
 
+        public static void AssertSegmentValid(ushort segmentId) {
+            Assertion.AssertNeq(segmentId, 0, "segmentId");
+            Assertion.AssertNotNull(segmentId.ToSegment().Info, $"segment:{segmentId} info");
+            var flags = segmentId.ToSegment().m_flags;
+            var goodFlags = flags.CheckFlags(required: NetSegment.Flags.Created, forbidden: NetSegment.Flags.Deleted);
+            Assertion.Assert(goodFlags,
+                $"segment {segmentId} {segmentId.ToSegment().Info} has bad flags: {flags}");
+        }
+
+
         public static bool IsNodeValid(ushort nodeId) {
             if (nodeId == 0)
                 return false;
