@@ -78,7 +78,9 @@ namespace KianCommons {
         }
 
         public static Stopwatch GetSharedTimer() {
-            var t = Type.GetType("LoadOrderIPatch.Patches.LoggerPatch, LoadOrderIPatch", throwOnError: false);
+            var asm = AppDomain.CurrentDomain.GetAssemblies()
+                .FirstOrDefault(_asm => _asm.GetName().Name == "LoadOrderIPatch");
+            var t = asm?.GetType("LoadOrderIPatch.Patches.LoggerPatch", throwOnError: false);
             return t?.GetField("m_Timer")?.GetValue(null) as Stopwatch;
         }
 
@@ -88,11 +90,12 @@ namespace KianCommons {
         /// </summary>
         static Log() {
             try {
-                LogFilePath = Path.Combine(Application.dataPath, "Logs");
-                LogFilePath = Path.Combine(LogFilePath, LogFileName);
-                if (File.Exists(LogFilePath)) {
+                var dir = Path.Combine(Application.dataPath, "Logs");
+                if (!Directory.Exists(dir))
+                    Directory.CreateDirectory(dir);
+                LogFilePath = Path.Combine(dir, LogFileName);
+                if (File.Exists(LogFilePath))
                     File.Delete(LogFilePath);
-                }
 
                 if (ShowTimestamp) {
                     Timer = GetSharedTimer() ?? Stopwatch.StartNew();
@@ -102,8 +105,7 @@ namespace KianCommons {
                 Info($"Log file at " + LogFilePath, true);
                 Info($"{details.Name} v{details.Version}", true);
             } catch (Exception ex) {
-                UnityEngine.Debug.LogException(ex);
-                UIView.ForwardException(ex);
+                Log.LogUnityException(ex);
             }
         }
 
@@ -175,19 +177,25 @@ namespace KianCommons {
 
         }
 
-        internal static void Exception(Exception e, string m = "", bool showInPanel = true) {
-            if (e == null)
+        internal static void Exception(Exception ex, string m = "", bool showInPanel = true) {
+            if (ex == null)
                 Log.Error("null argument e was passed to Log.Exception()");
             try {
-                string message = e.ToString() + $"\n\t-- {assemblyName_}:end of inner stack trace --";
+                string message = ex.ToString() + $"\n\t-- {assemblyName_}:end of inner stack trace --";
                 if (!m.IsNullorEmpty())
                     message = m + " -> \n" + message;
                 LogImpl(message, LogLevel.Exception, true);
                 if (showInPanel)
-                    UIView.ForwardException(e);
-            } catch (Exception e2) {
-                Log.Error($"Log.Exception throw an exceotion:{e.ToSTR()} \n {e2.ToSTR()}");
+                    UIView.ForwardException(ex);
+            } catch (Exception ex2) {
+                Log.LogUnityException(ex2);
             }
+        }
+
+        internal static void LogUnityException(Exception ex, bool showInPanel = true) {
+            UnityEngine.Debug.LogException(ex);
+            if (showInPanel)
+                UIView.ForwardException(ex);
         }
 
         static string nl = Environment.NewLine;
@@ -247,8 +255,8 @@ namespace KianCommons {
                             break;
                     }
                 }
-            } catch {
-                // ignore
+            } catch (Exception ex) {
+                Log.LogUnityException(ex);
             }
         }
 
