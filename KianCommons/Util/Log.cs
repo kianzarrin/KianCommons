@@ -91,11 +91,15 @@ namespace KianCommons {
         static Log() {
             try {
                 var dir = Path.Combine(Application.dataPath, "Logs");
+                LogFilePath = Path.Combine(dir, LogFileName);
+                var oldFilePath = Path.Combine(Application.dataPath, LogFileName);
                 if (!Directory.Exists(dir))
                     Directory.CreateDirectory(dir);
-                LogFilePath = Path.Combine(dir, LogFileName);
                 if (File.Exists(LogFilePath))
                     File.Delete(LogFilePath);
+                if (File.Exists(oldFilePath))
+                    File.Delete(oldFilePath);
+
 
                 if (ShowTimestamp) {
                     Timer = GetSharedTimer() ?? Stopwatch.StartNew();
