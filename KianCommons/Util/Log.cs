@@ -101,8 +101,9 @@ namespace KianCommons {
                 AssemblyName details = typeof(Log).Assembly.GetName();
                 Info($"Log file at " + LogFilePath, true);
                 Info($"{details.Name} v{details.Version}", true);
-            } catch {
-                // ignore
+            } catch (Exception ex) {
+                UnityEngine.Debug.LogException(ex);
+                UIView.ForwardException(ex);
             }
         }
 
