@@ -34,7 +34,7 @@ namespace KianCommons {
 
         /// <summary>
         /// returns lane data of the given lane ID.
-        /// throws exception if unsucessful.
+        /// throws exception if unsuccessful.
         /// </summary>
         internal static LaneData GetLaneData(uint laneId) {
             Assertion.Assert(laneId != 0, "laneId!=0");
@@ -579,8 +579,13 @@ namespace KianCommons {
     public struct LaneData {
         public uint LaneID;
         public int LaneIndex;
-        public NetInfo.Lane LaneInfo;
         public bool StartNode;
+
+        [NonSerialized] private NetInfo.Lane laneInfo_;
+        public NetInfo.Lane LaneInfo {
+            get => laneInfo_ = laneInfo_ ?? Segment.Info.m_lanes[LaneIndex];
+            set => laneInfo_ = value;
+        }
 
         public LaneData(uint laneID, int laneIndex = -1) {
             LaneID = laneID;
@@ -589,10 +594,10 @@ namespace KianCommons {
             LaneIndex = laneIndex;
 
             ushort segmentID = LaneID.ToLane().m_segment;
-            LaneInfo = segmentID.ToSegment().Info.m_lanes[LaneIndex];
-            bool forward = LaneInfo.m_finalDirection == NetInfo.Direction.Forward;
+            laneInfo_ = segmentID.ToSegment().Info.m_lanes[LaneIndex];
+            bool backward = laneInfo_.IsGoingBackward();
             bool inverted = segmentID.ToSegment().m_flags.IsFlagSet(NetSegment.Flags.Invert);
-            StartNode = forward ^ !inverted;
+            StartNode = backward == inverted; //xnor
         }
 
         public readonly ushort SegmentID => Lane.m_segment;
