@@ -43,6 +43,8 @@ namespace KianCommons {
 
         private static StreamWriter filerWrier_;
 
+        private static object LogLock = new object();
+
         internal static bool ShowGap = false;
 
         private static long prev_ms_;
@@ -72,7 +74,7 @@ namespace KianCommons {
         /// </summary>
         internal static void Flush() {
             if (filerWrier_ != null) {
-                lock (filerWrier_)
+                lock (LogLock)
                     filerWrier_.Flush();
             }
         }
@@ -235,13 +237,13 @@ namespace KianCommons {
                     m = nl + m + nl; // create line space to draw attention.
                 }
 
-
-                if (filerWrier_ != null) {
-                    lock (filerWrier_)
+                lock (LogLock) {
+                    if (filerWrier_ != null) {
                         filerWrier_.WriteLine(m);
-                } else {
-                    using (StreamWriter w = File.AppendText(LogFilePath))
-                        w.WriteLine(m);
+                    } else {
+                        using (StreamWriter w = File.AppendText(LogFilePath))
+                            w.WriteLine(m);
+                    }
                 }
 
                 if (copyToGameLog) {
