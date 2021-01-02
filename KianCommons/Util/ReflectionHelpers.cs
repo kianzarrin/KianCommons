@@ -5,6 +5,7 @@ namespace KianCommons {
     using System.Reflection;
     using static KianCommons.Assertion;
     using System.Diagnostics;
+    using ColossalFramework;
 
     internal static class ReflectionHelpers {
         internal static Version Version(this Assembly asm) =>
@@ -54,6 +55,15 @@ namespace KianCommons {
                 //Log.Debug($"Got field value:<{strValue}> ...>");
                 fieldInfo.SetValue(target, value);
                 //Log.Debug($"Copied field:<{fieldInfo.Name}> value:<{strValue}>");
+            }
+        }
+
+        internal static void SetAllDeclaredFieldsToNull(object instance) {
+            var type = instance.GetType();
+            var fields = type.GetAllFields();
+            foreach(var f in fields) {
+                if(f.FieldType.IsClass)
+                    f.SetValue(instance, null);
             }
         }
 

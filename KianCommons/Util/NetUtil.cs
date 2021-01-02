@@ -513,6 +513,17 @@ namespace KianCommons {
         }
 
 
+        public static NetInfo.Lane SortedLane(this NetInfo info, int index) {
+            int sortedIndex = info.m_sortedLanes[index];
+            return info.m_lanes[sortedIndex];
+        }
+
+        public static IEnumerable<NetInfo.Lane> SortedLanes(this NetInfo info) {
+            for (int i = 0; i < info.m_sortedLanes.Length; ++i) {
+                int sortedIndex = info.m_sortedLanes[i];
+                yield return info.m_lanes[sortedIndex];
+            }
+        }
 
         /// <summary>
         /// sorted from outer lane to inner lane when heading toward <paramref name="startNode"/>
