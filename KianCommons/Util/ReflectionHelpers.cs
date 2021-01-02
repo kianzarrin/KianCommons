@@ -60,10 +60,13 @@ namespace KianCommons {
 
         internal static void SetAllDeclaredFieldsToNull(object instance) {
             var type = instance.GetType();
-            var fields = type.GetAllFields();
+            var fields = type.GetAllFields(declaredOnly:true);
             foreach(var f in fields) {
-                if(f.FieldType.IsClass)
+                if (f.FieldType.IsClass) {
+                    if (HelpersExtensions.VERBOSE)
+                        Log.Debug($"SetAllDeclaredFieldsToNull: setting {instance}.{f} = null");
                     f.SetValue(instance, null);
+                }
             }
         }
 
