@@ -39,19 +39,39 @@ namespace KianCommons {
             instanceID.Type + ":" + instanceID.Index;
 
 
+        /// <summary>
+        /// Like To string but:
+        ///  - returns "null" if object is null
+        ///  - recursively returns all items as string if object is IEnumerable
+        ///  - returns id and type if object is InstanceID
+        ///  - returns id and type of both key and value if obj is InstanceID->InstanceID pair
+        /// </summary>
         internal static string ToSTR(this object obj) {
-            if (obj == null) return "<null>";
+            if (obj is null) return "<null>";
+            if (obj is InstanceID instanceID)
+                return instanceID.ToSTR();
+            if (obj is KeyValuePair<InstanceID, InstanceID> map)
+                return map.ToSTR();
             if (obj is IEnumerable list)
                 return list.ToSTR();
             return obj.ToString();
         }
 
+        /// <summary>
+        /// returns id and type of InstanceID
+        /// </summary>
         internal static string ToSTR(this InstanceID instanceID)
             => $"{instanceID.Type}:{instanceID.Index}";
 
+        /// <summary>
+        /// returns id and type of both key and value
+        /// </summary>
         internal static string ToSTR(this KeyValuePair<InstanceID, InstanceID> map)
             => $"[{map.Key.ToSTR()}:{map.Value.ToSTR()}]";
 
+        /// <summary>
+        /// returns all items as string
+        /// </summary>
         internal static string ToSTR<T>(this IEnumerable<T> list) {
             if (list == null) return "<null>";
             string ret = "{ ";
@@ -68,6 +88,10 @@ namespace KianCommons {
             return ret;
         }
 
+        /// <summary>
+        /// prints all items of the list with the given format.
+        /// throws exception if T.ToString(format) does not exists.
+        /// </summary>
         internal static string ToSTR<T>(this IEnumerable<T> list, string format) {
             MethodInfo mToString = typeof(T).GetMethod("ToString", new[] { typeof(string) })
                 ?? throw new Exception($"{typeof(T).Name}.ToString(string) was not found");
