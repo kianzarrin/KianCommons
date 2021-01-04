@@ -41,6 +41,14 @@ namespace KianCommons {
             array = ret;
         }
 
+        internal static bool ContainsRef<T>(this IEnumerable<T> list, T element) where T: class {
+            foreach(T item in list) {
+                if (object.ReferenceEquals(item, element))
+                    return true;
+            }
+            return false;
+        }
+
         internal static void AppendElement<T>(ref T[] array, T element) {
             int n1 = array.Length;
             T[] ret = new T[n1 + 1];
