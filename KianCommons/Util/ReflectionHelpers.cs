@@ -6,6 +6,7 @@ namespace KianCommons {
     using static KianCommons.Assertion;
     using System.Diagnostics;
     using ColossalFramework;
+    using ColossalFramework.UI;
 
     internal static class ReflectionHelpers {
         internal static Version Version(this Assembly asm) =>
@@ -69,6 +70,12 @@ namespace KianCommons {
                 }
             }
         }
+
+        /// <summary>
+        /// call this in OnDestroy() to clear all refrences.
+        /// </summary>
+        internal static void SetAllDeclaredFieldsToNull(this UIComponent c) =>
+            SetAllDeclaredFieldsToNull(c as object);
 
         internal static string GetPrettyFunctionName(MethodInfo m) {
             string s = m.Name;
