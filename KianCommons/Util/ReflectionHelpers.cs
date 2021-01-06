@@ -34,7 +34,7 @@ namespace KianCommons {
             var t1 = target.GetType();
             var t2 = origin.GetType();
             Assert(t1 == t2 || t1.IsSubclassOf(t2));
-            FieldInfo[] fields = origin.GetType().GetFields();
+            FieldInfo[] fields = origin.GetType().GetFields(ALL);
             foreach (FieldInfo fieldInfo in fields) {
                 //Log.Debug($"Copying field:<{fieldInfo.Name}> ...>");
                 object value = fieldInfo.GetValue(origin);
@@ -48,7 +48,7 @@ namespace KianCommons {
         internal static void CopyProperties<T>(object target, object origin) {
             Assert(target is T, "target is T");
             Assert(origin is T, "origin is T");
-            FieldInfo[] fields = typeof(T).GetFields();
+            FieldInfo[] fields = typeof(T).GetFields(ALL);
             foreach (FieldInfo fieldInfo in fields) {
                 //Log.Debug($"Copying field:<{fieldInfo.Name}> ...>");
                 object value = fieldInfo.GetValue(origin);
@@ -56,6 +56,26 @@ namespace KianCommons {
                 //Log.Debug($"Got field value:<{strValue}> ...>");
                 fieldInfo.SetValue(target, value);
                 //Log.Debug($"Copied field:<{fieldInfo.Name}> value:<{strValue}>");
+            }
+        }
+
+        /// <summary>
+        /// copies fields with identical name from origin to target.
+        /// even if the declaring types don't match.
+        /// only copies existing fields and their types match.
+        /// </summary>
+        internal static void CopyPropertiesForced<T>(object target, object origin) {
+            FieldInfo[] fields = typeof(T).GetFields();
+            foreach (FieldInfo fieldInfo in fields) {
+                string fieldName = fieldInfo.Name;
+                var originFieldInfo = origin.GetType().GetField(fieldName, ALL);
+                var targetFieldInfo = target.GetType().GetField(fieldName, ALL);
+                if(originFieldInfo !=null && targetFieldInfo != null) {
+                    try {
+                        object value = originFieldInfo.GetValue(origin);
+                        targetFieldInfo.SetValue(target, value);
+                    } catch { }
+                }
             }
         }
 
