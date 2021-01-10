@@ -434,5 +434,16 @@ namespace KianCommons.Patches {
             return loc == loc0;
         }
 
+        public static bool IsLdLoc(this CodeInstruction code, Type type) {
+            return code.IsLdloc()
+                && code.operand is LocalBuilder lb
+                && lb.LocalType == type;
+        }
+        public static bool IsStLoc(this CodeInstruction code, Type type) {
+            return code.IsStloc()
+                && code.operand is LocalBuilder lb
+                && lb.LocalType == type;
+        }
+
     }
 }
