@@ -1,11 +1,34 @@
 namespace KianCommons {
     using System;
-    using System.Collections.Generic;
     using System.Collections;
-    using System.Reflection;
+    using System.Collections.Generic;
     using System.Linq;
+    using System.Reflection;
 
     internal static class StringExtensions {
+        /// <summary>
+        /// returns a new string without r
+        /// </summary>
+        public static string Remove(this string s, string r) =>
+            s.Replace(r, "");
+
+        /// <summary>
+        /// returns a new string without c
+        /// </summary>
+        public static string Remove(this string s, char c) =>
+                s.Remove(c.ToString());
+        public static string Remove(this string s, params string[] removes) {
+            foreach (string r in removes)
+                s = s.Remove(r);
+            return s;
+        }
+
+        public static string Remove(this string s, params char[] chars) {
+            foreach (char c in chars)
+                s = s.Remove(c);
+            return s;
+        }
+
         internal static string BIG(string m) {
             string mul(string s, int i) {
                 string ret_ = "";
@@ -107,7 +130,7 @@ namespace KianCommons {
         }
 
         internal static string[] Split(this string str, string separator) =>
-            str.Split(new [] { separator }, StringSplitOptions.None);
+            str.Split(new[] { separator }, StringSplitOptions.None);
 
         internal static string[] SplitLines(this string str) =>
             str.Split(Environment.NewLine);

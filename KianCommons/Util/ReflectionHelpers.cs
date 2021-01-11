@@ -7,6 +7,7 @@ namespace KianCommons {
     using System.Diagnostics;
     using ColossalFramework;
     using ColossalFramework.UI;
+    using UnityEngine;
 
     internal static class ReflectionHelpers {
         internal static Version Version(this Assembly asm) =>
@@ -70,11 +71,16 @@ namespace KianCommons {
                 string fieldName = fieldInfo.Name;
                 var originFieldInfo = origin.GetType().GetField(fieldName, ALL);
                 var targetFieldInfo = target.GetType().GetField(fieldName, ALL);
-                if(originFieldInfo !=null && targetFieldInfo != null) {
+                if (originFieldInfo != null && targetFieldInfo != null) {
+                    object value = null;
                     try {
-                        object value = originFieldInfo.GetValue(origin);
+                        value = originFieldInfo.GetValue(origin);
                         targetFieldInfo.SetValue(target, value);
-                    } catch { }
+                    } catch {
+                        value = XMLSerializerUtil.XMLConvert(value, targetFieldInfo.FieldType);
+                        if (value != null)
+                            targetFieldInfo.SetValue(target, value);
+                    }
                 }
             }
         }
