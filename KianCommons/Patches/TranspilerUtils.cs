@@ -26,23 +26,41 @@ namespace KianCommons.Patches {
 
         /// <typeparam name="TDelegate">delegate type</typeparam>
         /// <returns>Type[] represeting arguments of the delegate.</returns>
-        internal static Type[] GetParameterTypes<TDelegate>() where TDelegate : Delegate {
-            return typeof(TDelegate).GetMethod("Invoke").GetParameters().Select(p => p.ParameterType).ToArray();
-        }
+        internal static Type[] GetParameterTypes<TDelegate>()
+            where TDelegate : Delegate =>
+            typeof(TDelegate)
+            .GetMethod("Invoke")
+            .GetParameters()
+            .Select(p => p.ParameterType)
+            .ToArray();
+        
+        /// <summary>
+        /// Gets directly declared method based on a delegate that has
+        /// the same name and the same args as the target method.
+        /// </summary>
+        /// <param name="type">the class/type where the method is delcared</param>
+        internal static MethodInfo DeclaredMethod<TDelegate>
+            (Type type, bool throwOnError = true) where TDelegate : Delegate =>
+            DeclaredMethod<TDelegate>(type, typeof(TDelegate).Name, throwOnError);
 
         /// <summary>
-        /// Gets directly declared method.
+        /// Gets directly declared method based on a delegate that has
+        /// the same name as the target method
         /// </summary>
-        /// <typeparam name="TDelegate">delegate that has the same argument types as the intented overloaded method</typeparam>
         /// <param name="type">the class/type where the method is delcared</param>
         /// <param name="name">the name of the method</param>
-        /// <returns>a method or null when type is null or when a method is not found</returns>
-        internal static MethodInfo DeclaredMethod<TDelegate>(Type type, string name)
+        internal static MethodInfo DeclaredMethod<TDelegate>
+            (Type type, string name, bool throwOnError=false)
             where TDelegate : Delegate {
             var args = GetParameterTypes<TDelegate>();
             var ret = AccessTools.DeclaredMethod(type, name, args);
-            if (ret == null)
-                Log($"failed to retrieve method {type}.{name}({args})");
+            if (ret == null) {
+                string m = $"failed to retrieve method {type}.{name}({args.ToSTR()})";
+                if (throwOnError)
+                    throw new Exception(m);
+                else
+                    Log(m);
+            }
             return ret;
         }
 
@@ -57,7 +75,6 @@ namespace KianCommons.Patches {
                 .Single(_t => _t.Name.Contains($"<{name}>"));
             return GetMethod(t, "MoveNext");
         }
-
 
         public static List<CodeInstruction> ToCodeList(this IEnumerable<CodeInstruction> instructions) {
             var originalCodes = new List<CodeInstruction>(instructions);
@@ -438,6 +455,19 @@ namespace KianCommons.Patches {
             return code.IsLdloc()
                 && code.operand is LocalBuilder lb
                 && lb.LocalType == type;
+        }
+
+        public static bool IsLdLocA(this CodeInstruction code, Type type, out int loc) {
+            bool isldloca =
+                code.opcode == OpCodes.Ldloca ||
+                code.opcode == OpCodes.Ldloca_S;
+            if (isldloca && code.operand is LocalBuilder lb && lb.LocalType == type) {
+                loc = lb.LocalIndex;
+                return true;
+            }
+            loc = -1;
+            return false;
+            
         }
         public static bool IsStLoc(this CodeInstruction code, Type type) {
             return code.IsStloc()
