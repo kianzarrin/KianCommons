@@ -475,5 +475,10 @@ namespace KianCommons.Patches {
                 && lb.LocalType == type;
         }
 
+        public static bool LoadsConstant(this CodeInstruction code, string value) {
+            return code.opcode == OpCodes.Ldstr
+                && code.operand is string str
+                && str == value;
+        }
     }
 }
