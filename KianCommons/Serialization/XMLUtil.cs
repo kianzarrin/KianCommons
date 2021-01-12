@@ -5,7 +5,7 @@ using System.Xml.Schema;
 using System.Xml.Serialization;
 using UnityEngine;
 
-namespace KianCommons {
+namespace KianCommons.Serialization {
     internal static class XMLSerializerUtil {
         static XmlSerializer Serilizer<T>() => new XmlSerializer(typeof(T));
         static void Serialize<T>(TextWriter writer, T value) => Serilizer<T>().Serialize(writer, value);
@@ -88,31 +88,31 @@ namespace KianCommons {
         }
     }
     public class XmlVector3 : IXmlSerializable {
-        [XmlIgnore] public Vector3 v_;
+        [XmlIgnore] public Vector3 v;
 
         public XmlSchema GetSchema() => null;
         public void WriteXml(XmlWriter writer) =>
-            writer.WriteString($"x:{v_.x} y:{v_.y} z:{v_.z}");
+            writer.WriteString($"x:{v.x} y:{v.y} z:{v.z}");
 
         public void ReadXml(XmlReader reader) {
             string data = reader.ReadString();
             if (string.IsNullOrEmpty(data)) {
-                v_ = default;
+                v = default;
                 return;
             }
 
             data = data.Remove("x:", "y:", "z:");
             var datas = data.Split(" ");
 
-            v_.x = float.Parse(datas[0]);
-            v_.y = float.Parse(datas[1]);
-            v_.z = float.Parse(datas[2]);
+            v.x = float.Parse(datas[0]);
+            v.y = float.Parse(datas[1]);
+            v.z = float.Parse(datas[2]);
         }
 
         public XmlVector3() { } // XML constructor.
-        public XmlVector3(Vector3 v) => v_ = v;
+        public XmlVector3(Vector3 v) => this.v = v;
         public static implicit operator XmlVector3(Vector3 v) => new XmlVector3(v);
-        public static implicit operator Vector3(XmlVector3 xmlv) => xmlv.v_;
+        public static implicit operator Vector3(XmlVector3 xmlv) => xmlv.v;
     }
 
     public class XmlPrefabInfo<T> : IXmlSerializable

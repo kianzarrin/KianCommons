@@ -1,4 +1,4 @@
-namespace KianCommons {
+namespace KianCommons.Serialization {
     using System;
     using System.IO;
     using System.Linq;

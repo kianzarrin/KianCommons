@@ -7,7 +7,7 @@ namespace KianCommons {
     using System.Diagnostics;
     using ColossalFramework;
     using ColossalFramework.UI;
-    using UnityEngine;
+    using KianCommons.Serialization;
 
     internal static class ReflectionHelpers {
         internal static Version Version(this Assembly asm) =>
