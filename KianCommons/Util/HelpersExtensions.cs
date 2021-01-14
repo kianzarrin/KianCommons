@@ -34,16 +34,14 @@ namespace KianCommons {
         [Obsolete]
         internal static bool IsActive => InGameOrEditor;
 
-        internal static bool InStartup =>
-            SceneManager.GetActiveScene().name == "IntroScreen" ||
-            SceneManager.GetActiveScene().name == "Startup";
+        [Obsolete("use Helpers.InStartupMenu instead")]
+        internal static bool InStartup => Helpers.InStartupMenu;
 
+        internal static bool ShiftIsPressed => Helpers.ShiftIsPressed;
 
-        internal static bool ShiftIsPressed => Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+        internal static bool ControlIsPressed => Helpers.ControlIsPressed;
 
-        internal static bool ControlIsPressed => Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
-
-        internal static bool AltIsPressed => Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt);
+        internal static bool AltIsPressed => Helpers.AltIsPressed;
     }
 
     internal static class Helpers {
@@ -52,6 +50,17 @@ namespace KianCommons {
             a = b;
             b = t;
         }
+
+        internal static bool InStartupMenu =>
+            SceneManager.GetActiveScene().name == "IntroScreen" ||
+            SceneManager.GetActiveScene().name == "Startup";
+
+        internal static bool ShiftIsPressed => Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+
+        internal static bool ControlIsPressed => Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+
+        internal static bool AltIsPressed => Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt);
+
     }
 
 
