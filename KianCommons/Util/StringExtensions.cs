@@ -15,17 +15,18 @@ namespace KianCommons {
         /// <summary>
         /// returns a new string without c
         /// </summary>
-        public static string Remove(this string s, char c) =>
+        public static string RemoveChar(this string s, char c) =>
                 s.Remove(c.ToString());
+
         public static string Remove(this string s, params string[] removes) {
             foreach (string r in removes)
                 s = s.Remove(r);
             return s;
         }
 
-        public static string Remove(this string s, params char[] chars) {
+        public static string RemoveChars(this string s, params char[] chars) {
             foreach (char c in chars)
-                s = s.Remove(c);
+                s = s.RemoveChar(c);
             return s;
         }
 
