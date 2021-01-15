@@ -1,7 +1,7 @@
 using UnityEngine;
 using System;
 
-namespace KianCommons.Math {
+namespace KianCommons.Serialization {
     [Serializable]
     public struct Vector3Serializable {
         public float x, y, z;

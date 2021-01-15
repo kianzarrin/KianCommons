@@ -14,7 +14,6 @@ namespace KianCommons.Serialization {
         static BinaryFormatter GetBinaryFormatter =>
             new BinaryFormatter { AssemblyFormat = FormatterAssemblyStyle.Simple };
 
-
         public static object Deserialize(byte[] data, Version version) {
             if (data == null || data.Length==0) return null;
             try {

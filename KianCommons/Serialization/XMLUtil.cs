@@ -1,9 +1,12 @@
 using System;
 using System.IO;
+using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
+using System.Xml.Linq;
 using UnityEngine;
+using System.Linq;
 
 namespace KianCommons.Serialization {
     internal static class XMLSerializerUtil {
@@ -35,11 +38,24 @@ namespace KianCommons.Serialization {
             }
         }
 
-        public static void WriteToFileWrapper(string fileName, string data, Version version = null) {
+        public static Version ExtractVersion(string xmlData) {
+            if (false) {
+                var rx = new Regex(@"Version='([\.\d]+)'".Replace("'", "\""));
+                var match = rx.Match(xmlData);
+                string version = match.Groups[1].Value;
+                return new Version(version);
+            } else {
+                var document = new XmlDocument();
+                document.LoadXml(xmlData);
+                string version = document.DocumentElement.Attributes["Version"].Value;
+                return new Version(version);
+            }
+        }
+
+
+        public static void WriteToFile(string fileName, string data) {
             try {
-                version = version ?? typeof(XMLSerializerUtil).VersionOf();
                 using (StreamWriter sw = File.CreateText(fileName)) {
-                    sw.WriteLine("Version=" + version);
                     sw.WriteLine(data);
                 }
             } catch (Exception ex) {
@@ -47,27 +63,21 @@ namespace KianCommons.Serialization {
             }
         }
 
-        public static string ReadFromFileWrapper(string fileName, out Version version) {
+        public static string ReadFromFile(string fileName) {
             try {
                 using (StreamReader sw = File.OpenText(fileName)) {
-                    string lineVersion = sw.ReadLine();
-                    int i = lineVersion.IndexOf("=");
-                    string strVersion = lineVersion.Substring(i + 1);
-                    version = new Version(strVersion);
-
                     return sw.ReadToEnd();
                 }
             } catch (Exception ex) {
                 Log.Exception(ex);
-                version = default;
                 return null;
             }
         }
 
         public static object XMLConvert(object value, Type type) {
-            if (value is Vector3 vector3 && type == typeof(XmlVector3))
-                return (XmlVector3)vector3;
-            if (value is XmlVector3 xmlVector3 && type == typeof(Vector3))
+            if (value is Vector3 vector3 && type == typeof(Vector3Serializable))
+                return (Vector3Serializable)vector3;
+            if (value is Vector3Serializable xmlVector3 && type == typeof(Vector3))
                 return (Vector3)xmlVector3;
 
             object ret;
@@ -87,34 +97,6 @@ namespace KianCommons.Serialization {
             return null;
         }
     }
-    public class XmlVector3 : IXmlSerializable {
-        [XmlIgnore] public Vector3 v;
-
-        public XmlSchema GetSchema() => null;
-        public void WriteXml(XmlWriter writer) =>
-            writer.WriteString($"x:{v.x} y:{v.y} z:{v.z}");
-
-        public void ReadXml(XmlReader reader) {
-            string data = reader.ReadString();
-            if (string.IsNullOrEmpty(data)) {
-                v = default;
-                return;
-            }
-
-            data = data.Remove("x:", "y:", "z:");
-            var datas = data.Split(" ");
-
-            v.x = float.Parse(datas[0]);
-            v.y = float.Parse(datas[1]);
-            v.z = float.Parse(datas[2]);
-        }
-
-        public XmlVector3() { } // XML constructor.
-        public XmlVector3(Vector3 v) => this.v = v;
-        public static implicit operator XmlVector3(Vector3 v) => new XmlVector3(v);
-        public static implicit operator Vector3(XmlVector3 xmlv) => xmlv.v;
-    }
-
     public class XmlPrefabInfo<T> : IXmlSerializable
         where T : PrefabInfo {
         public string name;
@@ -135,5 +117,20 @@ namespace KianCommons.Serialization {
         public XmlSchema GetSchema() => null;
         public void WriteXml(XmlWriter writer) => writer.WriteString(name);
         public void ReadXml(XmlReader reader) => name = reader.ReadString();
+    }
+
+    public class XMLVersion : IXmlSerializable {
+        Version version_;
+
+        public XmlSchema GetSchema() => null;
+        public void ReadXml(XmlReader reader) =>
+            version_ = new Version(reader.ReadString());
+        public void WriteXml(XmlWriter writer) =>
+            writer.WriteString(version_.ToString());
+
+        public static implicit operator Version(XMLVersion v) =>
+            v.version_;
+        public static implicit operator XMLVersion(Version v) =>
+            new XMLVersion { version_=v};
     }
 }

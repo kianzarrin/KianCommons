@@ -23,8 +23,7 @@ namespace KianCommons.Serialization {
             public override bool CanConvert(Type objectType) {
                 return
                     objectType == typeof(Vector3) ||
-                    objectType == typeof(Vector3Serializable) ||
-                    objectType == typeof(XmlVector3);
+                    objectType == typeof(Vector3Serializable);
             }
 
             public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer) {
@@ -42,8 +41,7 @@ namespace KianCommons.Serialization {
                     return ret;
                 if (objectType == typeof(Vector3Serializable))
                     return (Vector3Serializable)ret;
-                if (objectType == typeof(XmlVector3))
-                    return (XmlVector3)ret;
+
                 return ret;
             }
 
@@ -52,8 +50,6 @@ namespace KianCommons.Serialization {
                     writer.WriteValue($"x={vector3.x} y={vector3.y} z={vector3.z}");
                 if (value is Vector3Serializable vector3Serializable)
                     writer.WriteValue($"x={vector3Serializable.x} y={vector3Serializable.y} z={vector3Serializable.z}");
-                if(value is XmlVector3 xmlVector3)
-                    writer.WriteValue($"x={xmlVector3.v.x} y={xmlVector3.v.y} z={xmlVector3.v.z}");
             }
         }
 
