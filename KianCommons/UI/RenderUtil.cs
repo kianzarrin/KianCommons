@@ -193,12 +193,38 @@ namespace KianCommons.UI {
                 alphaBlend);
         }
 
-        public static void Render(this Bezier3 bezier, RenderManager.CameraInfo cameraInfo, Color color, float hw, bool alphaBlend = false) {
+        public static void Render(this Bezier3 bezier, RenderManager.CameraInfo cameraInfo,
+            Color color, float hw, bool alphaBlend = false, bool cutEnds = true) {
             Singleton<ToolManager>.instance.m_drawCallData.m_overlayCalls++;
+            float cut = cutEnds ? hw : 0;
             RenderManager.instance.OverlayEffect.DrawBezier(
                 cameraInfo, color,
                 bezier, hw * 2,
-                hw, hw, -1, 1024, false, alphaBlend);
+                cut, cut, -1, 1024, false, alphaBlend);
+
+        }
+
+        public static void RenderArrow(this Bezier3 bezier, RenderManager.CameraInfo cameraInfo,
+            Color color, float hw, bool alphaBlend = false) {
+            bezier.Render(cameraInfo, color, hw, alphaBlend, cutEnds: true);
+
+            Vector2 center = bezier.d.ToCS2D();
+            Vector2 dira = bezier.Tangent(1).ToCS2D().normalized * hw * 2;
+
+            var dirb = dira.Rotate90CW();
+            var dirc = dira.Rotate90CCW();
+
+            Quad2 quad = new Quad2 {
+                a = center + dira,
+                b = center + dirb,
+                c = center + dirc,
+                d = center + dirc,
+            };
+
+            Singleton<ToolManager>.instance.m_drawCallData.m_overlayCalls++;
+            RenderManager.instance.OverlayEffect.DrawQuad(
+                cameraInfo, color, quad.ToCS3D(), 
+                -1, 1024, false, alphaBlend);
 
         }
 

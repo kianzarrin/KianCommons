@@ -175,7 +175,6 @@ namespace KianCommons {
         }
 
         /// <param name="bLeft2">if other segment is to the left side of segmentID.</param>
-        /// <param name="cornerPoint">is normalized</param>
         /// <param name="cornerDir">is normalized</param>
         internal static void CalculateCorner(
             ushort segmentID, ushort nodeID, bool bLeft2,
@@ -201,6 +200,29 @@ namespace KianCommons {
                 segmentID.ToSegment().GetRightSegment(nodeID);
             CalculateCorner(otherSegmentID, nodeID, !bLeft2,
                             out cornerPoint, out cornerDir);
+        }
+
+        /// <param name="bLeft2">if other segment is to the left side of segmentID.</param>
+        internal static void CalculateCorner(
+            ushort segmentID, ushort nodeID, bool bLeft2,
+            out Vector3 cornerPos, out Vector3 cornerDirection) {
+            segmentID.ToSegment().CalculateCorner(
+                segmentID,
+                true,
+                IsStartNode(segmentID, nodeID),
+                !bLeft2, // leftSide = if this segment is to the left of the other segment = !bLeft2
+                out cornerPos,
+                out cornerDirection,
+                out _);
+        }
+
+        internal static void CalculateSegEndCenter(
+            ushort segmentID, ushort nodeID,
+            out Vector3 pos, out Vector3 dir) {
+            CalculateCorner(segmentID, nodeID, false, out Vector3 pos1, out Vector3 dir1);
+            CalculateCorner(segmentID, nodeID, true, out Vector3 pos2, out Vector3 dir2);
+            pos = (pos1 + pos2) * 0.5f;
+            dir = (dir1 + dir2) * 0.5f;
         }
 
         #endregion math
