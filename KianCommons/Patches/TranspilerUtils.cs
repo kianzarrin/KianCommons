@@ -1,10 +1,10 @@
 namespace KianCommons.Patches {
+    using HarmonyLib;
     using System;
     using System.Collections.Generic;
-    using System.Reflection.Emit;
-    using HarmonyLib;
-    using System.Reflection;
     using System.Linq;
+    using System.Reflection;
+    using System.Reflection.Emit;
 
     public static class TranspilerUtils {
         static bool VERBOSE => HelpersExtensions.VERBOSE;
@@ -33,7 +33,7 @@ namespace KianCommons.Patches {
             .GetParameters()
             .Select(p => p.ParameterType)
             .ToArray();
-        
+
         /// <summary>
         /// Gets directly declared method based on a delegate that has
         /// the same name and the same args as the target method.
@@ -50,7 +50,7 @@ namespace KianCommons.Patches {
         /// <param name="type">the class/type where the method is delcared</param>
         /// <param name="name">the name of the method</param>
         internal static MethodInfo DeclaredMethod<TDelegate>
-            (Type type, string name, bool throwOnError=false)
+            (Type type, string name, bool throwOnError = false)
             where TDelegate : Delegate {
             var args = GetParameterTypes<TDelegate>();
             var ret = AccessTools.DeclaredMethod(type, name, args);
@@ -220,15 +220,12 @@ namespace KianCommons.Patches {
             this List<CodeInstruction> codes,
             Func<CodeInstruction, bool> predicate,
             int startIndex = 0, int count = 1, bool throwOnError = true) {
-            try {
-                return codes.Search(
-                    (int i) => predicate(codes[i]),
-                    startIndex: startIndex,
-                    count: count,
-                    throwOnError: throwOnError);
-            } catch (InstructionNotFoundException) {
-                throw new InstructionNotFoundException(" Did not found instruction");
-            }
+            return codes.Search(
+                (int i) => predicate(codes[i]),
+                startIndex: startIndex,
+                count: count,
+                throwOnError: throwOnError);
+
         }
 
         /// <param name="count">negative count searches backward</param>
@@ -250,9 +247,9 @@ namespace KianCommons.Patches {
                 }
             }
             if (n != counter) {
-                if (throwOnError == true)
-                    throw new InstructionNotFoundException("Did not found instruction[s].");
-                else {
+                if (throwOnError == true) {
+                    throw new InstructionNotFoundException($"count: found={n} requested={count}");
+                } else {
                     if (VERBOSE)
                         Log("Did not found instruction[s].\n" + Environment.StackTrace);
                     return -1;
@@ -317,7 +314,7 @@ namespace KianCommons.Patches {
         /// <summary>
         /// replaces one instruction at the given index with multiple instrutions
         /// </summary>
-        public static void ReplaceInstructions(List<CodeInstruction> codes, CodeInstruction [] insertion, int index) {
+        public static void ReplaceInstructions(List<CodeInstruction> codes, CodeInstruction[] insertion, int index) {
             foreach (var code in insertion)
                 if (code == null)
                     throw new Exception("Bad Instructions:\n" + insertion.IL2STR());
@@ -334,7 +331,7 @@ namespace KianCommons.Patches {
                 Log("PEEK (RESULTING CODE):\n" + codes.GetRange(index - 4, insertion.Length + 8).IL2STR());
         }
 
-        public static void InsertInstructions(List<CodeInstruction> codes, CodeInstruction [] insertion, int index, bool moveLabels = true) {
+        public static void InsertInstructions(List<CodeInstruction> codes, CodeInstruction[] insertion, int index, bool moveLabels = true) {
             foreach (var code in insertion)
                 if (code == null)
                     throw new Exception("Bad Instructions:\n" + insertion.IL2STR());
@@ -353,7 +350,7 @@ namespace KianCommons.Patches {
 
     internal static class TranspilerExtensions {
         public static void InsertInstructions(
-            this List<CodeInstruction> codes, int index, CodeInstruction [] insertion, bool moveLabels = true) {
+            this List<CodeInstruction> codes, int index, CodeInstruction[] insertion, bool moveLabels = true) {
             TranspilerUtils.InsertInstructions(codes, insertion, index, moveLabels);
         }
 
@@ -372,7 +369,7 @@ namespace KianCommons.Patches {
         /// replaces one instruction at the given index with multiple instrutions
         /// </summary>
         public static void ReplaceInstruction(
-            this List<CodeInstruction> codes, int index, CodeInstruction [] insertion) {
+            this List<CodeInstruction> codes, int index, CodeInstruction[] insertion) {
             TranspilerUtils.ReplaceInstructions(codes, insertion, index);
         }
 
@@ -386,7 +383,7 @@ namespace KianCommons.Patches {
             TranspilerUtils.ReplaceInstructions(codes, new[] { insertion }, index);
         }
 
-        public static bool IsLdLoc(this CodeInstruction code,  out int loc) {
+        public static bool IsLdLoc(this CodeInstruction code, out int loc) {
             if (code.opcode == OpCodes.Ldloc_0) {
                 loc = 0;
             } else if (code.opcode == OpCodes.Ldloc_1) {
@@ -456,7 +453,7 @@ namespace KianCommons.Patches {
             }
             loc = -1;
             return false;
-            
+
         }
         public static bool IsStLoc(this CodeInstruction code, Type type) {
             return code.IsStloc()
