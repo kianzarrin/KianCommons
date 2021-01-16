@@ -121,16 +121,11 @@ namespace KianCommons.Serialization {
 
     public class XMLVersion : IXmlSerializable {
         Version version_;
+        public static implicit operator Version(XMLVersion v) => v.version_;
+        public static implicit operator XMLVersion(Version v) => new XMLVersion { version_ = v };
 
         public XmlSchema GetSchema() => null;
-        public void ReadXml(XmlReader reader) =>
-            version_ = new Version(reader.ReadString());
-        public void WriteXml(XmlWriter writer) =>
-            writer.WriteString(version_.ToString());
-
-        public static implicit operator Version(XMLVersion v) =>
-            v.version_;
-        public static implicit operator XMLVersion(Version v) =>
-            new XMLVersion { version_=v};
+        public void ReadXml(XmlReader reader) => version_ = new Version(reader.ReadString());
+        public void WriteXml(XmlWriter writer) => writer.WriteString(version_.ToString());
     }
 }
