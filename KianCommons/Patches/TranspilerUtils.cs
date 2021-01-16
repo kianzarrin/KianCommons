@@ -102,7 +102,7 @@ namespace KianCommons.Patches {
         /// <returns>
         /// returns the argument location to be used in LdArg instruction.
         /// </returns>
-        public static byte GetArgLoc(MethodBase method, string argName) {
+        public static byte GetArgLoc(this MethodBase method, string argName) {
             byte idx = (byte)GetParameterLoc(method, argName);
             if (!method.IsStatic)
                 idx++; // first argument is object instance.
@@ -395,12 +395,7 @@ namespace KianCommons.Patches {
                 loc = 2;
             } else if (code.opcode == OpCodes.Ldloc_3) {
                 loc = 3;
-            } else if (code.opcode == OpCodes.Ldloc_S) {
-                if (code.operand is LocalBuilder lb)
-                    loc = lb.LocalIndex;
-                else
-                    loc = (int)code.operand;
-            } else if (code.opcode == OpCodes.Ldloc) {
+            } else if (code.opcode == OpCodes.Ldloc_S || code.opcode == OpCodes.Ldloc) {
                 if (code.operand is LocalBuilder lb)
                     loc = lb.LocalIndex;
                 else
@@ -427,13 +422,7 @@ namespace KianCommons.Patches {
                 loc = 2;
             } else if (code.opcode == OpCodes.Stloc_3) {
                 loc = 3;
-            } else if (code.opcode == OpCodes.Stloc_S) {
-                if (code.operand is LocalBuilder lb)
-                    loc = lb.LocalIndex;
-                else
-                    loc = (int)code.operand;
-
-            } else if (code.opcode == OpCodes.Stloc) {
+            } else if (code.opcode == OpCodes.Stloc_S || code.opcode == OpCodes.Stloc) {
                 if (code.operand is LocalBuilder lb)
                     loc = lb.LocalIndex;
                 else
