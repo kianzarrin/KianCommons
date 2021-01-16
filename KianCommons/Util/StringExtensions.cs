@@ -6,6 +6,11 @@ namespace KianCommons {
     using System.Reflection;
 
     internal static class StringExtensions {
+        public static string RemoveExtension(this string path) {
+            int i = path.LastIndexOf(".");
+            return path.Substring(0, i); //drop dot and everything after.
+        }
+
         /// <summary>
         /// returns a new string without r
         /// </summary>

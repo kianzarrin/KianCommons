@@ -616,7 +616,7 @@ namespace KianCommons {
 
         [NonSerialized] private NetInfo.Lane laneInfo_;
         public NetInfo.Lane LaneInfo {
-            get => laneInfo_ = laneInfo_ ?? Segment.Info.m_lanes[LaneIndex];
+            get => laneInfo_ ??= Segment.Info.m_lanes[LaneIndex];
             set => laneInfo_ = value;
         }
 

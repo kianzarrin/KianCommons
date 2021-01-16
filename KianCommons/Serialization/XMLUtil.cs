@@ -33,7 +33,7 @@ namespace KianCommons.Serialization {
                 }
             } catch (Exception ex) {
                 Log.Debug("data=" + data);
-                Log.Exception(ex);
+                Log.Exception(ex, showInPanel: false);
                 return default;
             }
         }
