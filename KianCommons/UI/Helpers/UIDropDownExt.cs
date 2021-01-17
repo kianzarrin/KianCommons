@@ -2,9 +2,32 @@ using System;
 using ColossalFramework.UI;
 using UnityEngine;
 using KianCommons.UI;
+using static KianCommons.HelpersExtensions;
+using static KianCommons.EnumBitMaskExtensions;
+using static KianCommons.Assertion;
+using KianCommons;
+using System.Reflection;
+using HarmonyLib;
 
 namespace KianCommons.UI.Helpers {
-    public class UIDropDownExt : UIDropDown{
+    internal static class UIDropDownExtensions {
+        static FieldInfo fPopop = AccessTools.DeclaredField(typeof(UIDropDown), "m_Popup")
+                ?? throw new Exception("m_Popup not found");
+
+        internal static UIListBox GetPopup(this UIDropDown dd) => fPopop.GetValue(dd) as UIListBox;
+
+        static FieldInfo fHoverIndex = AccessTools.DeclaredField(typeof(UIListBox), "m_HoverIndex")
+            ?? throw new Exception("m_HoverIndex not found");
+
+        internal static int GetHoverIndex(this UIDropDown dd) {
+            var popup = dd.GetPopup();
+            if (popup == null || !popup.isVisible)
+                return -1;
+            return (int)fHoverIndex.GetValue(popup);
+        }
+    }
+
+    internal class UIDropDownExt : UIDropDown{
         public override void Awake() {
             base.Awake();
             atlas = TextureUtil.GetAtlas("Ingame");

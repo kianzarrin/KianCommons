@@ -8,10 +8,14 @@ namespace KianCommons {
     using static KianCommons.ReflectionHelpers;
 
     internal static class EnumBitMaskExtensions {
-        internal static int String2Enum<T>(string str) where T : Enum {
-            return Array.IndexOf(Enum.GetNames(typeof(T)), str);
-        }
-
+        [Obsolete("this is buggy as it assumes enum is 0,1,2,3,4 ...\n" +
+            "use String2EnumValue instead")]
+        internal static int String2Enum<T>(string str) where T : Enum =>
+            Array.IndexOf(Enum.GetNames(typeof(T)), str);
+        
+        internal static object String2EnumValue<T>(string str) where T : Enum =>
+            Enum.Parse(typeof(T), str);
+            
         internal static T Max<T>()
             where T : Enum =>
             Enum.GetValues(typeof(T)).Cast<T>().Max();
@@ -103,6 +107,11 @@ namespace KianCommons {
                 throw new Exception($"{enumType.GetType().Name}:{value} not found");
             return enumType.GetMember(name, ALL).FirstOrDefault() ??
                 throw new Exception($"{enumType.GetType().Name}.{name} not found");
+        }
+
+        public static T[] GetEnumMemberAttributes<T>(Type enumType, object value)
+            where T : Attribute {
+            return enumType.GetEnumMember(value).GetAttributes<T>();
         }
     }
 }
