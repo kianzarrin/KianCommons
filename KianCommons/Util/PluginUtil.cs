@@ -7,6 +7,9 @@ namespace KianCommons {
     using static ColossalFramework.Plugins.PluginManager;
     using ColossalFramework.PlatformServices;
     using UnityEngine.Assertions;
+    using System.Linq;
+    using System.Collections;
+    using System.Collections.Generic;
 
     public static class PluginExtensions {
         public static IUserMod GetUserModInstance(this PluginInfo plugin) => plugin.userModInstance as IUserMod;
@@ -16,15 +19,37 @@ namespace KianCommons {
         public static ulong GetWorkshopID(this PluginInfo plugin) => plugin.publishedFileID.AsUInt64;
 
         /// <summary>
-        /// shortcut for pluggin?.isEnabled ?? false
+        /// shortcut for plugin?.isEnabled ?? false
         /// </summary>
-        public static bool IsActive(this PluginInfo pluggin) => pluggin?.isEnabled ?? false;
+        public static bool IsActive(this PluginInfo plugin) => plugin?.isEnabled ?? false;
 
-        public static Assembly GetMainAssembly(this PluginInfo pluggin) => pluggin?.userModInstance?.GetType()?.Assembly;
+        public static Assembly GetMainAssembly(this PluginInfo plugin) => plugin?.userModInstance?.GetType()?.Assembly;
+
+        public static bool IsLocal(this PluginInfo plugin) => plugin.GetWorkshopID() == 0;
     }
 
     public static class PluginUtil {
         static PluginManager man => PluginManager.instance;
+
+        public static PluginInfo GetCurrentAssemblyPlugin() => GetPlugin(Assembly.GetExecutingAssembly());
+
+        public static void LogPlugins() {
+            string PluginToString(PluginInfo p) {
+                string enabled = p.isEnabled ? "*" : " ";
+                string id = p.IsLocal() ? "(local)" : p.GetWorkshopID().ToString();
+                return $"\t{enabled} {id} {p.name}";
+            }
+
+            var plugins = man.GetPluginsInfo().ToList();
+            plugins.Sort((a, b) => a.isEnabled.CompareTo(b.isEnabled));
+            var m = plugins.Select(p => PluginToString(p)).JoinLines();
+            Log.Info("Installed mods are:\n" + m, true);
+        }
+
+
+        public static void ReportIncomaptibleMods(IEnumerable<PluginInfo> plugins) {
+            // TODO complete:
+        }
 
         public static PluginInfo GetCSUR() => GetPlugin("CSUR ToolBox", 1959342332ul);
         public static PluginInfo GetAdaptiveRoads() => GetPlugin("AdaptiveRoads");
@@ -149,7 +174,7 @@ namespace KianCommons {
                 }
 
                 if (match) {
-                    Log.Info("Found pluggin:" + current.GetModName());
+                    Log.Info("Found plugin:" + current.GetModName());
                     return current;
                 }
             }

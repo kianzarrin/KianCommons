@@ -28,7 +28,15 @@ namespace KianCommons {
             SceneManager.GetActiveScene().name != "IntroScreen" &&
             SceneManager.GetActiveScene().name != "Startup";
 
+
+        /// <summary>
+        /// checks if game is loaded in and user is playing a city. (returns false early in the loading process)
+        /// </summary>
         internal static bool InGame => CheckGameMode(AppMode.Game);
+
+        /// <summary>
+        /// checks if game is loaded in asset editor mod. (returns false early in the loading process)
+        /// </summary>
         internal static bool InAssetEditor => CheckGameMode(AppMode.AssetEditor);
 
         [Obsolete]
