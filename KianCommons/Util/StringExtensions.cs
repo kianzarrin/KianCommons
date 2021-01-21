@@ -55,12 +55,6 @@ namespace KianCommons {
             return stringToCenter.PadLeft(leftPadding).PadRight(totalLength);
         }
 
-
-        /// <summary>
-        /// returns false if string is null or empty. otherwise returns true.
-        /// </summary>
-        internal static bool ToBool(this string str) => !string.IsNullOrEmpty(str);
-
         [Obsolete("use ToSTR")]
         internal static string STR(this object obj) => obj == null ? "<null>" : obj.ToString();
         [Obsolete("use ToSTR")]
