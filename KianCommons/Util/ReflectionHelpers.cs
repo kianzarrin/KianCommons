@@ -144,7 +144,7 @@ namespace KianCommons {
         /// <summary>
         /// get value of the instant field target.Field.
         /// </summary>
-        internal static object GetFieldValue(string fieldName, object target) {
+        internal static object GetFieldValue(object target, string fieldName) {
             var type = target.GetType();
             var field = type.GetField(fieldName, ALL)
                 ?? throw new Exception($"{type}.{fieldName} not found");
@@ -155,32 +155,37 @@ namespace KianCommons {
         /// Get value of a static field from T.fieldName
         /// </summary>
         internal static object GetFieldValue<T>(string fieldName)
-            => GetFieldValue(fieldName, typeof(T));
+            => GetFieldValue(typeof(T), fieldName);
 
         /// <summary>
         /// Get value of a static field from type.fieldName
         /// </summary>
-        internal static object GetFieldValue(string fieldName, Type type) {
+        internal static object GetFieldValue(Type type, string fieldName) {
             var field = type.GetField(fieldName, ALL)
                 ?? throw new Exception($"{type}.{fieldName} not found");
             return field.GetValue(null);
         }
 
-
         /// <summary>
         /// sets static T.fieldName to value.
         /// </summary>
         internal static void SetFieldValue<T>(string fieldName, object value) =>
-            SetFieldValue(fieldName, value, typeof(T));
+            SetFieldValue(typeof(T), fieldName, value);
 
         /// <summary>
         /// sets static T.fieldName to value.
         /// </summary>
-        internal static void SetFieldValue(string fieldName, object value, Type type) {
+        internal static void SetFieldValue(Type type, string fieldName, object value) {
             var field = type.GetField(fieldName, ALL)
                 ?? throw new Exception($"{type}.{fieldName} not found");
             field.SetValue(null, value);
         }
+
+        /// <summary>
+        /// sets target.fieldName to value.
+        /// </summary>
+        internal static void SetFieldValue(object target, string fieldName, object value) =>
+            SetFieldValue(target.GetType(), fieldName, value);
 
         /// <summary>
         /// gets method of any access type.

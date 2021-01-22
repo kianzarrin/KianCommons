@@ -183,7 +183,7 @@ namespace KianCommons {
         }
 
         public static bool Match(string name1, string name2, SearchOptionT searchOptions = DefaultsearchOptions) {
-            if (!StringExtensions.ToBool(name1)) return false;
+            if (!string.IsNullOrEmpty(name1)) return false;
             Assertion.Assert((searchOptions & SearchOptionT.AllModes) != 0);
             Assertion.Assert((searchOptions & SearchOptionT.AllTargets) != 0);
 
