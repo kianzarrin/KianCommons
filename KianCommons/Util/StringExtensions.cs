@@ -55,12 +55,6 @@ namespace KianCommons {
             return stringToCenter.PadLeft(leftPadding).PadRight(totalLength);
         }
 
-
-        /// <summary>
-        /// returns false if string is null or empty. otherwise returns true.
-        /// </summary>
-        internal static bool ToBool(this string str) => !string.IsNullOrEmpty(str);
-
         [Obsolete("use ToSTR")]
         internal static string STR(this object obj) => obj == null ? "<null>" : obj.ToString();
         [Obsolete("use ToSTR")]
@@ -71,12 +65,15 @@ namespace KianCommons {
         /// <summary>
         /// Like To string but:
         ///  - returns "null" if object is null
+        ///  - returns string.ToSTR() if object is string.
         ///  - recursively returns all items as string if object is IEnumerable
         ///  - returns id and type if object is InstanceID
         ///  - returns id and type of both key and value if obj is InstanceID->InstanceID pair
         /// </summary>
         internal static string ToSTR(this object obj) {
             if (obj is null) return "<null>";
+            if (obj is string str)
+                return str.ToSTR();
             if (obj is InstanceID instanceID)
                 return instanceID.ToSTR();
             if (obj is KeyValuePair<InstanceID, InstanceID> map)
@@ -84,6 +81,17 @@ namespace KianCommons {
             if (obj is IEnumerable list)
                 return list.ToSTR();
             return obj.ToString();
+        }
+
+        /// <summary>
+        ///  - returns "null" if string is null
+        ///  - returns "empty" if string is empty
+        ///  - returns string otherwise.
+        /// </summary>
+        internal static string ToSTR(this string str) {
+            if (str == "") return "<empty>";
+            if (str == null) return "<null>";
+            return str;
         }
 
         /// <summary>

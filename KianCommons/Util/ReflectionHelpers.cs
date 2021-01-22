@@ -7,7 +7,7 @@ namespace KianCommons {
     using System.Diagnostics;
     using ColossalFramework;
     using ColossalFramework.UI;
-    using KianCommons.Serialization;
+    using System.Runtime.CompilerServices;
 
     internal static class ReflectionHelpers {
         internal static Version Version(this Assembly asm) =>
@@ -76,11 +76,7 @@ namespace KianCommons {
                     try {
                         value = originFieldInfo.GetValue(origin);
                         targetFieldInfo.SetValue(target, value);
-                    } catch {
-                        value = XMLSerializerUtil.XMLConvert(value, targetFieldInfo.FieldType);
-                        if (value != null)
-                            targetFieldInfo.SetValue(target, value);
-                    }
+                    } catch { }
                 }
             }
         }
@@ -156,18 +152,6 @@ namespace KianCommons {
         }
 
         /// <summary>
-        /// sets target.fieldName to value.
-        /// this works even if target is of struct type
-        /// Post condtion: target has the new value
-        /// </summary>
-        internal static void SetFieldValue(string fieldName, object target, object value) {
-            var type = target.GetType();
-            var field = type.GetField(fieldName, ALL)
-                ?? throw new Exception($"{type}.{fieldName} not found");
-            field.SetValue(target, value);
-        }
-
-        /// <summary>
         /// Get value of a static field from T.fieldName
         /// </summary>
         internal static object GetFieldValue<T>(string fieldName)
@@ -182,6 +166,22 @@ namespace KianCommons {
             return field.GetValue(null);
         }
 
+
+        /// <summary>
+        /// sets static T.fieldName to value.
+        /// </summary>
+        internal static void SetFieldValue<T>(string fieldName, object value) =>
+            SetFieldValue(fieldName, value, typeof(T));
+
+        /// <summary>
+        /// sets static T.fieldName to value.
+        /// </summary>
+        internal static void SetFieldValue(string fieldName, object value, Type type) {
+            var field = type.GetField(fieldName, ALL)
+                ?? throw new Exception($"{type}.{fieldName} not found");
+            field.SetValue(null, value);
+        }
+
         /// <summary>
         /// gets method of any access type.
         /// </summary>
@@ -191,6 +191,17 @@ namespace KianCommons {
             if (throwOnError && ret == null)
                 throw new Exception($"Method not found: {type.Name}.{method}");
             return ret;
+        }
+
+
+        /// <summary>
+        /// Invokes static method of any access type.
+        /// like: type.method()
+        /// </summary>
+        /// <param name="method">static method without parameters</param>
+        /// <returns>return value of the function if any. null otherwise</returns>
+        internal static object InvokeMethod<T>(string method) {
+            return GetMethod(typeof(T), method, true)?.Invoke(null, null);
         }
 
         /// <summary>
@@ -293,5 +304,26 @@ namespace KianCommons {
                 }
             }
         }
+
+        internal static string ThisMethod {
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            get => CurrentMethod();
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        internal static string CurrentMethod(int i=1) {
+            var method = new StackFrame(i).GetMethod();
+            return $"{method.DeclaringType.Name}.{method.Name}()";
+        }
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        internal static string CurrentMethodFull(int i=1) {
+            var method = new StackFrame(i).GetMethod();
+            var parameters = method
+                .GetParameters()
+                .Select(p => $"{p.ParameterType.Name} {p.Name}")
+                .Join(" ,");
+            return $"{method.FullName()}({parameters})";
+        }
+        internal static void LogCalled() => Log.Info(CurrentMethod(2)+ " called.", false);
     }
 }
