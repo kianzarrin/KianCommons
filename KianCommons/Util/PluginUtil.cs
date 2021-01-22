@@ -41,7 +41,7 @@ namespace KianCommons {
             }
 
             var plugins = man.GetPluginsInfo().ToList();
-            plugins.Sort((a, b) => a.isEnabled.CompareTo(b.isEnabled));
+            plugins.Sort((a, b) => b.isEnabled.CompareTo(a.isEnabled)); // enabled first
             var m = plugins.Select(p => PluginToString(p)).JoinLines();
             Log.Info("Installed mods are:\n" + m, true);
         }
