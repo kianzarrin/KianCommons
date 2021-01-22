@@ -305,6 +305,11 @@ namespace KianCommons {
             }
         }
 
+        internal static string ThisMethod {
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            get => CurrentMethod();
+        }
+
         [MethodImpl(MethodImplOptions.NoInlining)]
         internal static string CurrentMethod(int i=1) {
             var method = new StackFrame(i).GetMethod();

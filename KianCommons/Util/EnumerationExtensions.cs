@@ -41,8 +41,8 @@ namespace KianCommons {
             array = ret;
         }
 
-        internal static bool ContainsRef<T>(this IEnumerable<T> list, T element) where T: class {
-            foreach(T item in list) {
+        internal static bool ContainsRef<T>(this IEnumerable<T> list, T element) where T : class {
+            foreach (T item in list) {
                 if (object.ReferenceEquals(item, element))
                     return true;
             }
@@ -76,6 +76,39 @@ namespace KianCommons {
             var temp = list[i1];
             list[i1] = list[i2];
             list[i2] = temp;
+        }
+
+        internal static TItem MinBy<TItem, TBy>(this IEnumerable<TItem> items, Func<TItem, TBy> selector)
+            where TBy : IComparable {
+            if (items == null) return default;
+            TItem ret = default;
+            TBy val = default;
+            bool first = true;
+            foreach (TItem item in items) {
+                TBy val2 = selector(item);
+                if (first || val2.CompareTo(val) < 0) {
+                    first = false;
+                    ret = item;
+                    val = val2;
+                }
+            }
+            return ret;
+        }
+        internal static TItem MaxBy<TItem, TBy>(this IEnumerable<TItem> items, Func<TItem, TBy> selector)
+            where TBy : IComparable {
+            if (items == null) return default;
+            TItem ret = default;
+            TBy val = default;
+            bool first = true;
+            foreach (TItem item in items) {
+                TBy val2 = selector(item);
+                if (first || val2.CompareTo(val) > 0) {
+                    first = false;
+                    ret = item;
+                    val = val2;
+                }
+            }
+            return ret;
         }
     }
 }
