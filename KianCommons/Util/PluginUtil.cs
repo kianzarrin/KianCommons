@@ -38,6 +38,7 @@ namespace KianCommons {
             string PluginToString(PluginInfo p) {
                 string enabled = p.isEnabled ? "*" : " ";
                 string id = p.IsLocal() ? "(local)" : p.GetWorkshopID().ToString();
+                id.PadRight(12);
                 return $"\t{enabled} {id} {p.GetModName()}";
             }
 
