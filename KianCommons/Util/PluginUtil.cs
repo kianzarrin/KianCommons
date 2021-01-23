@@ -25,7 +25,8 @@ namespace KianCommons {
 
         public static Assembly GetMainAssembly(this PluginInfo plugin) => plugin?.userModInstance?.GetType()?.Assembly;
 
-        public static bool IsLocal(this PluginInfo plugin) => plugin.GetWorkshopID() == 0;
+        public static bool IsLocal(this PluginInfo plugin) =>
+            plugin.GetWorkshopID() == 0 || plugin.publishedFileID == PublishedFileId.invalid;
     }
 
     public static class PluginUtil {
@@ -37,7 +38,7 @@ namespace KianCommons {
             string PluginToString(PluginInfo p) {
                 string enabled = p.isEnabled ? "*" : " ";
                 string id = p.IsLocal() ? "(local)" : p.GetWorkshopID().ToString();
-                return $"\t{enabled} {id} {p.name}";
+                return $"\t{enabled} {id} {p.GetModName()}";
             }
 
             var plugins = man.GetPluginsInfo().ToList();
