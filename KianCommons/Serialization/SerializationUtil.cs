@@ -29,7 +29,6 @@ namespace KianCommons.Serialization {
             } finally {
                 DeserializationVersion = null;
             }
-
         }
 
         public static byte[] Serialize(object obj) {
