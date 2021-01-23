@@ -233,7 +233,7 @@ namespace KianCommons {
 
                 m += message;
                 if (level == LogLevel.Error || level == LogLevel.Exception) {
-                    m += nl + Environment.StackTrace;
+                    m += nl + GetStackTrace();
                     m = nl + m + nl; // create line space to draw attention.
                 }
 
@@ -264,6 +264,17 @@ namespace KianCommons {
             } catch (Exception ex) {
                 Log.LogUnityException(ex);
             }
+        }
+
+        static string GetStackTrace() {
+            var st = new StackTrace();
+            int i;
+            for(i=0;i<st.FrameCount;++i) {
+                var util = st.GetFrame(i).GetMethod().DeclaringType;
+                bool utilFrame = util == typeof(Assertion) || util == typeof(Log);
+                if (!utilFrame) break;
+            }
+            return new StackTrace(i - 1, true).ToString(); // keep the last assertion/log frame.
         }
 
         internal static void LogToFileSimple(string file, string message) {
