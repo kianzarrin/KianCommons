@@ -351,5 +351,6 @@ namespace KianCommons {
             return $"{method.FullName()}({parameters})";
         }
         internal static void LogCalled() => Log.Info(CurrentMethod(2) + " called.", false);
+        internal static void LogSucceeded() => Log.Info(CurrentMethod(2) + " succeeded!", false);
     }
 }

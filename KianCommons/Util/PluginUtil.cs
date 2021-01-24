@@ -180,7 +180,7 @@ namespace KianCommons {
                     return current;
                 }
             }
-            Log.Info("failed to find plugin:" + searchName);
+            Log.Info("plugin not found:" + searchName);
             return null;
         }
 
