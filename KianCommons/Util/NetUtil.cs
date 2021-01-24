@@ -642,8 +642,8 @@ namespace KianCommons {
             set => LaneID.ToLane().m_flags = (ushort)value;
         }
 
-        public readonly bool LeftSide => LaneInfo.m_position < 0 != Segment.m_flags.IsFlagSet(NetSegment.Flags.Invert);
-        public readonly bool RightSide => !LeftSide;
+        public bool LeftSide => LaneInfo.m_position < 0 != Segment.m_flags.IsFlagSet(NetSegment.Flags.Invert);
+        public bool RightSide => !LeftSide;
 
         public readonly Bezier3 Bezier => Lane.m_bezier;
         public override string ToString() {
