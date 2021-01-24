@@ -173,19 +173,32 @@ namespace KianCommons {
             SetFieldValue(typeof(T), fieldName, value);
 
         /// <summary>
-        /// sets static T.fieldName to value.
+        /// sets static targetType.fieldName to value.
         /// </summary>
-        internal static void SetFieldValue(Type type, string fieldName, object value) {
-            var field = type.GetField(fieldName, ALL)
-                ?? throw new Exception($"{type}.{fieldName} not found");
+        internal static void SetFieldValue(Type targetType, string fieldName, object value) {
+            var field = GetField(targetType, fieldName);
             field.SetValue(null, value);
         }
 
         /// <summary>
         /// sets target.fieldName to value.
         /// </summary>
-        internal static void SetFieldValue(object target, string fieldName, object value) =>
-            SetFieldValue(target.GetType(), fieldName, value);
+        internal static void SetFieldValue(object target, string fieldName, object value) {
+            var field = GetField(target.GetType(), fieldName);
+            field.SetValue(target, value);
+        }
+
+        internal static FieldInfo GetField(object target, string fieldName, bool throwOnError = true) =>
+            GetField(target.GetType(), fieldName, throwOnError);
+        internal static FieldInfo GetField<T>(string fieldName, bool throwOnError = true) =>
+            GetField(typeof(T), fieldName, throwOnError);
+        internal static FieldInfo GetField(Type declaringType, string fieldName, bool throwOnError = true) {
+            var ret = declaringType.GetField(fieldName, ALL);
+            if(ret == null && throwOnError)
+                throw new Exception($"{declaringType}.{fieldName} not found");
+            return ret;
+        }
+
 
         /// <summary>
         /// gets method of any access type.
