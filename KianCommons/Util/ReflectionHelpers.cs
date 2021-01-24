@@ -1,13 +1,14 @@
 namespace KianCommons {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Reflection;
-    using static KianCommons.Assertion;
-    using System.Diagnostics;
     using ColossalFramework;
     using ColossalFramework.UI;
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Linq;
+    using System.Linq.Expressions;
+    using System.Reflection;
     using System.Runtime.CompilerServices;
+    using static KianCommons.Assertion;
 
     internal static class ReflectionHelpers {
         internal static Version Version(this Assembly asm) =>
@@ -36,7 +37,7 @@ namespace KianCommons {
             var t2 = origin.GetType();
             Assert(t1 == t2 || t1.IsSubclassOf(t2));
             FieldInfo[] fields = origin.GetType().GetFields(ALL);
-            foreach (FieldInfo fieldInfo in fields) {
+            foreach(FieldInfo fieldInfo in fields) {
                 //Log.Debug($"Copying field:<{fieldInfo.Name}> ...>");
                 object value = fieldInfo.GetValue(origin);
                 string strValue = value?.ToString() ?? "null";
@@ -50,7 +51,7 @@ namespace KianCommons {
             Assert(target is T, "target is T");
             Assert(origin is T, "origin is T");
             FieldInfo[] fields = typeof(T).GetFields(ALL);
-            foreach (FieldInfo fieldInfo in fields) {
+            foreach(FieldInfo fieldInfo in fields) {
                 //Log.Debug($"Copying field:<{fieldInfo.Name}> ...>");
                 object value = fieldInfo.GetValue(origin);
                 //string strValue = value?.ToString() ?? "null";
@@ -67,11 +68,11 @@ namespace KianCommons {
         /// </summary>
         internal static void CopyPropertiesForced<T>(object target, object origin) {
             FieldInfo[] fields = typeof(T).GetFields();
-            foreach (FieldInfo fieldInfo in fields) {
+            foreach(FieldInfo fieldInfo in fields) {
                 string fieldName = fieldInfo.Name;
                 var originFieldInfo = origin.GetType().GetField(fieldName, ALL);
                 var targetFieldInfo = target.GetType().GetField(fieldName, ALL);
-                if (originFieldInfo != null && targetFieldInfo != null) {
+                if(originFieldInfo != null && targetFieldInfo != null) {
                     object value = null;
                     try {
                         value = originFieldInfo.GetValue(origin);
@@ -83,10 +84,10 @@ namespace KianCommons {
 
         internal static void SetAllDeclaredFieldsToNull(object instance) {
             var type = instance.GetType();
-            var fields = type.GetAllFields(declaredOnly:true);
+            var fields = type.GetAllFields(declaredOnly: true);
             foreach(var f in fields) {
-                if (f.FieldType.IsClass) {
-                    if (HelpersExtensions.VERBOSE)
+                if(f.FieldType.IsClass) {
+                    if(HelpersExtensions.VERBOSE)
                         Log.Debug($"SetAllDeclaredFieldsToNull: setting {instance}.{f} = null");
                     f.SetValue(instance, null);
                 }
@@ -102,12 +103,12 @@ namespace KianCommons {
         internal static string GetPrettyFunctionName(MethodInfo m) {
             string s = m.Name;
             string[] ss = s.Split(new[] { "g__", "|" }, System.StringSplitOptions.RemoveEmptyEntries);
-            if (ss.Length == 3)
+            if(ss.Length == 3)
                 return ss[1];
             return s;
         }
 
-        internal static T GetAttribute<T>(this MemberInfo member, bool inherit = true) where T:Attribute {
+        internal static T GetAttribute<T>(this MemberInfo member, bool inherit = true) where T : Attribute {
             return member.GetAttributes<T>().FirstOrDefault();
         }
 
@@ -203,10 +204,10 @@ namespace KianCommons {
         /// <summary>
         /// gets method of any access type.
         /// </summary>
-        internal static MethodInfo GetMethod(Type type, string method, bool throwOnError=true) {
-            if (type == null) throw new ArgumentNullException("type");
+        internal static MethodInfo GetMethod(Type type, string method, bool throwOnError = true) {
+            if(type == null) throw new ArgumentNullException("type");
             var ret = type.GetMethod(method, ALL);
-            if (throwOnError && ret == null)
+            if(throwOnError && ret == null)
                 throw new Exception($"Method not found: {type.Name}.{method}");
             return ret;
         }
@@ -254,6 +255,13 @@ namespace KianCommons {
             return GetMethod(type, method, true)?.Invoke(instance, null);
         }
 
+        internal static EventInfo GetEvent(Type type, string eventName, bool throwOnError = true) {
+            var e = type.GetEvent(eventName, ALL);
+            if(e == null && throwOnError)
+                throw new Exception($"could not find {eventName} in {type}");
+            return e;
+        }
+
 
         //instance
         internal static T EventToDelegate<T>(object instance, string eventName)
@@ -275,7 +283,7 @@ namespace KianCommons {
         //instance
         internal static void InvokeEvent(object instance, string eventName, bool verbose = false) {
             var d = GetEventDelegates(instance, eventName);
-            if (verbose) Log.Info($"Executing event `{instance.GetType().FullName}.{eventName}` ...");
+            if(verbose) Log.Info($"Executing event `{instance.GetType().FullName}.{eventName}` ...");
             ExecuteDelegates(d, verbose);
         }
 
@@ -284,7 +292,7 @@ namespace KianCommons {
         //static
         internal static void InvokeEvent(Type type, string eventName, bool verbose = false) {
             var d = GetEventDelegates(type, eventName);
-            if (verbose) Log.Info($"Executing event `{type.FullName}.{eventName}` ...");
+            if(verbose) Log.Info($"Executing event `{type.FullName}.{eventName}` ...");
             ExecuteDelegates(d, verbose);
         }
 
@@ -307,16 +315,16 @@ namespace KianCommons {
         }
 
         internal static void ExecuteDelegates(Delegate[] delegates, bool verbose = false) {
-            if (delegates is null) throw new ArgumentNullException("delegates");
+            if(delegates is null) throw new ArgumentNullException("delegates");
             var timer = new Stopwatch();
-            foreach (Delegate dlg in delegates) {
-                if (dlg == null) continue;
-                if (verbose) {
+            foreach(Delegate dlg in delegates) {
+                if(dlg == null) continue;
+                if(verbose) {
                     Log.Info($"Executing {dlg.Target}:{dlg.Method.Name} ...");
                     timer.Reset(); timer.Start();
                 }
                 dlg.Method.Invoke(dlg.Target, null);
-                if (verbose) {
+                if(verbose) {
                     var ms = timer.ElapsedMilliseconds;
                     Log.Info($"Done executing {dlg.Target}:{dlg.Method.Name}! duration={ms:#,0}ms");
                 }
@@ -329,12 +337,12 @@ namespace KianCommons {
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        internal static string CurrentMethod(int i=1) {
+        internal static string CurrentMethod(int i = 1) {
             var method = new StackFrame(i).GetMethod();
             return $"{method.DeclaringType.Name}.{method.Name}()";
         }
         [MethodImpl(MethodImplOptions.NoInlining)]
-        internal static string CurrentMethodFull(int i=1) {
+        internal static string CurrentMethodFull(int i = 1) {
             var method = new StackFrame(i).GetMethod();
             var parameters = method
                 .GetParameters()
@@ -342,6 +350,6 @@ namespace KianCommons {
                 .Join(" ,");
             return $"{method.FullName()}({parameters})";
         }
-        internal static void LogCalled() => Log.Info(CurrentMethod(2)+ " called.", false);
+        internal static void LogCalled() => Log.Info(CurrentMethod(2) + " called.", false);
     }
 }
