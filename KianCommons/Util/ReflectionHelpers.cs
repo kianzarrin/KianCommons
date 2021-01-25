@@ -333,7 +333,7 @@ namespace KianCommons {
 
         internal static string ThisMethod {
             [MethodImpl(MethodImplOptions.NoInlining)]
-            get => CurrentMethod();
+            get => CurrentMethod(2);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
