@@ -239,7 +239,7 @@ namespace KianCommons {
         public static bool LHT => TrafficDrivesOnLeft;
         public static bool RHT => !LHT;
         public static bool TrafficDrivesOnLeft =>
-            Singleton<SimulationManager>.instance.m_metaData.m_invertTraffic
+            Singleton<SimulationManager>.instance?.m_metaData?.m_invertTraffic
                 == SimulationMetaData.MetaBool.True;
 
         public static bool CanConnectPathToSegment(ushort segmentID) =>
