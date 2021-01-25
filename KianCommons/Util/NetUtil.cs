@@ -498,7 +498,7 @@ namespace KianCommons {
         public static IEnumerable<LaneData> IterateSegmentLanes(ushort segmentId) {
             int idx = 0;
             if (segmentId.ToSegment().Info == null) {
-                Log.Error("null info: potentially caused by missing assets");
+                Log.Error("null info: potentially caused by missing assets. segmentId=" + segmentId);
                 yield break;
             }
             int n = segmentId.ToSegment().Info.m_lanes.Length;
