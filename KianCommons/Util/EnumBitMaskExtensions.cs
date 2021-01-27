@@ -113,5 +113,9 @@ namespace KianCommons {
             where T : Attribute {
             return enumType.GetEnumMember(value).GetAttributes<T>();
         }
+
+
+        public static T[] GetEnumValues<T>() where T: struct, IConvertible =>
+            Enum.GetValues(typeof(T)) as T[];
     }
 }
