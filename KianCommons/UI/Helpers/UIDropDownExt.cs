@@ -1,23 +1,17 @@
 using System;
 using ColossalFramework.UI;
 using UnityEngine;
-using KianCommons.UI;
-using static KianCommons.HelpersExtensions;
-using static KianCommons.EnumBitMaskExtensions;
-using static KianCommons.Assertion;
+using static KianCommons.ReflectionHelpers;
 using KianCommons;
 using System.Reflection;
-using HarmonyLib;
 
 namespace KianCommons.UI.Helpers {
     internal static class UIDropDownExtensions {
-        static FieldInfo fPopop = AccessTools.DeclaredField(typeof(UIDropDown), "m_Popup")
-                ?? throw new Exception("m_Popup not found");
+        static FieldInfo fPopop = GetField(typeof(UIDropDown), "m_Popup");
 
         internal static UIListBox GetPopup(this UIDropDown dd) => fPopop.GetValue(dd) as UIListBox;
 
-        static FieldInfo fHoverIndex = AccessTools.DeclaredField(typeof(UIListBox), "m_HoverIndex")
-            ?? throw new Exception("m_HoverIndex not found");
+        static FieldInfo fHoverIndex = GetField(typeof(UIListBox), "m_HoverIndex");
 
         internal static int GetHoverIndex(this UIDropDown dd) {
             var popup = dd.GetPopup();

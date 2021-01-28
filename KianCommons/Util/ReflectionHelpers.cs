@@ -142,6 +142,8 @@ namespace KianCommons {
             | BindingFlags.GetProperty
             | BindingFlags.SetProperty;
 
+        public const BindingFlags ALL_Declared = ALL | BindingFlags.DeclaredOnly;
+
         /// <summary>
         /// get value of the instant field target.Field.
         /// </summary>
@@ -209,6 +211,22 @@ namespace KianCommons {
             var ret = type.GetMethod(method, ALL);
             if(throwOnError && ret == null)
                 throw new Exception($"Method not found: {type.Name}.{method}");
+            return ret;
+        }
+
+        /// <summary>
+        /// gets method of any access type.
+        /// </summary>
+        internal static MethodInfo GetMethod(
+            this Type type,
+            string name,
+            BindingFlags bindingFlags,
+            Type[] types,
+            bool throwOnError = false) {
+            if(type == null) throw new ArgumentNullException("type");
+            var ret = type.GetMethod(name, bindingFlags, null, types, null);
+            if(throwOnError && ret == null)
+                throw new Exception($"failed to retrieve method {type}.{name}({types.ToSTR()})");
             return ret;
         }
 

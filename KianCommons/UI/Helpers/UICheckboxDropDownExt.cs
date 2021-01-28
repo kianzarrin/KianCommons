@@ -1,15 +1,14 @@
 using ColossalFramework.UI;
-using HarmonyLib;
 using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using static KianCommons.ReflectionHelpers;
 
 namespace KianCommons.UI.Helpers {
     public static class Extensions {
-        static FieldInfo fPopop = AccessTools.DeclaredField(typeof(UICheckboxDropDown), "m_Popup")
-            ?? throw new Exception("m_Popup not found");
+        static FieldInfo fPopop = GetField(typeof(UICheckboxDropDown), "m_Popup", throwOnError: true);
 
         public static int GetHoverIndex(this UICheckboxDropDown dd) {
             var popup = fPopop.GetValue(dd) as UIScrollablePanel;

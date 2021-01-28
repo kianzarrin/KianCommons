@@ -52,23 +52,20 @@ namespace KianCommons.Patches {
         internal static MethodInfo DeclaredMethod<TDelegate>
             (Type type, string name, bool throwOnError = false)
             where TDelegate : Delegate {
-            var args = GetParameterTypes<TDelegate>();
-            var ret = AccessTools.DeclaredMethod(type, name, args);
-            if (ret == null) {
-                string m = $"failed to retrieve method {type}.{name}({args.ToSTR()})";
-                if (throwOnError)
-                    throw new Exception(m);
-                else
-                    Log(m);
-            }
-            return ret;
+            return type.GetMethod(
+                name,
+                bindingFlags: ReflectionHelpers.ALL_Declared,
+                types:GetParameterTypes<TDelegate>(),
+                throwOnError:true);
         }
 
         /// <summary>
-        /// like AccessTools.DeclaredMethod but throws suitable exception if method not found.
+        /// like DeclaredMethod but throws suitable exception if method not found.
         /// </summary>
+        [Obsolete("use reflection helpers instead")]
         internal static MethodInfo GetMethod(Type type, string name) =>
-            AccessTools.DeclaredMethod(type, name) ?? throw new Exception($"Method not found: {type.Name}.{name}");
+            type.GetMethod(name, ReflectionHelpers.ALL_Declared)
+            ?? throw new Exception($"Method not found: {type.Name}.{name}");
 
         internal static MethodInfo GetCoroutineMoveNext(Type declaringType, string name) {
             Type t = declaringType.GetNestedTypes(ALL)
