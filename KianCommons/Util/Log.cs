@@ -204,7 +204,7 @@ namespace KianCommons {
                 UIView.ForwardException(ex);
         }
 
-        static string nl = Environment.NewLine;
+        static string nl = "\n";
 
         /// <summary>
         /// Write a message to log file.
@@ -251,6 +251,7 @@ namespace KianCommons {
                     // this is a good time to flush if neccessary.
                     Flush();
                     m = assemblyName_ + " | " + m;
+                    m = RemoveExtraNewLine(m);
                     switch (level) {
                         case LogLevel.Error:
                         case LogLevel.Exception:
@@ -276,6 +277,9 @@ namespace KianCommons {
             }
             return new StackTrace(i - 1, true).ToString(); // keep the last assertion/log frame.
         }
+
+        public static string RemoveExtraNewLine(string str)
+            => str.Replace("\r\n", "\n");
 
         internal static void LogToFileSimple(string file, string message) {
             using (StreamWriter w = File.AppendText(file)) {

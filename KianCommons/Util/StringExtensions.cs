@@ -147,12 +147,12 @@ namespace KianCommons {
             str.Split(new[] { separator }, StringSplitOptions.None);
 
         internal static string[] SplitLines(this string str) =>
-            str.Split(Environment.NewLine);
+            str.Split("\n");
 
         internal static string Join(this IEnumerable<string> str, string separator)
             => string.Join(separator, str.ToArray());
 
         internal static string JoinLines(this IEnumerable<string> str)
-            => str.Join(Environment.NewLine);
+            => str.Join("\n");
     }
 }
