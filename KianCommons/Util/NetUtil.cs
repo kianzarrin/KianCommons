@@ -291,10 +291,15 @@ namespace KianCommons {
         public static bool IsSegmentValid(ushort segmentId) {
             if (segmentId == 0)
                 return false;
-            if (segmentId.ToSegment().Info == null)
+            return segmentId.ToSegment().IsValid();
+        }
+
+        public static bool IsValid(this ref NetSegment segment) {
+            if (segment.Info == null)
                 return false;
-            return segmentId.ToSegment().m_flags
+            return segment.m_flags
                 .CheckFlags(required: NetSegment.Flags.Created, forbidden: NetSegment.Flags.Deleted);
+
         }
 
         public static void AssertSegmentValid(ushort segmentId) {
@@ -310,9 +315,13 @@ namespace KianCommons {
         public static bool IsNodeValid(ushort nodeId) {
             if (nodeId == 0)
                 return false;
-            if (nodeId.ToNode().Info == null)
+            return nodeId.ToNode().IsValid();
+        }
+
+        public static bool IsValid(this ref NetNode node) {
+            if (node.Info == null)
                 return false;
-            return nodeId.ToNode().m_flags
+            return node.m_flags
                 .CheckFlags(required: NetNode.Flags.Created, forbidden: NetNode.Flags.Deleted);
         }
 
