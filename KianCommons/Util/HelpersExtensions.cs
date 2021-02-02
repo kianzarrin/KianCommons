@@ -8,7 +8,11 @@ namespace KianCommons {
         internal static bool InSimulationThread() =>
             System.Threading.Thread.CurrentThread == SimulationManager.instance.m_simulationThread;
 
-        internal static bool VERBOSE = false;
+        [Obsolete]
+        internal static bool VERBOSE {
+            get => Log.VERBOSE;
+            set => Log.VERBOSE = value;
+        }
 
         internal static bool[] ALL_BOOL = new bool[] { false, true };
 

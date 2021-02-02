@@ -34,12 +34,20 @@ namespace KianCommons {
 
         public static PluginInfo GetCurrentAssemblyPlugin() => GetPlugin(Assembly.GetExecutingAssembly());
 
-        public static void LogPlugins() {
+        public static void LogPlugins(bool detailed=false) {
             string PluginToString(PluginInfo p) {
                 string enabled = p.isEnabled ? "*" : " ";
                 string id = p.IsLocal() ? "(local)" : p.GetWorkshopID().ToString();
                 id.PadRight(12);
-                return $"\t{enabled} {id} {p.GetModName()}";
+                if(!detailed)
+                    return $"\t{enabled} {id} {p.GetModName()}";
+#pragma warning disable
+                return $"\t{enabled} " +
+                    $"{id} " +
+                    $"mod-name:{p.GetModName()} " +
+                    $"asm-name:{p.GetMainAssembly()?.Name()} " +
+                    $"user-mod-type:{p?.userModInstance?.GetType().Name}";
+#pragma warning restore
             }
 
             var plugins = man.GetPluginsInfo().ToList();
@@ -57,6 +65,7 @@ namespace KianCommons {
         public static PluginInfo GetAdaptiveRoads() => GetPlugin("AdaptiveRoads");
         public static PluginInfo GetHideCrossings() => GetPlugin("HideCrosswalks", searchOptions: AssemblyEquals);
         public static PluginInfo GetTrafficManager() => GetPlugin("TrafficManager", searchOptions: AssemblyEquals);
+        public static PluginInfo GetNetworkDetective() => GetPlugin("NetworkDetective", searchOptions: AssemblyEquals);
 
         [Obsolete]
         internal static bool CSUREnabled;
@@ -102,9 +111,10 @@ namespace KianCommons {
 
             StartsWidth = 1<<1,
 
+            [Obsolete("always active")]
             Equals = 1<<2,
 
-            AllModes = Contains | StartsWidth | Equals,
+            AllModes = Contains | StartsWidth,
 
             /// <summary></summary>
             CaseInsensetive = 1 << 3,
@@ -137,7 +147,7 @@ namespace KianCommons {
             SearchOptionT.Contains | SearchOptionT.AllOptions | SearchOptionT.UserModName;
 
         public const SearchOptionT AssemblyEquals =
-            SearchOptionT.Equals | SearchOptionT.AllOptions | SearchOptionT.AssemblyName;
+            SearchOptionT.AllOptions | SearchOptionT.AssemblyName;
 
         public static PluginInfo GetPlugin(
             string searchName, ulong searchId, SearchOptionT searchOptions = DefaultsearchOptions) {
@@ -172,7 +182,7 @@ namespace KianCommons {
 
                 if (searchOptions.IsFlagSet(SearchOptionT.AssemblyName)) {
                     Assembly asm = current.GetMainAssembly();
-                    match = match || Match(asm.GetName().Name, searchName, searchOptions);
+                    match = match || Match(asm?.Name(), searchName, searchOptions);
                 }
 
                 if (match) {
@@ -180,13 +190,12 @@ namespace KianCommons {
                     return current;
                 }
             }
-            Log.Info("plugin not found:" + searchName);
+            Log.Info($"plugin not found: keyword={searchName} options={searchOptions}");
             return null;
         }
 
         public static bool Match(string name1, string name2, SearchOptionT searchOptions = DefaultsearchOptions) {
-            if (!string.IsNullOrEmpty(name1)) return false;
-            Assertion.Assert((searchOptions & SearchOptionT.AllModes) != 0);
+            if (string.IsNullOrEmpty(name1)) return false;
             Assertion.Assert((searchOptions & SearchOptionT.AllTargets) != 0);
 
             if (searchOptions.IsFlagSet(SearchOptionT.CaseInsensetive)) {
@@ -198,19 +207,17 @@ namespace KianCommons {
                 name2 = name2.Replace(" ", "");
             }
 
-            if(HelpersExtensions.VERBOSE)
+            if(Log.VERBOSE)
                 Log.Debug($"[MATCHING] : {name1} =? {name2} " + searchOptions);
 
+            if (name1 == name2)
+                return true;
             if (searchOptions.IsFlagSet(SearchOptionT.Contains)) {
                 if (name1.Contains(name2))
                     return true;
             }
             if (searchOptions.IsFlagSet(SearchOptionT.StartsWidth)) {
                 if (name1.StartsWith(name2))
-                    return true;
-            }
-            if (searchOptions.IsFlagSet(SearchOptionT.Equals)) {
-                if (name1 == name2)
                     return true;
             }
             return false;

@@ -47,6 +47,8 @@ namespace KianCommons {
 
         internal static bool ShowGap = false;
 
+        internal static bool VERBOSE { get; set; } = false;
+
         private static long prev_ms_;
 
         /// <summary>
