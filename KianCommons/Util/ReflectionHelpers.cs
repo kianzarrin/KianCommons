@@ -87,7 +87,7 @@ namespace KianCommons {
             var fields = type.GetAllFields(declaredOnly: true);
             foreach(var f in fields) {
                 if(f.FieldType.IsClass) {
-                    if(HelpersExtensions.VERBOSE)
+                    if(Log.VERBOSE)
                         Log.Debug($"SetAllDeclaredFieldsToNull: setting {instance}.{f} = null");
                     f.SetValue(instance, null);
                 }
