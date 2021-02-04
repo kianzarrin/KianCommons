@@ -6,6 +6,7 @@ using ColossalFramework.UI;
 using UnityEngine;
 using UnityEngine.UI;
 using KianCommons;
+using System.Runtime.CompilerServices;
 
 namespace KianCommons.UI {
     internal static class UIExtensions {
@@ -17,5 +18,8 @@ namespace KianCommons.UI {
             c.SetAllDeclaredFieldsToNull();
             GameObject.Destroy(c.gameObject);
         }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static bool FPSOptimisedIsVisble(this UIComponent c) => c.isVisible;
     }
 }
