@@ -79,13 +79,13 @@ namespace KianCommons {
         internal static int CountPedestrianLanes(this NetInfo info) =>
             info.m_lanes.Count(lane => lane.m_laneType == NetInfo.LaneType.Pedestrian);
 
-        static bool HasID(this ref NetNode node1, ushort nodeId2) {
+        static bool CheckID(this ref NetNode node1, ushort nodeId2) {
             ref NetNode node2 = ref nodeId2.ToNode();
             return node1.m_buildIndex == node2.m_buildIndex &&
                    node1.m_position == node2.m_position;
         }
 
-        static bool HasID(this ref NetSegment segment1, ushort segmentId2) {
+        static bool CheckID(this ref NetSegment segment1, ushort segmentId2) {
             ref NetSegment segment2 = ref segmentId2.ToSegment();
             return (segment1.m_startNode == segment2.m_startNode) &
                    (segment1.m_endNode == segment2.m_endNode);
@@ -93,7 +93,7 @@ namespace KianCommons {
 
         internal static ushort GetID(this ref NetNode node) {
             ref NetSegment seg = ref node.GetFirstSegment().ToSegment();
-            bool startNode = HasID(ref node, seg.m_startNode);
+            bool startNode = node.CheckID(seg.m_startNode);
             return startNode ? seg.m_startNode : seg.m_endNode;
         }
 
@@ -101,7 +101,7 @@ namespace KianCommons {
             ref var node = ref segment.m_startNode.ToNode();
             for (int i = 0; i < 8; ++i) {
                 ushort segmentId = node.GetSegment(i);
-                if (HasID(ref segment, segmentId))
+                if (segment.CheckID(segmentId))
                     return segmentId;
             }
             return 0;
