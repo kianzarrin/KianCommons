@@ -2,6 +2,7 @@ using ColossalFramework;
 using ColossalFramework.Math;
 using KianCommons.Math;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -47,7 +48,7 @@ namespace KianCommons {
             throw new Exception("Unreachable code");
         }
 
-        public static bool IsCSUR(NetInfo info) {
+        public static bool IsCSUR(this NetInfo info) {
             if (info == null ||
                 (info.m_netAI.GetType() != typeof(RoadAI) &&
                 info.m_netAI.GetType() != typeof(RoadBridgeAI) &&
@@ -78,31 +79,32 @@ namespace KianCommons {
         internal static int CountPedestrianLanes(this NetInfo info) =>
             info.m_lanes.Count(lane => lane.m_laneType == NetInfo.LaneType.Pedestrian);
 
-        static bool Equals(this ref NetNode node1, ushort nodeId2) {
+        static bool HasID(this ref NetNode node1, ushort nodeId2) {
             ref NetNode node2 = ref nodeId2.ToNode();
             return node1.m_buildIndex == node2.m_buildIndex &&
                    node1.m_position == node2.m_position;
         }
 
-        static bool Equals(this ref NetSegment segment1, ushort segmentId2) {
+        static bool HasID(this ref NetSegment segment1, ushort segmentId2) {
             ref NetSegment segment2 = ref segmentId2.ToSegment();
             return (segment1.m_startNode == segment2.m_startNode) &
                    (segment1.m_endNode == segment2.m_endNode);
         }
 
-        internal static ushort GetID(this NetNode node) {
+        internal static ushort GetID(this ref NetNode node) {
             ref NetSegment seg = ref node.GetFirstSegment().ToSegment();
-            bool startNode = Equals(ref node, seg.m_startNode);
+            bool startNode = HasID(ref node, seg.m_startNode);
             return startNode ? seg.m_startNode : seg.m_endNode;
         }
 
-        internal static ushort GetID(this NetSegment segment) {
-            foreach (var segmentID in IterateNodeSegments(segment.m_startNode)) {
-                if (Equals(ref segment, segmentID)) {
-                    return segmentID;
-                }
+        internal static ushort GetID(this ref NetSegment segment) {
+            ref var node = ref segment.m_startNode.ToNode();
+            for (int i = 0; i < 8; ++i) {
+                ushort segmentId = node.GetSegment(i);
+                if (HasID(ref segment, segmentId))
+                    return segmentId;
             }
-            throw new Exception("unreachable code");
+            return 0;
         }
 
         public static ushort GetFirstSegment(ushort nodeID) => nodeID.ToNode().GetFirstSegment();
@@ -415,6 +417,18 @@ namespace KianCommons {
             }
         }
 
+        public static NodeSegmentIterator IterateSegments(this ref NetNode node)
+            => new NodeSegmentIterator(node.GetID());
+
+        public static ushort GetAnotherSegment(this ref NetNode node, ushort segmentId0) {
+            for(int i = 0; i < 8; ++i) {
+                ushort segmentId = node.GetSegment(i);
+                if (segmentId != segmentId0 && segmentId != 0)
+                    return segmentId;
+            }
+            return 0;
+        }
+
         [Obsolete("use IterateNodeSegments instead")]
         internal static IEnumerable<ushort> GetSegmentsCoroutine(ushort nodeID)
             => IterateNodeSegments(nodeID);
@@ -572,7 +586,6 @@ namespace KianCommons {
             }
             return 0;
         }
-
     }
 
     [Serializable]
@@ -616,9 +629,66 @@ namespace KianCommons {
                 return $"LaneData:[segment:{SegmentID} node:{NodeID} lane ID:{LaneID} null";
             }
         }
-        
     }
 
+    public struct LaneIDIterator : IEnumerable<uint>, IEnumerator<uint> {
+        uint laneID_;
+        ushort segmentID_;
 
+        public LaneIDIterator(ushort segmentID) {
+            segmentID_ = segmentID;
+            laneID_ = 0;
+        }
+
+        public void Reset() => laneID_ = 0;
+        public void Dispose() { }
+
+        public uint Current => laneID_;
+
+        public bool MoveNext() {
+            if (laneID_ == 0) {
+                laneID_ = segmentID_.ToSegment().m_lanes;
+                return laneID_ != 0;
+            }
+            uint ret = laneID_.ToLane().m_nextLane;
+            if (ret != 0) laneID_ = ret;
+            return ret != 0;
+        }
+
+        public LaneIDIterator GetEnumerator() => this; 
+        IEnumerator<uint> IEnumerable<uint>.GetEnumerator() => this;
+        IEnumerator IEnumerable.GetEnumerator() => this;
+        object IEnumerator.Current => Current;
+    }
+
+    public struct NodeSegmentIterator : IEnumerable<ushort>, IEnumerator<ushort> {
+        int i_;
+        ushort segmentId_;
+        ushort nodeId_;
+
+        public NodeSegmentIterator(ushort nodeId) {
+            nodeId_ = nodeId;
+            segmentId_ = 0;
+            i_ = 0;
+        }
+
+        public bool MoveNext() {
+            for(; i_<8 ;++i_) {
+                ushort segmentId_ = nodeId_.ToNode().GetSegment(i_);
+                if (segmentId_ != 0)
+                    return true;
+            }
+            segmentId_ = 0;
+            return false;
+        }
+
+        public ushort Current => segmentId_;
+        public NodeSegmentIterator GetEnumerator() => this;
+        public void Reset() => i_ = segmentId_ = 0;
+        public void Dispose() => Reset();
+        object IEnumerator.Current => Current;
+        IEnumerator<ushort> IEnumerable<ushort>.GetEnumerator() => this;
+        IEnumerator IEnumerable.GetEnumerator() => this;
+    }
 }
 
