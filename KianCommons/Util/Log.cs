@@ -43,7 +43,11 @@ namespace KianCommons {
 
         private static StreamWriter filerWrier_;
 
+        private static object LogLock = new object();
+
         internal static bool ShowGap = false;
+
+        internal static bool VERBOSE { get; set; } = false;
 
         private static long prev_ms_;
 
@@ -72,7 +76,7 @@ namespace KianCommons {
         /// </summary>
         internal static void Flush() {
             if (filerWrier_ != null) {
-                lock (filerWrier_)
+                lock (LogLock)
                     filerWrier_.Flush();
             }
         }
@@ -202,7 +206,7 @@ namespace KianCommons {
                 UIView.ForwardException(ex);
         }
 
-        static string nl = Environment.NewLine;
+        static string nl = "\n";
 
         /// <summary>
         /// Write a message to log file.
@@ -231,17 +235,17 @@ namespace KianCommons {
 
                 m += message;
                 if (level == LogLevel.Error || level == LogLevel.Exception) {
-                    m += nl + Environment.StackTrace;
+                    m += nl + GetStackTrace();
                     m = nl + m + nl; // create line space to draw attention.
                 }
 
-
-                if (filerWrier_ != null) {
-                    lock (filerWrier_)
+                lock (LogLock) {
+                    if (filerWrier_ != null) {
                         filerWrier_.WriteLine(m);
-                } else {
-                    using (StreamWriter w = File.AppendText(LogFilePath))
-                        w.WriteLine(m);
+                    } else {
+                        using (StreamWriter w = File.AppendText(LogFilePath))
+                            w.WriteLine(m);
+                    }
                 }
 
                 if (copyToGameLog) {
@@ -249,6 +253,7 @@ namespace KianCommons {
                     // this is a good time to flush if neccessary.
                     Flush();
                     m = assemblyName_ + " | " + m;
+                    m = RemoveExtraNewLine(m);
                     switch (level) {
                         case LogLevel.Error:
                         case LogLevel.Exception:
@@ -263,6 +268,20 @@ namespace KianCommons {
                 Log.LogUnityException(ex);
             }
         }
+
+        static string GetStackTrace() {
+            var st = new StackTrace();
+            int i;
+            for(i=0;i<st.FrameCount;++i) {
+                var util = st.GetFrame(i).GetMethod().DeclaringType;
+                bool utilFrame = util == typeof(Assertion) || util == typeof(Log);
+                if (!utilFrame) break;
+            }
+            return new StackTrace(i - 1, true).ToString(); // keep the last assertion/log frame.
+        }
+
+        public static string RemoveExtraNewLine(string str)
+            => str.Replace("\r\n", "\n");
 
         internal static void LogToFileSimple(string file, string message) {
             using (StreamWriter w = File.AppendText(file)) {

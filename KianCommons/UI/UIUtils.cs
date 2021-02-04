@@ -89,7 +89,6 @@ namespace KianCommons.UI {
             }
         }
 
-
         // Token: 0x04000024 RID: 36
         private static UIUtils instance = null;
 

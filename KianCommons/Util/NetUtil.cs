@@ -35,7 +35,7 @@ namespace KianCommons {
 
         /// <summary>
         /// returns lane data of the given lane ID.
-        /// throws exception if unsucessful.
+        /// throws exception if unsuccessful.
         /// </summary>
         internal static LaneData GetLaneData(uint laneId) {
             Assertion.Assert(laneId != 0, "laneId!=0");
@@ -177,7 +177,6 @@ namespace KianCommons {
         }
 
         /// <param name="bLeft2">if other segment is to the left side of segmentID.</param>
-        /// <param name="cornerPoint">is normalized</param>
         /// <param name="cornerDir">is normalized</param>
         internal static void CalculateCorner(
             ushort segmentID, ushort nodeID, bool bLeft2,
@@ -205,6 +204,29 @@ namespace KianCommons {
                             out cornerPoint, out cornerDir);
         }
 
+        /// <param name="bLeft2">if other segment is to the left side of segmentID.</param>
+        internal static void CalculateCorner(
+            ushort segmentID, ushort nodeID, bool bLeft2,
+            out Vector3 cornerPos, out Vector3 cornerDirection) {
+            segmentID.ToSegment().CalculateCorner(
+                segmentID,
+                true,
+                IsStartNode(segmentID, nodeID),
+                !bLeft2, // leftSide = if this segment is to the left of the other segment = !bLeft2
+                out cornerPos,
+                out cornerDirection,
+                out _);
+        }
+
+        internal static void CalculateSegEndCenter(
+            ushort segmentID, ushort nodeID,
+            out Vector3 pos, out Vector3 dir) {
+            CalculateCorner(segmentID, nodeID, false, out Vector3 pos1, out Vector3 dir1);
+            CalculateCorner(segmentID, nodeID, true, out Vector3 pos2, out Vector3 dir2);
+            pos = (pos1 + pos2) * 0.5f;
+            dir = (dir1 + dir2) * 0.5f;
+        }
+
         #endregion math
 
         public static float SampleHeight(Vector2 point) {
@@ -219,7 +241,7 @@ namespace KianCommons {
         public static bool LHT => TrafficDrivesOnLeft;
         public static bool RHT => !LHT;
         public static bool TrafficDrivesOnLeft =>
-            Singleton<SimulationManager>.instance.m_metaData.m_invertTraffic
+            Singleton<SimulationManager>.instance?.m_metaData?.m_invertTraffic
                 == SimulationMetaData.MetaBool.True;
 
         public static bool CanConnectPathToSegment(ushort segmentID) =>
@@ -271,10 +293,15 @@ namespace KianCommons {
         public static bool IsSegmentValid(ushort segmentId) {
             if (segmentId == 0)
                 return false;
-            if (segmentId.ToSegment().Info == null)
+            return segmentId.ToSegment().IsValid();
+        }
+
+        public static bool IsValid(this ref NetSegment segment) {
+            if (segment.Info == null)
                 return false;
-            return segmentId.ToSegment().m_flags
+            return segment.m_flags
                 .CheckFlags(required: NetSegment.Flags.Created, forbidden: NetSegment.Flags.Deleted);
+
         }
 
         public static void AssertSegmentValid(ushort segmentId) {
@@ -290,9 +317,13 @@ namespace KianCommons {
         public static bool IsNodeValid(ushort nodeId) {
             if (nodeId == 0)
                 return false;
-            if (nodeId.ToNode().Info == null)
+            return nodeId.ToNode().IsValid();
+        }
+
+        public static bool IsValid(this ref NetNode node) {
+            if (node.Info == null)
                 return false;
-            return nodeId.ToNode().m_flags
+            return node.m_flags
                 .CheckFlags(required: NetNode.Flags.Created, forbidden: NetNode.Flags.Deleted);
         }
 
@@ -490,7 +521,7 @@ namespace KianCommons {
         public static IEnumerable<LaneData> IterateSegmentLanes(ushort segmentId) {
             int idx = 0;
             if (segmentId.ToSegment().Info == null) {
-                Log.Error("null info: potentially caused by missing assets");
+                Log.Error("null info: potentially caused by missing assets. segmentId=" + segmentId);
                 yield break;
             }
             int n = segmentId.ToSegment().Info.m_lanes.Length;
@@ -527,6 +558,17 @@ namespace KianCommons {
         }
 
 
+        public static NetInfo.Lane SortedLane(this NetInfo info, int index) {
+            int sortedIndex = info.m_sortedLanes[index];
+            return info.m_lanes[sortedIndex];
+        }
+
+        public static IEnumerable<NetInfo.Lane> SortedLanes(this NetInfo info) {
+            for (int i = 0; i < info.m_sortedLanes.Length; ++i) {
+                int sortedIndex = info.m_sortedLanes[i];
+                yield return info.m_lanes[sortedIndex];
+            }
+        }
 
         /// <summary>
         /// sorted from outer lane to inner lane when heading toward <paramref name="startNode"/>
@@ -592,8 +634,13 @@ namespace KianCommons {
     public struct LaneData {
         public uint LaneID;
         public int LaneIndex;
-        public NetInfo.Lane LaneInfo;
         public bool StartNode;
+
+        [NonSerialized] private NetInfo.Lane laneInfo_;
+        public NetInfo.Lane LaneInfo {
+            get => laneInfo_ ??= Segment.Info.m_lanes[LaneIndex];
+            set => laneInfo_ = value;
+        }
 
         public LaneData(uint laneID, int laneIndex = -1) {
             LaneID = laneID;
@@ -602,10 +649,10 @@ namespace KianCommons {
             LaneIndex = laneIndex;
 
             ushort segmentID = LaneID.ToLane().m_segment;
-            LaneInfo = segmentID.ToSegment().Info.m_lanes[LaneIndex];
-            bool forward = LaneInfo.m_finalDirection == NetInfo.Direction.Forward;
+            laneInfo_ = segmentID.ToSegment().Info.m_lanes[LaneIndex];
+            bool backward = laneInfo_.IsGoingBackward();
             bool inverted = segmentID.ToSegment().m_flags.IsFlagSet(NetSegment.Flags.Invert);
-            StartNode = forward ^ !inverted;
+            StartNode = backward == inverted; //xnor
         }
 
         public readonly ushort SegmentID => Lane.m_segment;
@@ -617,8 +664,8 @@ namespace KianCommons {
             set => LaneID.ToLane().m_flags = (ushort)value;
         }
 
-        public readonly bool LeftSide => LaneInfo.m_position < 0 != Segment.m_flags.IsFlagSet(NetSegment.Flags.Invert);
-        public readonly bool RightSide => !LeftSide;
+        public bool LeftSide => LaneInfo.m_position < 0 != Segment.m_flags.IsFlagSet(NetSegment.Flags.Invert);
+        public bool RightSide => !LeftSide;
 
         public readonly Bezier3 Bezier => Lane.m_bezier;
         public override string ToString() {
