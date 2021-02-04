@@ -112,6 +112,11 @@ namespace KianCommons {
                 AssemblyName details = typeof(Log).Assembly.GetName();
                 Info($"Log file at " + LogFilePath, true);
                 Info($"{details.Name} v{details.Version}", true);
+
+                string oldPath = Path.Combine(Application.dataPath, LogFileName);
+                if (File.Exists(oldPath))
+                    File.Delete(oldPath);
+
             } catch (Exception ex) {
                 Log.LogUnityException(ex);
             }
