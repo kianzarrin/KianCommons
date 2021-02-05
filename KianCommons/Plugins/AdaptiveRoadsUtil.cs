@@ -3,9 +3,17 @@ namespace KianCommons.Plugins {
     using System.Reflection;
     using static ColossalFramework.Plugins.PluginManager;
     using static KianCommons.Plugins.PluginUtil;
+    using ColossalFramework.Plugins;
 
     internal static class AdaptiveRoadsUtil {
-        static PluginInfo plugin => GetAdaptiveRoads();
+        static AdaptiveRoadsUtil() {
+            PluginManager.instance.eventPluginsStateChanged +=
+                () => plugin_ = null;
+
+        }
+
+        static PluginInfo plugin_;
+        static PluginInfo plugin => plugin_ ??= GetAdaptiveRoads();
         public static bool IsActive => plugin.IsActive();
 
         public static Assembly asm => plugin.GetMainAssembly();
@@ -42,7 +50,5 @@ namespace KianCommons.Plugins {
             return Invoke("GetARLaneFlags", laneId);
         }
         #pragma warning restore HAA0101, HAA0601
-
-
     }
 }
