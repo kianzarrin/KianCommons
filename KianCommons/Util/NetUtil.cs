@@ -304,6 +304,19 @@ namespace KianCommons {
 
         }
 
+        public static bool IsValid(this InstanceID instance) {
+            if (instance.IsEmpty)
+                return false;
+            if (instance.Type == InstanceType.NetNode)
+                return IsNodeValid(instance.NetNode);
+            if (instance.Type == InstanceType.NetSegment)
+                return IsSegmentValid(instance.NetSegment);
+            if (instance.Type == InstanceType.NetLane)
+                return IsLaneValid(instance.NetLane);
+            return true;
+        }
+
+
         public static void AssertSegmentValid(ushort segmentId) {
             Assertion.AssertNeq(segmentId, 0, "segmentId");
             Assertion.AssertNotNull(segmentId.ToSegment().Info, $"segment:{segmentId} info");
