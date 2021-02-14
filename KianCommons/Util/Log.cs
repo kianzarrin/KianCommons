@@ -195,7 +195,7 @@ namespace KianCommons {
                 Log.Error("null argument e was passed to Log.Exception()");
             try {
                 string message = ex.ToString() + $"\n\t-- {assemblyName_}:end of inner stack trace --";
-                if (!m.IsNullorEmpty())
+                if (!string.IsNullOrEmpty(m))
                     message = m + " -> \n" + message;
                 LogImpl(message, LogLevel.Exception, true);
                 if (showInPanel)
