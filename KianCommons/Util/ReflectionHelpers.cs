@@ -273,6 +273,11 @@ namespace KianCommons {
             return GetMethod(type, method, true)?.Invoke(instance, null);
         }
 
+        internal static object InvokeSetter(object instance, string propertyName, object value) {
+            var type = instance.GetType();
+            return GetMethod(type, propertyName, true)?.Invoke(instance, new object[] { value });
+        }
+
         internal static EventInfo GetEvent(Type type, string eventName, bool throwOnError = true) {
             var e = type.GetEvent(eventName, ALL);
             if(e == null && throwOnError)
