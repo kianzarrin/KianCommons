@@ -9,14 +9,10 @@
     <AssemblyVersion>2.0.0.*</AssemblyVersion>
     <FileAlignment>512</FileAlignment>
     <LangVersion>latest</LangVersion>
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>    
     <PathMap>$(MSBuildProjectDirectory)\=$(ProjectName)\</PathMap>
     <Configurations>Debug;Release;Workshop</Configurations>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DefineConstants />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Workshop|AnyCPU' ">
     <ContentID>0</ContentID>
@@ -30,6 +26,9 @@
     <CSPath>$(SteamPath)\steamapps\common\Cities_Skylines</CSPath>
     <ContentPath>$(SteamPath)\steamapps\workshop\content\255710\$(ContentID)</ContentPath>
     <ManagedDLLPath Condition="!  Exists ('$(ManagedDLLPath)')">$(CSPath)\Cities_Data\Managed</ManagedDLLPath>
+    <UnityPath>$(MSBuildExtensionsPath64)\..\Unity\</UnityPath>
+    <UnityPath Condition="! Exists ('$(UnityPath)')">..\Unity\</UnityPath>
+    <MonoDir>$(UnityPath)Editor\Data\MonoBleedingEdge\</MonoDir>  
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Util\AssemblyTypeExtensions.cs" />
