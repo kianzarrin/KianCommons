@@ -9,6 +9,7 @@
     <AssemblyVersion>2.0.0.*</AssemblyVersion>
     <FileAlignment>512</FileAlignment>
     <LangVersion>latest</LangVersion>
+    <PathMap>$(MSBuildProjectDirectory)\=$(ProjectName)\</PathMap>
     <Configurations>Debug;Release;Workshop</Configurations>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
