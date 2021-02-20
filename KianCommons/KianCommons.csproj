@@ -1,67 +1,68 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <ProjectGuid>{4E0BB9B3-EFB1-4D63-99D8-A3B82D33E4FE}</ProjectGuid>
+    <ProjectGuid>{4e0bb9b3-efb1-4d63-99d8-a3b82d33e4fe}</ProjectGuid>
     <TargetFramework>net35</TargetFramework>
     <Deterministic>false</Deterministic>
-    <AssemblyTitle>NodeController</AssemblyTitle>
-    <Product>NodeController</Product>
+    <AssemblyTitle>KianCommons</AssemblyTitle>
     <Copyright>Copyright ©  2020</Copyright>
     <Deterministic>false</Deterministic>
-    <AssemblyVersion>1.0.1.*</AssemblyVersion>
+    <AssemblyVersion>2.0.0.*</AssemblyVersion>
     <FileAlignment>512</FileAlignment>
     <LangVersion>latest</LangVersion>
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>    
+    <PathMap>$(MSBuildProjectDirectory)\=$(ProjectName)\</PathMap>
+    <Configurations>Debug;Release;Workshop</Configurations>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Workshop|AnyCPU' ">
+    <ContentID>0</ContentID>
     <DefineConstants />
   </PropertyGroup>
   <PropertyGroup>
-    <MangedDLLPath>..\dependencies</MangedDLLPath>
+    <ManagedDLLPath>..\dependencies</ManagedDLLPath>
     <SteamPath>~/Library/Application Support/Steam/</SteamPath>
     <SteamPath Condition="! Exists ('$(SteamPath)')">$(ProgramFiles)\Steam</SteamPath>
     <SteamPath Condition="! Exists ('$(SteamPath)')">$(Registry:HKEY_CURRENT_USER\Software\Valve\Steam@SteamPath)</SteamPath>
     <CSPath>$(SteamPath)\steamapps\common\Cities_Skylines</CSPath>
-    <MangedDLLPath Condition="!  Exists ('$(MangedDLLPath)')">$(CSPath)\Cities_Data\Managed</MangedDLLPath>
-    <AssemblyName>NodeController</AssemblyName>
-    <RootNamespace>NodeController</RootNamespace>
+    <ContentPath>$(SteamPath)\steamapps\workshop\content\255710\$(ContentID)</ContentPath>
+    <ManagedDLLPath Condition="!  Exists ('$(ManagedDLLPath)')">$(CSPath)\Cities_Data\Managed</ManagedDLLPath>
+    <UnityPath>$(MSBuildExtensionsPath64)\..\Unity\</UnityPath>
+    <UnityPath Condition="! Exists ('$(UnityPath)')">..\Unity\</UnityPath>
+    <MonoDir>$(UnityPath)Editor\Data\MonoBleedingEdge\</MonoDir>  
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Util\AssemblyTypeExtensions.cs" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CitiesHarmony.API" Version="1.0.4" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Assembly-CSharp">
-      <HintPath>$(MangedDLLPath)\Assembly-CSharp.dll</HintPath>
+      <HintPath>$(ManagedDLLPath)\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="ColossalManaged">
-      <HintPath>$(MangedDLLPath)\ColossalManaged.dll</HintPath>
+      <HintPath>$(ManagedDLLPath)\ColossalManaged.dll</HintPath>
       <Private>False</Private>
-    </Reference>
-    <Reference Include="CSURToolBox">
-      <HintPath>..\libs\CSURToolBox.dll</HintPath>
-      <Private>false</Private>
-      <SpecificVersion>false</SpecificVersion>
     </Reference>
     <Reference Include="CSUtil.Commons">
       <HintPath>..\libs\CSUtil.Commons.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="ICities">
-      <HintPath>$(MangedDLLPath)\ICities.dll</HintPath>
+      <HintPath>$(ManagedDLLPath)\ICities.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine">
-      <HintPath>$(MangedDLLPath)\UnityEngine.dll</HintPath>
+      <HintPath>$(ManagedDLLPath)\UnityEngine.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.Networking">
-      <HintPath>$(MangedDLLPath)\UnityEngine.Networking.dll</HintPath>
+      <HintPath>$(ManagedDLLPath)\UnityEngine.Networking.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.UI">
-      <HintPath>$(MangedDLLPath)\UnityEngine.UI.dll</HintPath>
+      <HintPath>$(ManagedDLLPath)\UnityEngine.UI.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System.Data.DataSetExtensions" />
@@ -77,10 +78,30 @@
       <AuxilaryFiles Include="$(TargetDir)**/*.*" Exclude="$(TargetPath);$(TargetDir)*.pdb" />
       <VersionNumber Include="@(Targets->'%(Version)')" />
     </ItemGroup>
+    <Delete Files="$(TargetPath).mdb" />
+    <Exec Command="&quot;$(MonoDir)bin\mono.exe&quot; &quot;$(MonoDir)lib\mono\4.5\pdb2mdb.exe&quot; &quot;$(TargetPath)&quot;" />
+    <Copy SourceFiles="$(TargetPath).mdb" DestinationFolder="$(DeployDir)" />
     <Copy SourceFiles="@(AuxilaryFiles)" DestinationFolder="$(DeployDir)" />
     <!-- <Message Importance="high" Text="Deleting $(DeployDir)$(TargetFileName)" /> -->
     <Delete Files="$(DeployDir)$(TargetFileName)" />
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(DeployDir)" />
     <Message Importance="high" Text="AssemblyVersion= @(VersionNumber)" />
+  </Target>
+  <Target Name="DeployToWorkshop" AfterTargets="DeployToModDirectory" Condition="'$(ContentID)'!=''">
+    <ItemGroup>
+      <FilesToDelete Include="$(ContentPath)\*.*" Exclude="$(ContentPath)\PreviewImage.png" />
+      <FilesToCopy Include="$(DeployDir)\*.*" />
+    </ItemGroup>
+    <Delete Files="@(FilesToDelete)" />
+    <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(ContentPath)" />
+    <RemoveDir Directories="$(DeployDir)" />
+    <Message Importance="high" Text="Moved to $(ContentPath)" />
+  </Target>
+  <Target Name="CustomClean" BeforeTargets="CoreClean">
+    <PropertyGroup>
+      <DeployDir>$(LOCALAPPDATA)\Colossal Order\Cities_Skylines\Addons\Mods\$(ProjectName)\</DeployDir>
+    </PropertyGroup>
+    <Message Text="removing deploy directory" Importance="high" />
+    <RemoveDir Directories="$(DeployDir)" />
   </Target>
 </Project>
