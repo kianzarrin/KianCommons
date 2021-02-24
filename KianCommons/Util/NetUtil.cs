@@ -2,6 +2,7 @@ using ColossalFramework;
 using ColossalFramework.Math;
 using KianCommons.Math;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -34,7 +35,7 @@ namespace KianCommons {
 
         /// <summary>
         /// returns lane data of the given lane ID.
-        /// throws exception if unsucessful.
+        /// throws exception if unsuccessful.
         /// </summary>
         internal static LaneData GetLaneData(uint laneId) {
             Assertion.Assert(laneId != 0, "laneId!=0");
@@ -47,7 +48,7 @@ namespace KianCommons {
             throw new Exception("Unreachable code");
         }
 
-        public static bool IsCSUR(NetInfo info) {
+        public static bool IsCSUR(this NetInfo info) {
             if (info == null ||
                 (info.m_netAI.GetType() != typeof(RoadAI) &&
                 info.m_netAI.GetType() != typeof(RoadBridgeAI) &&
@@ -78,31 +79,32 @@ namespace KianCommons {
         internal static int CountPedestrianLanes(this NetInfo info) =>
             info.m_lanes.Count(lane => lane.m_laneType == NetInfo.LaneType.Pedestrian);
 
-        static bool Equals(this ref NetNode node1, ushort nodeId2) {
+        static bool CheckID(this ref NetNode node1, ushort nodeId2) {
             ref NetNode node2 = ref nodeId2.ToNode();
             return node1.m_buildIndex == node2.m_buildIndex &&
                    node1.m_position == node2.m_position;
         }
 
-        static bool Equals(this ref NetSegment segment1, ushort segmentId2) {
+        static bool CheckID(this ref NetSegment segment1, ushort segmentId2) {
             ref NetSegment segment2 = ref segmentId2.ToSegment();
             return (segment1.m_startNode == segment2.m_startNode) &
                    (segment1.m_endNode == segment2.m_endNode);
         }
 
-        internal static ushort GetID(this NetNode node) {
+        internal static ushort GetID(this ref NetNode node) {
             ref NetSegment seg = ref node.GetFirstSegment().ToSegment();
-            bool startNode = Equals(ref node, seg.m_startNode);
+            bool startNode = node.CheckID(seg.m_startNode);
             return startNode ? seg.m_startNode : seg.m_endNode;
         }
 
-        internal static ushort GetID(this NetSegment segment) {
-            foreach (var segmentID in IterateNodeSegments(segment.m_startNode)) {
-                if (Equals(ref segment, segmentID)) {
-                    return segmentID;
-                }
+        internal static ushort GetID(this ref NetSegment segment) {
+            ref var node = ref segment.m_startNode.ToNode();
+            for (int i = 0; i < 8; ++i) {
+                ushort segmentId = node.GetSegment(i);
+                if (segment.CheckID(segmentId))
+                    return segmentId;
             }
-            throw new Exception("unreachable code");
+            return 0;
         }
 
         public static ushort GetFirstSegment(ushort nodeID) => nodeID.ToNode().GetFirstSegment();
@@ -175,7 +177,6 @@ namespace KianCommons {
         }
 
         /// <param name="bLeft2">if other segment is to the left side of segmentID.</param>
-        /// <param name="cornerPoint">is normalized</param>
         /// <param name="cornerDir">is normalized</param>
         internal static void CalculateCorner(
             ushort segmentID, ushort nodeID, bool bLeft2,
@@ -203,6 +204,29 @@ namespace KianCommons {
                             out cornerPoint, out cornerDir);
         }
 
+        /// <param name="bLeft2">if other segment is to the left side of segmentID.</param>
+        internal static void CalculateCorner(
+            ushort segmentID, ushort nodeID, bool bLeft2,
+            out Vector3 cornerPos, out Vector3 cornerDirection) {
+            segmentID.ToSegment().CalculateCorner(
+                segmentID,
+                true,
+                IsStartNode(segmentID, nodeID),
+                !bLeft2, // leftSide = if this segment is to the left of the other segment = !bLeft2
+                out cornerPos,
+                out cornerDirection,
+                out _);
+        }
+
+        internal static void CalculateSegEndCenter(
+            ushort segmentID, ushort nodeID,
+            out Vector3 pos, out Vector3 dir) {
+            CalculateCorner(segmentID, nodeID, false, out Vector3 pos1, out Vector3 dir1);
+            CalculateCorner(segmentID, nodeID, true, out Vector3 pos2, out Vector3 dir2);
+            pos = (pos1 + pos2) * 0.5f;
+            dir = (dir1 + dir2) * 0.5f;
+        }
+
         #endregion math
 
         public static float SampleHeight(Vector2 point) {
@@ -217,7 +241,7 @@ namespace KianCommons {
         public static bool LHT => TrafficDrivesOnLeft;
         public static bool RHT => !LHT;
         public static bool TrafficDrivesOnLeft =>
-            Singleton<SimulationManager>.instance.m_metaData.m_invertTraffic
+            Singleton<SimulationManager>.instance?.m_metaData?.m_invertTraffic
                 == SimulationMetaData.MetaBool.True;
 
         public static bool CanConnectPathToSegment(ushort segmentID) =>
@@ -229,12 +253,30 @@ namespace KianCommons {
         public static bool CanConnectPath(this NetInfo info) =>
             info.m_netAI is RoadAI & info.m_hasPedestrianLanes;
 
+        internal static bool IsInvert(this ref NetSegment segment) =>
+            segment.m_flags.IsFlagSet(NetSegment.Flags.Invert);
+
+        internal static bool IsJunction(this ref NetNode node) =>
+            node.m_flags.IsFlagSet(NetNode.Flags.Junction);
+
+        /// <summary>
+        /// checks if vehicles move backward or bypass backward (considers LHT)
+        /// </summary>
+        /// <returns>true if vehicles move backward,
+        /// false if vehilces going ward, bi-directional, or non-directional</returns>
+        internal static bool IsGoingBackward(this NetInfo.Lane laneInfo) =>
+                (laneInfo.m_finalDirection & NetInfo.Direction.Both) == NetInfo.Direction.Backward ||
+                (laneInfo.m_finalDirection & NetInfo.Direction.AvoidBoth) == NetInfo.Direction.AvoidForward;
+
+        internal static bool IsGoingForward(this NetInfo.Lane laneInfo) =>
+                (laneInfo.m_finalDirection & NetInfo.Direction.Both) == NetInfo.Direction.Forward ||
+                (laneInfo.m_finalDirection & NetInfo.Direction.AvoidBoth) == NetInfo.Direction.AvoidForward;
+
         public static bool IsStartNode(ushort segmentId, ushort nodeId) =>
             segmentId.ToSegment().m_startNode == nodeId;
 
         public static bool IsStartNode(this ref NetSegment segment, ushort nodeId) =>
             segment.m_startNode == nodeId;
-
 
         public static ushort GetSegmentNode(ushort segmentID, bool startNode) =>
             segmentID.ToSegment().GetNode(startNode);
@@ -251,18 +293,50 @@ namespace KianCommons {
         public static bool IsSegmentValid(ushort segmentId) {
             if (segmentId == 0)
                 return false;
-            if (segmentId.ToSegment().Info == null)
-                return false;
-            return segmentId.ToSegment().m_flags
-                .CheckFlags(required: NetSegment.Flags.Created, forbidden: NetSegment.Flags.Deleted);
+            return segmentId.ToSegment().IsValid();
         }
+
+        public static bool IsValid(this ref NetSegment segment) {
+            if (segment.Info == null)
+                return false;
+            return segment.m_flags
+                .CheckFlags(required: NetSegment.Flags.Created, forbidden: NetSegment.Flags.Deleted);
+
+        }
+
+        public static bool IsValid(this InstanceID instance) {
+            if (instance.IsEmpty)
+                return false;
+            if (instance.Type == InstanceType.NetNode)
+                return IsNodeValid(instance.NetNode);
+            if (instance.Type == InstanceType.NetSegment)
+                return IsSegmentValid(instance.NetSegment);
+            if (instance.Type == InstanceType.NetLane)
+                return IsLaneValid(instance.NetLane);
+            return true;
+        }
+
+
+        public static void AssertSegmentValid(ushort segmentId) {
+            Assertion.AssertNeq(segmentId, 0, "segmentId");
+            Assertion.AssertNotNull(segmentId.ToSegment().Info, $"segment:{segmentId} info");
+            var flags = segmentId.ToSegment().m_flags;
+            var goodFlags = flags.CheckFlags(required: NetSegment.Flags.Created, forbidden: NetSegment.Flags.Deleted);
+            Assertion.Assert(goodFlags,
+                $"segment {segmentId} {segmentId.ToSegment().Info} has bad flags: {flags}");
+        }
+
 
         public static bool IsNodeValid(ushort nodeId) {
             if (nodeId == 0)
                 return false;
-            if (nodeId.ToNode().Info == null)
+            return nodeId.ToNode().IsValid();
+        }
+
+        public static bool IsValid(this ref NetNode node) {
+            if (node.Info == null)
                 return false;
-            return nodeId.ToNode().m_flags
+            return node.m_flags
                 .CheckFlags(required: NetNode.Flags.Created, forbidden: NetNode.Flags.Deleted);
         }
 
@@ -387,6 +461,18 @@ namespace KianCommons {
             }
         }
 
+        public static NodeSegmentIterator IterateSegments(this ref NetNode node)
+            => new NodeSegmentIterator(node.GetID());
+
+        public static ushort GetAnotherSegment(this ref NetNode node, ushort segmentId0) {
+            for(int i = 0; i < 8; ++i) {
+                ushort segmentId = node.GetSegment(i);
+                if (segmentId != segmentId0 && segmentId != 0)
+                    return segmentId;
+            }
+            return 0;
+        }
+
         [Obsolete("use IterateNodeSegments instead")]
         internal static IEnumerable<ushort> GetSegmentsCoroutine(ushort nodeID)
             => IterateNodeSegments(nodeID);
@@ -448,7 +534,7 @@ namespace KianCommons {
         public static IEnumerable<LaneData> IterateSegmentLanes(ushort segmentId) {
             int idx = 0;
             if (segmentId.ToSegment().Info == null) {
-                Log.Error("null info: potentially caused by missing assets");
+                Log.Error("null info: potentially caused by missing assets. segmentId=" + segmentId);
                 yield break;
             }
             int n = segmentId.ToSegment().Info.m_lanes.Length;
@@ -485,6 +571,17 @@ namespace KianCommons {
         }
 
 
+        public static NetInfo.Lane SortedLane(this NetInfo info, int index) {
+            int sortedIndex = info.m_sortedLanes[index];
+            return info.m_lanes[sortedIndex];
+        }
+
+        public static IEnumerable<NetInfo.Lane> SortedLanes(this NetInfo info) {
+            for (int i = 0; i < info.m_sortedLanes.Length; ++i) {
+                int sortedIndex = info.m_sortedLanes[i];
+                yield return info.m_lanes[sortedIndex];
+            }
+        }
 
         /// <summary>
         /// sorted from outer lane to inner lane when heading toward <paramref name="startNode"/>
@@ -544,14 +641,19 @@ namespace KianCommons {
             }
             return 0;
         }
-
     }
 
+    [Serializable]
     public struct LaneData {
         public uint LaneID;
         public int LaneIndex;
-        public NetInfo.Lane LaneInfo;
         public bool StartNode;
+
+        [NonSerialized] private NetInfo.Lane laneInfo_;
+        public NetInfo.Lane LaneInfo {
+            get => laneInfo_ ??= Segment.Info.m_lanes[LaneIndex];
+            set => laneInfo_ = value;
+        }
 
         public LaneData(uint laneID, int laneIndex = -1) {
             LaneID = laneID;
@@ -560,10 +662,10 @@ namespace KianCommons {
             LaneIndex = laneIndex;
 
             ushort segmentID = LaneID.ToLane().m_segment;
-            LaneInfo = segmentID.ToSegment().Info.m_lanes[LaneIndex];
-            bool forward = LaneInfo.m_finalDirection == NetInfo.Direction.Forward;
+            laneInfo_ = segmentID.ToSegment().Info.m_lanes[LaneIndex];
+            bool backward = laneInfo_.IsGoingBackward();
             bool inverted = segmentID.ToSegment().m_flags.IsFlagSet(NetSegment.Flags.Invert);
-            StartNode = forward ^ !inverted;
+            StartNode = backward == inverted; //xnor
         }
 
         public readonly ushort SegmentID => Lane.m_segment;
@@ -575,8 +677,8 @@ namespace KianCommons {
             set => LaneID.ToLane().m_flags = (ushort)value;
         }
 
-        public readonly bool LeftSide => LaneInfo.m_position < 0 != Segment.m_flags.IsFlagSet(NetSegment.Flags.Invert);
-        public readonly bool RightSide => !LeftSide;
+        public bool LeftSide => LaneInfo.m_position < 0 != Segment.m_flags.IsFlagSet(NetSegment.Flags.Invert);
+        public bool RightSide => !LeftSide;
 
         public readonly Bezier3 Bezier => Lane.m_bezier;
         public override string ToString() {
@@ -587,9 +689,66 @@ namespace KianCommons {
                 return $"LaneData:[segment:{SegmentID} node:{NodeID} lane ID:{LaneID} null";
             }
         }
-        
     }
 
+    public struct LaneIDIterator : IEnumerable<uint>, IEnumerator<uint> {
+        uint laneID_;
+        ushort segmentID_;
 
+        public LaneIDIterator(ushort segmentID) {
+            segmentID_ = segmentID;
+            laneID_ = 0;
+        }
+
+        public void Reset() => laneID_ = 0;
+        public void Dispose() { }
+
+        public uint Current => laneID_;
+
+        public bool MoveNext() {
+            if (laneID_ == 0) {
+                laneID_ = segmentID_.ToSegment().m_lanes;
+                return laneID_ != 0;
+            }
+            uint ret = laneID_.ToLane().m_nextLane;
+            if (ret != 0) laneID_ = ret;
+            return ret != 0;
+        }
+
+        public LaneIDIterator GetEnumerator() => this; 
+        IEnumerator<uint> IEnumerable<uint>.GetEnumerator() => this;
+        IEnumerator IEnumerable.GetEnumerator() => this;
+        object IEnumerator.Current => Current;
+    }
+
+    public struct NodeSegmentIterator : IEnumerable<ushort>, IEnumerator<ushort> {
+        int i_;
+        ushort segmentId_;
+        ushort nodeId_;
+
+        public NodeSegmentIterator(ushort nodeId) {
+            nodeId_ = nodeId;
+            segmentId_ = 0;
+            i_ = 0;
+        }
+
+        public bool MoveNext() {
+            for(; i_<8 ;++i_) {
+                ushort segmentId_ = nodeId_.ToNode().GetSegment(i_);
+                if (segmentId_ != 0)
+                    return true;
+            }
+            segmentId_ = 0;
+            return false;
+        }
+
+        public ushort Current => segmentId_;
+        public NodeSegmentIterator GetEnumerator() => this;
+        public void Reset() => i_ = segmentId_ = 0;
+        public void Dispose() => Reset();
+        object IEnumerator.Current => Current;
+        IEnumerator<ushort> IEnumerable<ushort>.GetEnumerator() => this;
+        IEnumerator IEnumerable.GetEnumerator() => this;
+    }
 }
 

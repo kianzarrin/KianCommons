@@ -6,7 +6,7 @@ namespace KianCommons.UI {
     using UnityEngine;
     using static KianCommons.Assertion;
     using Object = UnityEngine.Object;
-
+    using Plugins;
     public static class TextureUtil {
 
         static UITextureAtlas inGame_;
@@ -123,8 +123,13 @@ namespace KianCommons.UI {
 
 
         public static Stream GetFileStream(string file) {
-            string path = Path.Combine(FILE_PATH, file);
-            return File.OpenRead(path) ?? throw new Exception(path + "not find");
+            try {
+                string path = Path.Combine(FILE_PATH, file);
+                return File.OpenRead(path) ?? throw new Exception(path + "not find");
+            } catch (Exception ex){
+                Log.Exception(ex);
+                throw ex;
+            }
         }
 
         public static Texture2D GetTextureFromFile(string file) {
@@ -133,9 +138,14 @@ namespace KianCommons.UI {
         }
 
         public static Stream GetManifestResourceStream(string file) {
+            try { 
             string path = string.Concat(PATH, file);
             return Assembly.GetExecutingAssembly().GetManifestResourceStream(path)
                 ?? throw new Exception(path + "not find");
+            } catch (Exception ex) {
+                Log.Exception(ex);
+                throw ex;
+            }
         }
 
         // useful to load cursor textures.

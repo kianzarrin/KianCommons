@@ -18,6 +18,15 @@ namespace KianCommons {
             where T : IComparable
             => AssertNeq(a, b, m);
 
+        [Conditional("DEBUG")]
+        internal static void AssertGTDebug<T>(T a, T b, string m = "") where T : IComparable =>
+            Assert(a.CompareTo(b) > 0, $"expected {a} > {b} | " + m);
+
+        [Conditional("DEBUG")]
+        internal static void AssertGTEqDebug<T>(T a, T b, string m = "") where T : IComparable =>
+            Assert(a.CompareTo(b) >= 0, $"expected {a} >= {b} | " + m);
+
+
         internal static void AssertNotNull(object obj, string m = "") =>
             Assert(obj != null, " unexpected null " + m);
 
@@ -27,6 +36,12 @@ namespace KianCommons {
         internal static void AssertNeq<T>(T a, T b, string m = "") where T : IComparable =>
             Assert(a.CompareTo(b) != 0, $"expected {a} != {b} | " + m);
 
+        internal static void AssertGT<T>(T a, T b, string m = "") where T : IComparable =>
+            Assert(a.CompareTo(b) > 0, $"expected {a} > {b} | " + m);
+
+        internal static void AssertGTEq<T>(T a, T b, string m = "") where T : IComparable =>
+            Assert(a.CompareTo(b) >= 0, $"expected {a} >= {b} | " + m);
+
         internal static void Assert(bool con, string m = "") {
             if (!con) {
                 m = "Assertion failed: " + m;
@@ -35,10 +50,11 @@ namespace KianCommons {
             }
         }
 
+
         internal static void AssertStack() {
             var frames = new StackTrace().FrameCount;
             //Log.Debug("stack frames=" + frames);
-            if (frames > 100) {
+            if (frames > 200) {
                 Exception e = new StackOverflowException("stack frames=" + frames);
                 Log.Error(e.ToString());
                 throw e;

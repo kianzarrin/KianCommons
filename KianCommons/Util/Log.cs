@@ -43,7 +43,11 @@ namespace KianCommons {
 
         private static StreamWriter filerWrier_;
 
+        private static object LogLock = new object();
+
         internal static bool ShowGap = false;
+
+        internal static bool VERBOSE { get; set; } = false;
 
         private static long prev_ms_;
 
@@ -72,13 +76,15 @@ namespace KianCommons {
         /// </summary>
         internal static void Flush() {
             if (filerWrier_ != null) {
-                lock (filerWrier_)
+                lock (LogLock)
                     filerWrier_.Flush();
             }
         }
 
         public static Stopwatch GetSharedTimer() {
-            var t = Type.GetType("LoadOrderIPatch.Patches.LoggerPatch, LoadOrderIPatch", throwOnError: false);
+            var asm = AppDomain.CurrentDomain.GetAssemblies()
+                .FirstOrDefault(_asm => _asm.GetName().Name == "LoadOrderIPatch");
+            var t = asm?.GetType("LoadOrderIPatch.Patches.LoggerPatch", throwOnError: false);
             return t?.GetField("m_Timer")?.GetValue(null) as Stopwatch;
         }
 
@@ -88,11 +94,16 @@ namespace KianCommons {
         /// </summary>
         static Log() {
             try {
-                LogFilePath = Path.Combine(Application.dataPath, "Logs");
-                LogFilePath = Path.Combine(LogFilePath, LogFileName);
-                if (File.Exists(LogFilePath)) {
+                var dir = Path.Combine(Application.dataPath, "Logs");
+                LogFilePath = Path.Combine(dir, LogFileName);
+                var oldFilePath = Path.Combine(Application.dataPath, LogFileName);
+                if (!Directory.Exists(dir))
+                    Directory.CreateDirectory(dir);
+                if (File.Exists(LogFilePath))
                     File.Delete(LogFilePath);
-                }
+                if (File.Exists(oldFilePath))
+                    File.Delete(oldFilePath);
+
 
                 if (ShowTimestamp) {
                     Timer = GetSharedTimer() ?? Stopwatch.StartNew();
@@ -102,9 +113,13 @@ namespace KianCommons {
                 Info($"Log file at " + LogFilePath, true);
                 Info($"{details.Name} Version:{details.Version} " +
                      $"Commit:{ThisAssembly.Git.Commit} " +
-                     $"CommitDate={ThisAssembly.Git.CommitDate}", true);
-            } catch {
-                // ignore
+                     $"CommitDate:{ThisAssembly.Git.CommitDate}", true);
+                string oldPath = Path.Combine(Application.dataPath, LogFileName);
+                if (File.Exists(oldPath))
+                    File.Delete(oldPath);
+
+            } catch (Exception ex) {
+                Log.LogUnityException(ex);
             }
         }
 
@@ -176,22 +191,28 @@ namespace KianCommons {
 
         }
 
-        internal static void Exception(Exception e, string m = "", bool showInPanel = true) {
-            if (e == null)
+        internal static void Exception(Exception ex, string m = "", bool showInPanel = true) {
+            if (ex == null)
                 Log.Error("null argument e was passed to Log.Exception()");
             try {
-                string message = e.ToString() + $"\n\t-- {assemblyName_}:end of inner stack trace --";
-                if (!m.IsNullorEmpty())
+                string message = ex.ToString() + $"\n\t-- {assemblyName_}:end of inner stack trace --";
+                if (!string.IsNullOrEmpty(m))
                     message = m + " -> \n" + message;
                 LogImpl(message, LogLevel.Exception, true);
                 if (showInPanel)
-                    UIView.ForwardException(e);
-            } catch (Exception e2) {
-                Log.Error($"Log.Exception throw an exceotion:{e.STR()} \n {e2.STR()}");
+                    UIView.ForwardException(ex);
+            } catch (Exception ex2) {
+                Log.LogUnityException(ex2);
             }
         }
 
-        static string nl = Environment.NewLine;
+        internal static void LogUnityException(Exception ex, bool showInPanel = true) {
+            UnityEngine.Debug.LogException(ex);
+            if (showInPanel)
+                UIView.ForwardException(ex);
+        }
+
+        static string nl = "\n";
 
         /// <summary>
         /// Write a message to log file.
@@ -220,16 +241,17 @@ namespace KianCommons {
 
                 m += message;
                 if (level == LogLevel.Error || level == LogLevel.Exception) {
-                    m += nl + new StackTrace(true).ToString() + nl;
+                    m += nl + GetStackTrace();
+                    m = nl + m + nl; // create line space to draw attention.
                 }
 
-
-                if (filerWrier_ != null) {
-                    lock (filerWrier_)
+                lock (LogLock) {
+                    if (filerWrier_ != null) {
                         filerWrier_.WriteLine(m);
-                } else {
-                    using (StreamWriter w = File.AppendText(LogFilePath))
-                        w.WriteLine(m);
+                    } else {
+                        using (StreamWriter w = File.AppendText(LogFilePath))
+                            w.WriteLine(m);
+                    }
                 }
 
                 if (copyToGameLog) {
@@ -237,6 +259,7 @@ namespace KianCommons {
                     // this is a good time to flush if neccessary.
                     Flush();
                     m = assemblyName_ + " | " + m;
+                    m = RemoveExtraNewLine(m);
                     switch (level) {
                         case LogLevel.Error:
                         case LogLevel.Exception:
@@ -247,10 +270,24 @@ namespace KianCommons {
                             break;
                     }
                 }
-            } catch {
-                // ignore
+            } catch (Exception ex) {
+                Log.LogUnityException(ex);
             }
         }
+
+        static string GetStackTrace() {
+            var st = new StackTrace();
+            int i;
+            for(i=0;i<st.FrameCount;++i) {
+                var util = st.GetFrame(i).GetMethod().DeclaringType;
+                bool utilFrame = util == typeof(Assertion) || util == typeof(Log);
+                if (!utilFrame) break;
+            }
+            return new StackTrace(i - 1, true).ToString(); // keep the last assertion/log frame.
+        }
+
+        public static string RemoveExtraNewLine(string str)
+            => str.Replace("\r\n", "\n");
 
         internal static void LogToFileSimple(string file, string message) {
             using (StreamWriter w = File.AppendText(file)) {

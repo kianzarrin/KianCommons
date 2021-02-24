@@ -1,10 +1,27 @@
 using System;
 using ColossalFramework.UI;
 using UnityEngine;
-using KianCommons.UI;
+using static KianCommons.ReflectionHelpers;
+using KianCommons;
+using System.Reflection;
 
 namespace KianCommons.UI.Helpers {
-    public class UIDropDownExt : UIDropDown{
+    internal static class UIDropDownExtensions {
+        static FieldInfo fPopop = GetField(typeof(UIDropDown), "m_Popup");
+
+        internal static UIListBox GetPopup(this UIDropDown dd) => fPopop.GetValue(dd) as UIListBox;
+
+        static FieldInfo fHoverIndex = GetField(typeof(UIListBox), "m_HoverIndex");
+
+        internal static int GetHoverIndex(this UIDropDown dd) {
+            var popup = dd.GetPopup();
+            if (popup == null || !popup.isVisible)
+                return -1;
+            return (int)fHoverIndex.GetValue(popup);
+        }
+    }
+
+    internal class UIDropDownExt : UIDropDown{
         public override void Awake() {
             base.Awake();
             atlas = TextureUtil.GetAtlas("Ingame");

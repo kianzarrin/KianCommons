@@ -4,12 +4,18 @@ namespace KianCommons {
     using System.Collections.Generic;
     using System.Linq;
     using static KianCommons.Math.MathUtil;
+    using System.Reflection;
+    using static KianCommons.ReflectionHelpers;
 
     internal static class EnumBitMaskExtensions {
-        internal static int String2Enum<T>(string str) where T : Enum {
-            return Array.IndexOf(Enum.GetNames(typeof(T)), str);
-        }
-
+        [Obsolete("this is buggy as it assumes enum is 0,1,2,3,4 ...\n" +
+            "use String2EnumValue instead")]
+        internal static int String2Enum<T>(string str) where T : Enum =>
+            Array.IndexOf(Enum.GetNames(typeof(T)), str);
+        
+        internal static object String2EnumValue<T>(string str) where T : Enum =>
+            Enum.Parse(typeof(T), str);
+            
         internal static T Max<T>()
             where T : Enum =>
             Enum.GetValues(typeof(T)).Cast<T>().Max();
@@ -51,14 +57,14 @@ namespace KianCommons {
             }
         }
 
-        internal static bool CheckFlags(this NetNode.Flags value, NetNode.Flags required, NetNode.Flags forbidden) =>
+        internal static bool CheckFlags(this NetNode.Flags value, NetNode.Flags required, NetNode.Flags forbidden =0) =>
             (value & (required | forbidden)) == required;
 
 
-        internal static bool CheckFlags(this NetSegment.Flags value, NetSegment.Flags required, NetSegment.Flags forbidden) =>
+        internal static bool CheckFlags(this NetSegment.Flags value, NetSegment.Flags required, NetSegment.Flags forbidden=0) =>
             (value & (required | forbidden)) == required;
 
-        internal static bool CheckFlags(this NetLane.Flags value, NetLane.Flags required, NetLane.Flags forbidden) =>
+        internal static bool CheckFlags(this NetLane.Flags value, NetLane.Flags required, NetLane.Flags forbidden=0) =>
             (value & (required | forbidden)) == required;
 
         public static IEnumerable<T> GetPow2ValuesU32<T>() where T : struct, IConvertible {
@@ -93,5 +99,23 @@ namespace KianCommons {
                     yield return (int)val;
             }
         }
+
+        public static MemberInfo GetEnumMember(this Type enumType, object value) {
+            if (enumType is null) throw new ArgumentNullException("enumType");
+            string name = Enum.GetName(enumType, value);
+            if (name == null)
+                throw new Exception($"{enumType.GetType().Name}:{value} not found");
+            return enumType.GetMember(name, ALL).FirstOrDefault() ??
+                throw new Exception($"{enumType.GetType().Name}.{name} not found");
+        }
+
+        public static T[] GetEnumMemberAttributes<T>(Type enumType, object value)
+            where T : Attribute {
+            return enumType.GetEnumMember(value).GetAttributes<T>();
+        }
+
+
+        public static T[] GetEnumValues<T>() where T: struct, IConvertible =>
+            Enum.GetValues(typeof(T)) as T[];
     }
 }

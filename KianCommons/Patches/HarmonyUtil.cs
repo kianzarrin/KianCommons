@@ -4,6 +4,7 @@ namespace KianCommons {
     using System.Reflection;
     using System;
     using System.Runtime.CompilerServices;
+    using static KianCommons.ReflectionHelpers;
 
     public static class HarmonyUtil {
         static bool harmonyInstalled_ = false;
@@ -91,8 +92,7 @@ namespace KianCommons {
         static void ManualPatchUnSafe(Type t, string harmonyID) {
             try {
                 MethodBase targetMethod =
-                    AccessTools.DeclaredMethod(t, "TargetMethod")
-                    .Invoke(null, null) as MethodBase ;
+                    InvokeMethod(t, "TargetMethod") as MethodBase ;
                 Log.Info($"{t.FullName}.TorgetMethod()->{targetMethod}", true);
                 Assertion.AssertNotNull(targetMethod, $"{t.FullName}.TargetMethod() returned null");
                 var prefix = GetHarmonyMethod(t, "Prefix");
@@ -108,12 +108,10 @@ namespace KianCommons {
         }
 
         public static HarmonyMethod GetHarmonyMethod(Type t, string name) {
-            var m = AccessTools.DeclaredMethod(t, name);
+            var m = GetMethod(t, name, throwOnError:false);
             if (m == null) return null;
             Assertion.Assert(m.IsStatic, $"{m}.IsStatic");
             return new HarmonyMethod(m);
         }
-
-
     }
 }

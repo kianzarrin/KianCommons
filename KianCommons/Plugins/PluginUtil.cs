@@ -1,4 +1,4 @@
-namespace KianCommons {
+namespace KianCommons.Plugins {
     using System;
     using ColossalFramework.Plugins;
     using ICities;
@@ -7,6 +7,9 @@ namespace KianCommons {
     using static ColossalFramework.Plugins.PluginManager;
     using ColossalFramework.PlatformServices;
     using UnityEngine.Assertions;
+    using System.Linq;
+    using System.Collections;
+    using System.Collections.Generic;
 
     public static class PluginExtensions {
         public static IUserMod GetUserModInstance(this PluginInfo plugin) => plugin.userModInstance as IUserMod;
@@ -15,19 +18,54 @@ namespace KianCommons {
 
         public static ulong GetWorkshopID(this PluginInfo plugin) => plugin.publishedFileID.AsUInt64;
 
-        public static bool IsActive(this PluginInfo pluggin) => pluggin?.isEnabled ?? false;
+        /// <summary>
+        /// shortcut for plugin?.isEnabled ?? false
+        /// </summary>
+        public static bool IsActive(this PluginInfo plugin) => plugin?.isEnabled ?? false;
 
-        public static Assembly GetMainAssembly(this PluginInfo pluggin) => pluggin?.userModInstance?.GetType()?.Assembly;
+        public static Assembly GetMainAssembly(this PluginInfo plugin) => plugin?.userModInstance?.GetType()?.Assembly;
+
+        public static bool IsLocal(this PluginInfo plugin) =>
+            plugin.GetWorkshopID() == 0 || plugin.publishedFileID == PublishedFileId.invalid;
     }
 
     public static class PluginUtil {
         static PluginManager man => PluginManager.instance;
 
+        public static PluginInfo GetCurrentAssemblyPlugin() => GetPlugin(Assembly.GetExecutingAssembly());
+
+        public static void LogPlugins(bool detailed=false) {
+            string PluginToString(PluginInfo p) {
+                string enabled = p.isEnabled ? "*" : " ";
+                string id = p.IsLocal() ? "(local)" : p.GetWorkshopID().ToString();
+                id.PadRight(12);
+                if(!detailed)
+                    return $"\t{enabled} {id} {p.GetModName()}";
+#pragma warning disable
+                return $"\t{enabled} " +
+                    $"{id} " +
+                    $"mod-name:{p.GetModName()} " +
+                    $"asm-name:{p.GetMainAssembly()?.Name()} " +
+                    $"user-mod-type:{p?.userModInstance?.GetType().Name}";
+#pragma warning restore
+            }
+
+            var plugins = man.GetPluginsInfo().ToList();
+            plugins.Sort((a, b) => b.isEnabled.CompareTo(a.isEnabled)); // enabled first
+            var m = plugins.Select(p => PluginToString(p)).JoinLines();
+            Log.Info("Installed mods are:\n" + m, true);
+        }
+
+
+        public static void ReportIncomaptibleMods(IEnumerable<PluginInfo> plugins) {
+            // TODO complete:
+        }
+
         public static PluginInfo GetCSUR() => GetPlugin("CSUR ToolBox", 1959342332ul);
-        public static PluginInfo GetAdaptiveRoads() => PluginUtil.GetPlugin("AdaptiveRoads");
-        public static PluginInfo GetHideCrossings() => PluginUtil.GetPlugin(
-            "HideCrosswalks",
-            searchOptions: SearchOptionT.AssemblyName | SearchOptionT.Equals | SearchOptionT.AllOptions);
+        public static PluginInfo GetAdaptiveRoads() => GetPlugin("AdaptiveRoads");
+        public static PluginInfo GetHideCrossings() => GetPlugin("HideCrosswalks", searchOptions: AssemblyEquals);
+        public static PluginInfo GetTrafficManager() => GetPlugin("TrafficManager", searchOptions: AssemblyEquals);
+        public static PluginInfo GetNetworkDetective() => GetPlugin("NetworkDetective", searchOptions: AssemblyEquals);
 
         [Obsolete]
         internal static bool CSUREnabled;
@@ -73,9 +111,10 @@ namespace KianCommons {
 
             StartsWidth = 1<<1,
 
+            [Obsolete("always active")]
             Equals = 1<<2,
 
-            AllModes = Contains | StartsWidth | Equals,
+            AllModes = Contains | StartsWidth,
 
             /// <summary></summary>
             CaseInsensetive = 1 << 3,
@@ -105,13 +144,18 @@ namespace KianCommons {
 
 
         public const SearchOptionT DefaultsearchOptions =
-            SearchOptionT.Contains | SearchOptionT.IgnoreWhiteSpace | SearchOptionT.CaseInsensetive | SearchOptionT.UserModName;
+            SearchOptionT.Contains | SearchOptionT.AllOptions | SearchOptionT.UserModName;
 
-        public static PluginInfo GetPlugin(string searchName, ulong searchId, SearchOptionT searchOptions = DefaultsearchOptions) {
+        public const SearchOptionT AssemblyEquals =
+            SearchOptionT.AllOptions | SearchOptionT.AssemblyName;
+
+        public static PluginInfo GetPlugin(
+            string searchName, ulong searchId, SearchOptionT searchOptions = DefaultsearchOptions) {
             return GetPlugin(searchName, new[] { searchId }, searchOptions);
         }
 
-        public static PluginInfo GetPlugin(string searchName, ulong[] searchIds = null, SearchOptionT searchOptions = DefaultsearchOptions) {
+        public static PluginInfo GetPlugin(
+            string searchName, ulong[] searchIds = null, SearchOptionT searchOptions = DefaultsearchOptions) {
             foreach (PluginInfo current in PluginManager.instance.GetPluginsInfo()) {
                 if (current == null) continue;
 
@@ -138,21 +182,20 @@ namespace KianCommons {
 
                 if (searchOptions.IsFlagSet(SearchOptionT.AssemblyName)) {
                     Assembly asm = current.GetMainAssembly();
-                    match = match || Match(asm.GetName().Name, searchName, searchOptions);
+                    match = match || Match(asm?.Name(), searchName, searchOptions);
                 }
 
                 if (match) {
-                    Log.Info("Found pluggin:" + current.GetModName());
+                    Log.Info("Found plugin:" + current.GetModName());
                     return current;
                 }
             }
-            Log.Info("failed to find plugin:" + searchName);
+            Log.Info($"plugin not found: keyword={searchName} options={searchOptions}");
             return null;
         }
 
         public static bool Match(string name1, string name2, SearchOptionT searchOptions = DefaultsearchOptions) {
-            if (!StringExtensions.ToBool(name1)) return false;
-            Assertion.Assert((searchOptions & SearchOptionT.AllModes) != 0);
+            if (string.IsNullOrEmpty(name1)) return false;
             Assertion.Assert((searchOptions & SearchOptionT.AllTargets) != 0);
 
             if (searchOptions.IsFlagSet(SearchOptionT.CaseInsensetive)) {
@@ -164,19 +207,17 @@ namespace KianCommons {
                 name2 = name2.Replace(" ", "");
             }
 
-            if(HelpersExtensions.VERBOSE)
+            if(Log.VERBOSE)
                 Log.Debug($"[MATCHING] : {name1} =? {name2} " + searchOptions);
 
+            if (name1 == name2)
+                return true;
             if (searchOptions.IsFlagSet(SearchOptionT.Contains)) {
                 if (name1.Contains(name2))
                     return true;
             }
             if (searchOptions.IsFlagSet(SearchOptionT.StartsWidth)) {
                 if (name1.StartsWith(name2))
-                    return true;
-            }
-            if (searchOptions.IsFlagSet(SearchOptionT.Equals)) {
-                if (name1 == name2)
                     return true;
             }
             return false;

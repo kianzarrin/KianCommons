@@ -3,13 +3,13 @@ namespace KianCommons.UI {
     using UnityEngine;
 
     public class UIButtonExt : UIButton {
-        public static UIButtonExt Instance { get; private set; }
+        //public static UIButtonExt Instance { get; private set; }
         public bool ParentWith;
 
         public override void Awake() {
             base.Awake();
             ParentWith = true;
-            Instance = this;
+            //Instance = this;
             name = GetType().FullName;
 
             height = 30f;
