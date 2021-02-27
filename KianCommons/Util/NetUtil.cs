@@ -733,9 +733,9 @@ namespace KianCommons {
         }
 
         public bool MoveNext() {
-            for(; i_<8 ;++i_) {
-                ushort segmentId_ = nodeId_.ToNode().GetSegment(i_);
-                if (segmentId_ != 0)
+            while(i_ < 8) {
+                segmentId_ = nodeId_.ToNode().GetSegment(i_++);
+                if(segmentId_ != 0)
                     return true;
             }
             segmentId_ = 0;
