@@ -124,6 +124,7 @@ namespace KianCommons {
             Debug,
             Info,
             Error,
+            Warning,
             Exception,
         }
 
@@ -182,7 +183,10 @@ namespace KianCommons {
         /// <param name="copyToGameLog">If <c>true</c> will copy to the main game log file.</param>
         public static void Error(string message, bool copyToGameLog = true) {
             LogImpl(message, LogLevel.Error, copyToGameLog);
+        }
 
+        public static void Warning(string message, bool copyToGameLog = true) {
+            LogImpl(message, LogLevel.Warning, copyToGameLog);
         }
 
         internal static void Exception(Exception ex, string m = "", bool showInPanel = true) {
@@ -219,7 +223,7 @@ namespace KianCommons {
                 var ticks = Timer.ElapsedTicks;
                 string m = "";
                 if (ShowLevel) {
-                    int maxLen = Enum.GetNames(typeof(LogLevel)).Select(str => str.Length).Max();
+                    int maxLen = Enum.GetNames(typeof(LogLevel)).Max(str => str.Length);
                     m += string.Format($"{{0, -{maxLen}}}", $"[{level}] ");
                 }
 
@@ -258,6 +262,9 @@ namespace KianCommons {
                         case LogLevel.Error:
                         case LogLevel.Exception:
                             UnityEngine.Debug.LogError(m);
+                            break;
+                        case LogLevel.Warning:
+                            UnityEngine.Debug.LogWarning(m);
                             break;
                         default:
                             UnityEngine.Debug.Log(m);
