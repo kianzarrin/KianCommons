@@ -87,7 +87,7 @@ namespace KianCommons {
             var fields = type.GetAllFields(declaredOnly: true);
             foreach(var f in fields) {
                 if(f.FieldType.IsClass) {
-                    if(HelpersExtensions.VERBOSE)
+                    if(Log.VERBOSE)
                         Log.Debug($"SetAllDeclaredFieldsToNull: setting {instance}.{f} = null");
                     f.SetValue(instance, null);
                 }
@@ -271,6 +271,11 @@ namespace KianCommons {
         internal static object InvokeMethod(object instance, string method) {
             var type = instance.GetType();
             return GetMethod(type, method, true)?.Invoke(instance, null);
+        }
+
+        internal static object InvokeSetter(object instance, string propertyName, object value) {
+            var type = instance.GetType();
+            return GetMethod(type, propertyName, true)?.Invoke(instance, new object[] { value });
         }
 
         internal static EventInfo GetEvent(Type type, string eventName, bool throwOnError = true) {

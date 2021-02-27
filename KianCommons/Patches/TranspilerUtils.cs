@@ -7,7 +7,7 @@ namespace KianCommons.Patches {
     using System.Reflection.Emit;
 
     public static class TranspilerUtils {
-        static bool VERBOSE => HelpersExtensions.VERBOSE;
+        static bool VERBOSE => KianCommons.Log.VERBOSE;
         static void Log(object message) {
             KianCommons.Log.Info("TRANSPILER " + message);
         }
@@ -70,7 +70,7 @@ namespace KianCommons.Patches {
         internal static MethodInfo GetCoroutineMoveNext(Type declaringType, string name) {
             Type t = declaringType.GetNestedTypes(ALL)
                 .Single(_t => _t.Name.Contains($"<{name}>"));
-            return GetMethod(t, "MoveNext");
+            return ReflectionHelpers.GetMethod(t, "MoveNext");
         }
 
         public static List<CodeInstruction> ToCodeList(this IEnumerable<CodeInstruction> instructions) {

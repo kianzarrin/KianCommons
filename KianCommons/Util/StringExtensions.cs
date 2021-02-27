@@ -117,7 +117,7 @@ namespace KianCommons {
                 if (item is KeyValuePair<InstanceID, InstanceID> map)
                     s = map.ToSTR();
                 else
-                    s = item.ToString();
+                    s = item?.ToString()?? "<null>";
                 ret += $"{s}, ";
             }
             ret.Remove(ret.Length - 2, 2);

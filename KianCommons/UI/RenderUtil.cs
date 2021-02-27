@@ -18,9 +18,9 @@ namespace KianCommons.UI {
                        bool bStartNode,
                        Color color,
                        bool alpha = false) {
-            if (segmentId == 0) {
+            if (!NetUtil.IsSegmentValid(segmentId))
                 return;
-            }
+
             ref NetSegment segment = ref segmentId.ToSegment();
             float halfWidth = segment.Info.m_halfWidth;
 
@@ -67,9 +67,9 @@ namespace KianCommons.UI {
                    float width,
                    Color color,
                    bool alpha = false) {
-            if (segmentId == 0) {
+            if (!NetUtil.IsSegmentValid(segmentId))
                 return;
-            }
+
             ref NetSegment segment = ref segmentId.ToSegment();
             float halfWidth = segment.Info.m_halfWidth;
             Bezier3 bezier = segment.CalculateSegmentBezier3();
@@ -103,7 +103,8 @@ namespace KianCommons.UI {
             ushort segmentId,
             Color color,
             bool alphaBlend = false) {
-            if (segmentId == 0) return;
+            if (!NetUtil.IsSegmentValid(segmentId))
+                return;
 
             ref NetSegment segment = ref segmentId.ToSegment();
             float hw = segment.Info.m_halfWidth;
@@ -142,7 +143,7 @@ namespace KianCommons.UI {
             InstanceID instanceID,
             Color color,
             bool alphaBlend = false) {
-            if (instanceID.IsEmpty)
+            if (!instanceID.IsValid())
                 return;
             switch (instanceID.Type) {
                 case InstanceType.NetLane:

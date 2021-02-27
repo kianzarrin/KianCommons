@@ -1,4 +1,5 @@
 namespace KianCommons.Serialization {
+    using UnityEngine;
     using System;
     using System.IO;
     using System.Linq;
@@ -43,7 +44,7 @@ namespace KianCommons.Serialization {
             var fields = instance.GetType().GetFields().Where(field => !field.IsStatic);
             foreach (FieldInfo field in fields) {
                 var type = field.GetType();
-                if (type == typeof(FixedVector3D)) {
+                if (type == typeof(Vector3)) {
                     //Vector3Serializable v = (Vector3Serializable)field.GetValue(instance);
                     info.AddValue(field.Name, field.GetValue(instance), typeof(Vector3Serializable));
                 } else { 
@@ -73,8 +74,9 @@ namespace KianCommons.Serialization {
             }
         }
 
-        public static Vector3Serializable GetVector3(this SerializationInfo info, string name) =>
-            (Vector3Serializable)info.GetValue(name, typeof(Vector3Serializable));
+        public static T GetValue<T>(this SerializationInfo info, string name) =>
+            (T)info.GetValue(name, typeof(T));
+        
     }
 
     internal static class IOExtensions {

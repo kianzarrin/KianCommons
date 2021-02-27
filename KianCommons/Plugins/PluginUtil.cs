@@ -1,4 +1,4 @@
-namespace KianCommons {
+namespace KianCommons.Plugins {
     using System;
     using ColossalFramework.Plugins;
     using ICities;

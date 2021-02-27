@@ -6,7 +6,7 @@ namespace KianCommons.UI {
     using UnityEngine;
     using static KianCommons.Assertion;
     using Object = UnityEngine.Object;
-
+    using Plugins;
     public static class TextureUtil {
 
         static UITextureAtlas inGame_;
