@@ -259,18 +259,36 @@ namespace KianCommons {
         internal static bool IsJunction(this ref NetNode node) =>
             node.m_flags.IsFlagSet(NetNode.Flags.Junction);
 
+
+        internal static NetInfo.Direction Invert(this NetInfo.Direction direction, bool invert = true) {
+            if (invert)
+                direction = NetInfo.InvertDirection(direction);
+            return direction;
+        }
+
         /// <summary>
         /// checks if vehicles move backward or bypass backward (considers LHT)
         /// </summary>
         /// <returns>true if vehicles move backward,
         /// false if vehilces going ward, bi-directional, or non-directional</returns>
-        internal static bool IsGoingBackward(this NetInfo.Lane laneInfo) =>
-                (laneInfo.m_finalDirection & NetInfo.Direction.Both) == NetInfo.Direction.Backward ||
-                (laneInfo.m_finalDirection & NetInfo.Direction.AvoidBoth) == NetInfo.Direction.AvoidForward;
+        internal static bool IsGoingBackward(this NetInfo.Direction direction) =>
+            (direction & NetInfo.Direction.Both) == NetInfo.Direction.Backward ||
+            (direction & NetInfo.Direction.AvoidBoth) == NetInfo.Direction.AvoidForward;
 
-        internal static bool IsGoingForward(this NetInfo.Lane laneInfo) =>
-                (laneInfo.m_finalDirection & NetInfo.Direction.Both) == NetInfo.Direction.Forward ||
-                (laneInfo.m_finalDirection & NetInfo.Direction.AvoidBoth) == NetInfo.Direction.AvoidForward;
+        internal static bool IsGoingForward(this NetInfo.Direction direction) =>
+            (direction & NetInfo.Direction.Both) == NetInfo.Direction.Forward ||
+            (direction & NetInfo.Direction.AvoidBoth) == NetInfo.Direction.AvoidBackward;
+
+        /// <summary>
+        /// checks if vehicles move backward or bypass backward (considers LHT)
+        /// </summary>
+        /// <returns>true if vehicles move backward,
+        /// false if vehilces going ward, bi-directional, or non-directional</returns>
+        internal static bool IsGoingBackward(this NetInfo.Lane laneInfo, bool invertDirection = false) =>
+            laneInfo.m_finalDirection.Invert(invertDirection).IsGoingForward();
+
+        internal static bool IsGoingForward(this NetInfo.Lane laneInfo, bool invertDirection = false) =>
+            laneInfo.m_finalDirection.Invert(invertDirection).IsGoingBackward();
 
         public static bool IsStartNode(ushort segmentId, ushort nodeId) =>
             segmentId.ToSegment().m_startNode == nodeId;
