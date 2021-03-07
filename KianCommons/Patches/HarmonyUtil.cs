@@ -38,9 +38,6 @@ namespace KianCommons {
                 PatchAll(harmonyID);
                 harmonyInstalled_ = true;
                 Log.Info("Patched.");
-
-
-
             } catch (TypeLoadException ex) {
                 Log.Exception(new TypeLoadException(errorMessage_, ex));
             } catch (Exception ex){
@@ -51,14 +48,9 @@ namespace KianCommons {
         /// <typeparam name="T">Only install classes with this attribute</typeparam>
         internal static void InstallHarmony<T>(string harmonyID) where T : Attribute {
             try {
-                if(harmonyInstalled_) {
-                    Log.Info("skipping harmony installation because its already installed");
-                    return;
-                }
                 AssertCitiesHarmonyInstalled();
                 Log.Info("Patching...");
                 PatchAll(harmonyID, required: typeof(T));
-                harmonyInstalled_ = true;
                 Log.Info("Patched.");
             } catch(TypeLoadException ex) {
                 Log.Exception(new TypeLoadException(errorMessage_, ex));
@@ -70,16 +62,11 @@ namespace KianCommons {
         internal static void InstallHarmony(
             string harmonyID,
             Type required = null,
-            Type forbidden=null) {
+            Type forbidden = null) {
             try {
-                if(harmonyInstalled_) {
-                    Log.Info("skipping harmony installation because its already installed");
-                    return;
-                }
                 AssertCitiesHarmonyInstalled();
                 Log.Info("Patching...");
                 PatchAll(harmonyID, required: required, forbidden: forbidden);
-                harmonyInstalled_ = true;
                 Log.Info("Patched.");
             } catch(TypeLoadException ex) {
                 Log.Exception(new TypeLoadException(errorMessage_, ex));
