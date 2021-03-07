@@ -13,7 +13,7 @@ namespace KianCommons {
     /// When mod activates, it creates a log file in same location as `output_log.txt`.
     /// Mac users: It will be in the Cities app contents.
     /// </summary>
-    public class Log {
+    public static class Log {
         /// <summary>
         /// Set to <c>true</c> to include log level in log entries.
         /// </summary>
@@ -214,6 +214,16 @@ namespace KianCommons {
             UnityEngine.Debug.LogException(ex);
             if (showInPanel)
                 UIView.ForwardException(ex);
+        }
+
+        internal static void ShowModalException(string title, string message, bool error = false) {
+            UIView.library.ShowModal<ExceptionPanel>("ExceptionPanel")
+                .SetMessage(title,message,error);
+            string m = title + " : " + message;
+            if(error)
+                Log.Error(m, true);
+            else
+                Log.Info(m, true);           
         }
 
         static string nl = "\n";
