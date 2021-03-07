@@ -99,9 +99,9 @@ namespace KianCommons {
             foreach(var type in AccessTools.GetTypesFromAssembly(assembly)) {
                 try {
                     if(required is not null && !type.HasAttribute(required))
-                        break;
+                        continue;
                     if(forbidden is not null && type.HasAttribute(forbidden))
-                        break;
+                        continue;
                     harmony.CreateClassProcessor(type).Patch();
                 } catch(Exception ex) {
                     Log.Exception(ex);
