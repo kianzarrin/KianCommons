@@ -42,10 +42,12 @@ namespace KianCommons {
             var flags = laneId.ToLane().Flags();
             bool valid = (flags & NetLane.Flags.Created | NetLane.Flags.Deleted) != NetLane.Flags.Created;
             Assertion.Assert(valid, "valid");
-            foreach (var laneData in IterateSegmentLanes(laneId.ToLane().m_segment))
+            ushort segmentId = laneId.ToLane().m_segment;
+            foreach (var laneData in IterateSegmentLanes(segmentId))
                 if (laneData.LaneID == laneId)
                     return laneData;
-            throw new Exception("Unreachable code");
+            throw new Exception($"Unreachable code. " +
+                $"lane:{laneId} segment:{segmentId} info:{segmentId.ToSegment().Info}");
         }
 
         public static bool IsCSUR(this NetInfo info) {
@@ -701,10 +703,10 @@ namespace KianCommons {
         public readonly Bezier3 Bezier => Lane.m_bezier;
         public override string ToString() {
             try {
-                return $"LaneData:[segment:{SegmentID} node:{NodeID} laneID:{LaneID} Index={LaneIndex} {LaneInfo?.m_laneType} { LaneInfo?.m_vehicleType}]";
+                return $"LaneData:[segment:{SegmentID} segmentInfo:{Segment.Info} node:{NodeID} laneID:{LaneID} Index={LaneIndex} {LaneInfo?.m_laneType} { LaneInfo?.m_vehicleType}]";
             }
             catch (NullReferenceException) {
-                return $"LaneData:[segment:{SegmentID} node:{NodeID} lane ID:{LaneID} null";
+                return $"LaneData:[segment:{SegmentID} segmentInfo:{Segment.Info} node:{NodeID} lane ID:{LaneID} null";
             }
         }
     }
