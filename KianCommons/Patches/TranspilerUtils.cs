@@ -54,7 +54,7 @@ namespace KianCommons.Patches {
             where TDelegate : Delegate {
             return type.GetMethod(
                 name,
-                bindingFlags: ReflectionHelpers.ALL_Declared,
+                binding: ReflectionHelpers.ALL_Declared,
                 types:GetParameterTypes<TDelegate>(),
                 throwOnError:true);
         }
