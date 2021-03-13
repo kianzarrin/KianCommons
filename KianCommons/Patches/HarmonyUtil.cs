@@ -38,15 +38,43 @@ namespace KianCommons {
                 PatchAll(harmonyID);
                 harmonyInstalled_ = true;
                 Log.Info("Patched.");
-
-
-
             } catch (TypeLoadException ex) {
                 Log.Exception(new TypeLoadException(errorMessage_, ex));
             } catch (Exception ex){
                 Log.Exception(ex);
             }
         }
+
+        /// <typeparam name="T">Only install classes with this attribute</typeparam>
+        internal static void InstallHarmony<T>(string harmonyID) where T : Attribute {
+            try {
+                AssertCitiesHarmonyInstalled();
+                Log.Info("Patching...");
+                PatchAll(harmonyID, required: typeof(T));
+                Log.Info("Patched.");
+            } catch(TypeLoadException ex) {
+                Log.Exception(new TypeLoadException(errorMessage_, ex));
+            } catch(Exception ex) {
+                Log.Exception(ex);
+            }
+        }
+
+        internal static void InstallHarmony(
+            string harmonyID,
+            Type required = null,
+            Type forbidden = null) {
+            try {
+                AssertCitiesHarmonyInstalled();
+                Log.Info("Patching...");
+                PatchAll(harmonyID, required: required, forbidden: forbidden);
+                Log.Info("Patched.");
+            } catch(TypeLoadException ex) {
+                Log.Exception(new TypeLoadException(errorMessage_, ex));
+            } catch(Exception ex) {
+                Log.Exception(ex);
+            }
+        }
+
 
         /// <summary>
         /// assertion shall take place in a function that does not refrence Harmony.
@@ -56,10 +84,36 @@ namespace KianCommons {
         static void PatchAll(string harmonyID) {
             var harmony = new Harmony(harmonyID);
             harmony.PatchAll();
-            foreach(var method in harmony.GetPatchedMethods()) {
-                Log.Info($"harmony({harmonyID}) patched: {method.DeclaringType.FullName}::{method.Name}",true);
+            harmony.LogPatchedMethods();
+        }
+
+        /// <summary>
+        /// assertion shall take place in a function that does not refrence Harmony.
+        /// Only install classes with this attribute
+        /// </summary>
+        /// <param name="harmonyID"></param>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        static void PatchAll(string harmonyID, Type required = null, Type forbidden=null) {
+            var harmony = new Harmony(harmonyID);
+            var assembly = Assembly.GetExecutingAssembly();
+            foreach(var type in AccessTools.GetTypesFromAssembly(assembly)) {
+                try {
+                    if(required is not null && !type.HasAttribute(required))
+                        continue;
+                    if(forbidden is not null && type.HasAttribute(forbidden))
+                        continue;
+                    harmony.CreateClassProcessor(type).Patch();
+                } catch(Exception ex) {
+                    Log.Exception(ex);
+                }
             }
-            
+            harmony.LogPatchedMethods();
+        }
+
+        public static void LogPatchedMethods(this Harmony harmony) {
+            foreach(var method in harmony.GetPatchedMethods()) {
+                Log.Info($"harmony({harmony.Id}) patched: {method.DeclaringType.FullName}::{method.Name}", true);
+            }
         }
 
         internal static void UninstallHarmony(string harmonyID) {

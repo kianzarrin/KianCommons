@@ -1,10 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <ProjectGuid>{4e0bb9b3-efb1-4d63-99d8-a3b82d33e4fe}</ProjectGuid>
     <TargetFramework>net35</TargetFramework>
-    <Deterministic>false</Deterministic>
-    <AssemblyTitle>KianCommons</AssemblyTitle>
-    <Copyright>Copyright ©  2020</Copyright>
     <Deterministic>false</Deterministic>
     <AssemblyVersion>2.0.0.*</AssemblyVersion>
     <FileAlignment>512</FileAlignment>
@@ -13,6 +9,7 @@
     <DebugSymbols>true</DebugSymbols>    
     <PathMap>$(MSBuildProjectDirectory)/=$(ProjectName)/</PathMap>
     <Configurations>Debug;Release;Workshop</Configurations>
+    <DefineConstants Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">DEBUG;TRACE</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Workshop|AnyCPU' ">
     <ContentID>0</ContentID>
@@ -22,7 +19,7 @@
     <ManagedDLLPath>../dependencies</ManagedDLLPath>
     <SteamPath>~/Library/Application Support/Steam/</SteamPath>
     <SteamPath Condition="! Exists ('$(SteamPath)')">$(ProgramFiles)/Steam</SteamPath>
-    <SteamPath Condition="! Exists ('$(SteamPath)')">$(Registry:HKEY_CURRENT_USER/Software/Valve/Steam@SteamPath)</SteamPath>
+    <SteamPath Condition="! Exists ('$(SteamPath)')">$(Registry:HKEY_CURRENT_USER\Software\Valve\Steam@SteamPath)</SteamPath>
     <CSPath>$(SteamPath)/steamapps/common/Cities_Skylines</CSPath>
     <ContentPath>$(SteamPath)/steamapps/workshop/content/255710/$(ContentID)</ContentPath>
     <ManagedDLLPath Condition="!  Exists ('$(ManagedDLLPath)')">$(CSPath)/Cities_Data/Managed</ManagedDLLPath>
@@ -48,7 +45,6 @@
     <Reference Include="ICities" />
     <Reference Include="UnityEngine" />
     <Reference Include="UnityEngine.UI" />
-    <Reference Include="System.Data.DataSetExtensions" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Util/AssemblyTypeExtensions.cs" />
@@ -63,14 +59,14 @@
       <VersionNumber Include="@(Targets->'%(Version)')" />
     </ItemGroup>
     <PropertyGroup>
-      <DeployDir Condition="'$(DeployDir)'==''">$(LOCALAPPDATA)/Colossal Order/Cities_Skylines/Addons/Mods/$(ProjectName)/</DeployDir>
+      <DeployDir Condition="'$(DeployDir)'==''">$(LOCALAPPDATA)/Colossal Order/Cities_Skylines/Addons/Mods/$(SolutionName)/</DeployDir>
       <Now>$([System.DateTime]::Now.ToString("HH:mm:ss"))</Now>
       <pdb2mdb>$(PkgMono_Unofficial_pdb2mdb)/tools/pdb2mdb.exe</pdb2mdb>
-      <ZipFileName>$(ProjectName)-V@(VersionNumber)-$(GitCommit)-$(Configuration).zip</ZipFileName>
+      <ZipFileName>$(SolutionName)-V@(VersionNumber)-$(GitCommit)-$(Configuration).zip</ZipFileName>
       <ZipFile>$(DeployDir)/../$(ZipFileName)</ZipFile>
     </PropertyGroup>
     <ItemGroup>
-      <OldZipFiles Include="$(DeployDir)/../$(ProjectName)-*-$(Configuration).zip" />
+      <OldZipFiles Include="$(DeployDir)/../$(SolutionName)-*-$(Configuration).zip" />
     </ItemGroup>
 
     <Delete Files="$(TargetPath).mdb" />
@@ -96,7 +92,7 @@
   <Target Name="CustomClean" BeforeTargets="CoreClean">
     <RemoveDir Directories="$(TargetDir)" />
     <PropertyGroup>
-      <DeployDir>$(LOCALAPPDATA)/Colossal Order/Cities_Skylines/Addons/Mods/$(ProjectName)/</DeployDir>
+      <DeployDir>$(LOCALAPPDATA)/Colossal Order/Cities_Skylines/Addons/Mods/$(SolutionName)/</DeployDir>
     </PropertyGroup>
     <Message Text="removing deploy directory" Importance="high" />
     <RemoveDir Directories="$(DeployDir)" />

@@ -134,7 +134,8 @@ namespace KianCommons.UI {
             LaneData laneData,
             Color color,
             bool alphaBlend = false) {
-            float hw = laneData.LaneInfo.m_width * 0.5f;
+            float hw;
+            try { hw = laneData.LaneInfo.m_width * 0.5f; } catch { hw = 0.5f; }
             laneData.Bezier.Render(cameraInfo, color, hw, alphaBlend);
         }
 

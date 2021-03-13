@@ -13,7 +13,7 @@ namespace KianCommons {
     /// When mod activates, it creates a log file in same location as `output_log.txt`.
     /// Mac users: It will be in the Cities app contents.
     /// </summary>
-    public class Log {
+    public static class Log {
         /// <summary>
         /// Set to <c>true</c> to include log level in log entries.
         /// </summary>
@@ -130,6 +130,7 @@ namespace KianCommons {
             Debug,
             Info,
             Error,
+            Warning,
             Exception,
         }
 
@@ -188,7 +189,10 @@ namespace KianCommons {
         /// <param name="copyToGameLog">If <c>true</c> will copy to the main game log file.</param>
         public static void Error(string message, bool copyToGameLog = true) {
             LogImpl(message, LogLevel.Error, copyToGameLog);
+        }
 
+        public static void Warning(string message, bool copyToGameLog = true) {
+            LogImpl(message, LogLevel.Warning, copyToGameLog);
         }
 
         internal static void Exception(Exception ex, string m = "", bool showInPanel = true) {
@@ -212,6 +216,16 @@ namespace KianCommons {
                 UIView.ForwardException(ex);
         }
 
+        internal static void ShowModalException(string title, string message, bool error = false) {
+            UIView.library.ShowModal<ExceptionPanel>("ExceptionPanel")
+                .SetMessage(title,message,error);
+            string m = title + " : " + message;
+            if(error)
+                Log.Error(m, true);
+            else
+                Log.Info(m, true);           
+        }
+
         static string nl = "\n";
 
         /// <summary>
@@ -225,7 +239,7 @@ namespace KianCommons {
                 var ticks = Timer.ElapsedTicks;
                 string m = "";
                 if (ShowLevel) {
-                    int maxLen = Enum.GetNames(typeof(LogLevel)).Select(str => str.Length).Max();
+                    int maxLen = Enum.GetNames(typeof(LogLevel)).Max(str => str.Length);
                     m += string.Format($"{{0, -{maxLen}}}", $"[{level}] ");
                 }
 
@@ -264,6 +278,9 @@ namespace KianCommons {
                         case LogLevel.Error:
                         case LogLevel.Exception:
                             UnityEngine.Debug.LogError(m);
+                            break;
+                        case LogLevel.Warning:
+                            UnityEngine.Debug.LogWarning(m);
                             break;
                         default:
                             UnityEngine.Debug.Log(m);

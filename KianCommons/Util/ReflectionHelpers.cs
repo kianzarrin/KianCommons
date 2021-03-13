@@ -116,8 +116,11 @@ namespace KianCommons {
             return member.GetCustomAttributes(typeof(T), inherit) as T[];
         }
 
-        internal static bool HasAttribute<T>(this MemberInfo member, bool inherit = true) where T : Attribute {
-            var att = member.GetCustomAttributes(typeof(T), inherit);
+        internal static bool HasAttribute<T>(this MemberInfo member, bool inherit = true) where T : Attribute
+            => HasAttribute(member, typeof(T), inherit);
+
+        internal static bool HasAttribute(this MemberInfo member, Type t, bool inherit = true) {
+            var att = member.GetCustomAttributes(t, inherit);
             return att != null && att.Length != 0;
         }
 
@@ -218,7 +221,7 @@ namespace KianCommons {
         /// gets method of any access type.
         /// </summary>
         internal static MethodInfo GetMethod(
-            this Type type,
+            Type type,
             string name,
             BindingFlags bindingFlags,
             Type[] types,
@@ -226,10 +229,23 @@ namespace KianCommons {
             if(type == null) throw new ArgumentNullException("type");
             var ret = type.GetMethod(name, bindingFlags, null, types, null);
             if(throwOnError && ret == null)
-                throw new Exception($"failed to retrieve method {type}.{name}({types.ToSTR()})");
+                throw new Exception($"failed to retrieve method {type}.{name}({types.ToSTR()} bindingFlags:{bindingFlags.ToSTR()})");
             return ret;
         }
 
+        internal static MethodInfo GetMethod(
+            Type type,
+            string name,
+            BindingFlags bindingFlags,
+            bool throwOnError = true) {
+            if(type == null) throw new ArgumentNullException("type");
+            var ret = type.GetMethod(name, bindingFlags);
+            if(throwOnError && ret == null)
+                throw new Exception($"failed to retrieve method {type}.{name} bindingFlags:{bindingFlags.ToSTR()}");
+            return ret;
+        }
+
+        internal static string ToSTR(this BindingFlags flags) => flags == ALL ? "ALL" : flags.ToString();
 
         /// <summary>
         /// Invokes static method of any access type.
@@ -375,5 +391,29 @@ namespace KianCommons {
         }
         internal static void LogCalled() => Log.Info(CurrentMethod(2) + " called.", false);
         internal static void LogSucceeded() => Log.Info(CurrentMethod(2) + " succeeded!", false);
+    }
+
+    internal static class ReflectionExtension {
+        const BindingFlags ALL = ReflectionHelpers.ALL;
+
+        internal static MethodInfo GetMethod(this Type type, string name, bool throwOnError = true) {
+            return ReflectionHelpers.GetMethod(type, name, ALL, throwOnError);
+        }
+
+        internal static MethodInfo GetMethod(this Type type, string name, BindingFlags binding = ALL, bool throwOnError = true) {
+            return ReflectionHelpers.GetMethod(type, name, binding, throwOnError);
+        }
+
+        internal static MethodInfo GetMethod(
+            this Type type,
+            string name,
+            Type[] types,
+            BindingFlags binding = ALL,
+            bool throwOnError = true) {
+            return ReflectionHelpers.GetMethod(type, name, binding, types, throwOnError);
+        }
+
+
+
     }
 }

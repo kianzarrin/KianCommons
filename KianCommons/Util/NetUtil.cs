@@ -42,10 +42,12 @@ namespace KianCommons {
             var flags = laneId.ToLane().Flags();
             bool valid = (flags & NetLane.Flags.Created | NetLane.Flags.Deleted) != NetLane.Flags.Created;
             Assertion.Assert(valid, "valid");
-            foreach (var laneData in IterateSegmentLanes(laneId.ToLane().m_segment))
+            ushort segmentId = laneId.ToLane().m_segment;
+            foreach (var laneData in IterateSegmentLanes(segmentId))
                 if (laneData.LaneID == laneId)
                     return laneData;
-            throw new Exception("Unreachable code");
+            throw new Exception($"Unreachable code. " +
+                $"lane:{laneId} segment:{segmentId} info:{segmentId.ToSegment().Info}");
         }
 
         public static bool IsCSUR(this NetInfo info) {
@@ -259,18 +261,36 @@ namespace KianCommons {
         internal static bool IsJunction(this ref NetNode node) =>
             node.m_flags.IsFlagSet(NetNode.Flags.Junction);
 
+
+        internal static NetInfo.Direction Invert(this NetInfo.Direction direction, bool invert = true) {
+            if (invert)
+                direction = NetInfo.InvertDirection(direction);
+            return direction;
+        }
+
         /// <summary>
         /// checks if vehicles move backward or bypass backward (considers LHT)
         /// </summary>
         /// <returns>true if vehicles move backward,
         /// false if vehilces going ward, bi-directional, or non-directional</returns>
-        internal static bool IsGoingBackward(this NetInfo.Lane laneInfo) =>
-                (laneInfo.m_finalDirection & NetInfo.Direction.Both) == NetInfo.Direction.Backward ||
-                (laneInfo.m_finalDirection & NetInfo.Direction.AvoidBoth) == NetInfo.Direction.AvoidForward;
+        internal static bool IsGoingBackward(this NetInfo.Direction direction) =>
+            (direction & NetInfo.Direction.Both) == NetInfo.Direction.Backward ||
+            (direction & NetInfo.Direction.AvoidBoth) == NetInfo.Direction.AvoidForward;
 
-        internal static bool IsGoingForward(this NetInfo.Lane laneInfo) =>
-                (laneInfo.m_finalDirection & NetInfo.Direction.Both) == NetInfo.Direction.Forward ||
-                (laneInfo.m_finalDirection & NetInfo.Direction.AvoidBoth) == NetInfo.Direction.AvoidForward;
+        internal static bool IsGoingForward(this NetInfo.Direction direction) =>
+            (direction & NetInfo.Direction.Both) == NetInfo.Direction.Forward ||
+            (direction & NetInfo.Direction.AvoidBoth) == NetInfo.Direction.AvoidBackward;
+
+        /// <summary>
+        /// checks if vehicles move backward or bypass backward (considers LHT)
+        /// </summary>
+        /// <returns>true if vehicles move backward,
+        /// false if vehilces going ward, bi-directional, or non-directional</returns>
+        internal static bool IsGoingBackward(this NetInfo.Lane laneInfo, bool invertDirection = false) =>
+            laneInfo.m_finalDirection.Invert(invertDirection).IsGoingForward();
+
+        internal static bool IsGoingForward(this NetInfo.Lane laneInfo, bool invertDirection = false) =>
+            laneInfo.m_finalDirection.Invert(invertDirection).IsGoingBackward();
 
         public static bool IsStartNode(ushort segmentId, ushort nodeId) =>
             segmentId.ToSegment().m_startNode == nodeId;
@@ -683,10 +703,10 @@ namespace KianCommons {
         public readonly Bezier3 Bezier => Lane.m_bezier;
         public override string ToString() {
             try {
-                return $"LaneData:[segment:{SegmentID} node:{NodeID} laneID:{LaneID} Index={LaneIndex} {LaneInfo?.m_laneType} { LaneInfo?.m_vehicleType}]";
+                return $"LaneData:[segment:{SegmentID} segmentInfo:{Segment.Info} node:{NodeID} laneID:{LaneID} Index={LaneIndex} {LaneInfo?.m_laneType} { LaneInfo?.m_vehicleType}]";
             }
             catch (NullReferenceException) {
-                return $"LaneData:[segment:{SegmentID} node:{NodeID} lane ID:{LaneID} null";
+                return $"LaneData:[segment:{SegmentID} segmentInfo:{Segment.Info} node:{NodeID} lane ID:{LaneID} null";
             }
         }
     }
@@ -733,9 +753,9 @@ namespace KianCommons {
         }
 
         public bool MoveNext() {
-            for(; i_<8 ;++i_) {
-                ushort segmentId_ = nodeId_.ToNode().GetSegment(i_);
-                if (segmentId_ != 0)
+            while(i_ < 8) {
+                segmentId_ = nodeId_.ToNode().GetSegment(i_++);
+                if(segmentId_ != 0)
                     return true;
             }
             segmentId_ = 0;

@@ -65,7 +65,7 @@ namespace KianCommons.Serialization {
 
         public static void SetObjectProperties(SerializationInfo info, object instance) {
             foreach (SerializationEntry item in info) {
-                var p = instance.GetType().GetProperty(item.Name);
+                var p = instance.GetType().GetProperty(item.Name, ReflectionHelpers.ALL);
                 var setter = p?.GetSetMethod();
                 if (setter != null && !setter.IsStatic) {
                     object val = Convert.ChangeType(item.Value, p.PropertyType);
