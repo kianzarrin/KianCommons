@@ -62,12 +62,14 @@ namespace KianCommons {
 
         internal static void ReplaceElement<T>(this T[] array, T oldVal, T newVal) {
             int index = (array as IList).IndexOf(oldVal);
-            array[index] = newVal;
+            if(index>=0)
+                array[index] = newVal;
         }
 
         internal static void ReplaceElement(this Array array, object oldVal, object newVal) {
             int index = (array as IList).IndexOf(oldVal);
-            array.SetValue(newVal, index);
+            if(index >= 0)
+                array.SetValue(newVal, index);
         }
 
         internal static ref T Last<T>(this T[] array) => ref array[array.Length - 1];
