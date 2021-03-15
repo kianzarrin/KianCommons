@@ -3,19 +3,12 @@
     <TargetFramework>net35</TargetFramework>
     <Deterministic>false</Deterministic>
     <AssemblyVersion>2.0.0.*</AssemblyVersion>
-    <FileAlignment>512</FileAlignment>
     <LangVersion>latest</LangVersion>
     <DebugType>full</DebugType>
-    <DebugSymbols>true</DebugSymbols>    
+    <DebugSymbols>true</DebugSymbols>
+    
     <PathMap>$(MSBuildProjectDirectory)/=$(ProjectName)/</PathMap>
     <Configurations>Debug;Release;Workshop</Configurations>
-    <DefineConstants Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">DEBUG;TRACE</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Workshop|AnyCPU' ">
-    <ContentID>0</ContentID>
-    <DefineConstants />
-  </PropertyGroup>
-  <PropertyGroup>
     <ManagedDLLPath>../dependencies</ManagedDLLPath>
     <SteamPath>~/Library/Application Support/Steam/</SteamPath>
     <SteamPath Condition="! Exists ('$(SteamPath)')">$(ProgramFiles)/Steam</SteamPath>
@@ -30,6 +23,14 @@
       ../libs/
     </AssemblySearchPaths>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Workshop|AnyCPU' ">
+    <ContentID>0</ContentID>
+    <ContentPath>$(SteamPath)/steamapps/workshop/content/255710/$(ContentID)</ContentPath>
+    <DefineConstants />
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="CitiesHarmony.API" Version="2.0.0" />
     <PackageReference Include="Mono.Unofficial.pdb2mdb" Version="4.2.3.4" />
@@ -41,10 +42,10 @@
   <ItemGroup>
     <Reference Include="Assembly-CSharp" />
     <Reference Include="ColossalManaged" />
-    <Reference Include="CSUtil.Commons" />
     <Reference Include="ICities" />
     <Reference Include="UnityEngine" />
     <Reference Include="UnityEngine.UI" />
+    <Reference Include="CSUtil.Commons" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Util/AssemblyTypeExtensions.cs" />
