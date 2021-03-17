@@ -68,9 +68,18 @@ namespace KianCommons.Patches {
             ?? throw new Exception($"Method not found: {type.Name}.{name}");
 
         internal static MethodInfo GetCoroutineMoveNext(Type declaringType, string name) {
-            Type t = declaringType.GetNestedTypes(ALL)
-                .Single(_t => _t.Name.Contains($"<{name}>"));
-            return ReflectionHelpers.GetMethod(t, "MoveNext");
+            try {
+                Type t = declaringType.GetNestedTypes(ALL)
+                    .Single(_t => _t.Name.Contains($"<{name}>"));
+                return ReflectionHelpers.GetMethod(t, "MoveNext");
+            } catch (Exception ex) {
+                var types = declaringType?.GetNestedTypes(ALL)
+                    .Where(_t => _t.Name.Contains($"<{name}>"))
+                    .Select(_t => _t.FullName);
+                KianCommons.Log.Exception(
+                    ex, $"the following types contian '<{name}>': " + types.ToSTR());
+                return null;
+            }
         }
 
         public static List<CodeInstruction> ToCodeList(this IEnumerable<CodeInstruction> instructions) {
