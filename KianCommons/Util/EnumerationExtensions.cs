@@ -24,6 +24,12 @@ namespace KianCommons {
             return a == null || !a.Any();
         }
 
+        internal static IEnumerable<T> EmptyIfNull<T>(this IEnumerable<T> a) where T : class =>
+            a ?? Enumerable.Empty<T>();
+        internal static IEnumerable<T?> EmptyIfNull<T>(this IEnumerable<T?> a) where T: struct=>
+            a ?? Enumerable.Empty<T?>();
+
+
         internal static int IndexOf<T>(this T[] array, T element) => (array as IList).IndexOf(element);
 
         internal static void DropElement<T>(ref T[] array, int i) {
