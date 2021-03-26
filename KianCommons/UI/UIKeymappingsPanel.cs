@@ -3,8 +3,15 @@ namespace KianCommons.UI {
     using ColossalFramework.UI;
     using UnityEngine;
 
+    internal static class UIKeyMappingsExtensions {
+        internal static UIKeymappingsPanel AddKeymappingsPanel(this UIHelper helper) {
+            return (helper.self as UIComponent).gameObject.AddComponent<UIKeymappingsPanel>();
+        }
+    }
+
+
     public class UIKeymappingsPanel : UICustomControl {
-        internal void AddKeymapping(string label, SavedInputKey savedInputKey) {
+        internal UIComponent AddKeymapping(string label, SavedInputKey savedInputKey) {
             UIPanel uipanel = base.component.AttachUIComponent(UITemplateManager.GetAsGameObject(kKeyBindingTemplate)) as UIPanel;
             int num = this.count;
             this.count = num + 1;
@@ -19,6 +26,7 @@ namespace KianCommons.UI {
             uibutton.text = savedInputKey.ToLocalizedString("KEYNAME");
             uibutton.objectUserData = savedInputKey;
             uipanel.eventVisibilityChanged += (_, __) => RefreshBindableInputs();
+            return uibutton;
         }
 
 
