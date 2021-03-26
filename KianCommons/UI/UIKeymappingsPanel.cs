@@ -1,20 +1,14 @@
-using ColossalFramework;
-using ColossalFramework.UI;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using UnityEngine;
-
 namespace KianCommons.UI {
-    // Copied from Fine Road Anarchy
+    using ColossalFramework;
+    using ColossalFramework.UI;
+    using UnityEngine;
+
     public class UIKeymappingsPanel : UICustomControl {
         internal void AddKeymapping(string label, SavedInputKey savedInputKey) {
             UIPanel uipanel = base.component.AttachUIComponent(UITemplateManager.GetAsGameObject(kKeyBindingTemplate)) as UIPanel;
             int num = this.count;
             this.count = num + 1;
-            if (num % 2 == 1) {
+            if(num % 2 == 1) {
                 uipanel.backgroundSprite = null;
             }
             UILabel uilabel = uipanel.Find<UILabel>("Name");
@@ -24,7 +18,7 @@ namespace KianCommons.UI {
             uilabel.text = label;
             uibutton.text = savedInputKey.ToLocalizedString("KEYNAME");
             uibutton.objectUserData = savedInputKey;
-            uipanel.eventVisibilityChanged += (_,__) => RefreshBindableInputs();
+            uipanel.eventVisibilityChanged += (_, __) => RefreshBindableInputs();
         }
 
 
@@ -49,25 +43,25 @@ namespace KianCommons.UI {
         }
 
         private static KeyCode ButtonToKeycode(UIMouseButton button) {
-            if (button == UIMouseButton.Left) {
+            if(button == UIMouseButton.Left) {
                 return KeyCode.Mouse0;
             }
-            if (button == UIMouseButton.Right) {
+            if(button == UIMouseButton.Right) {
                 return KeyCode.Mouse1;
             }
-            if (button == UIMouseButton.Middle) {
+            if(button == UIMouseButton.Middle) {
                 return KeyCode.Mouse2;
             }
-            if (button == UIMouseButton.Special0) {
+            if(button == UIMouseButton.Special0) {
                 return KeyCode.Mouse3;
             }
-            if (button == UIMouseButton.Special1) {
+            if(button == UIMouseButton.Special1) {
                 return KeyCode.Mouse4;
             }
-            if (button == UIMouseButton.Special2) {
+            if(button == UIMouseButton.Special2) {
                 return KeyCode.Mouse5;
             }
-            if (button == UIMouseButton.Special3) {
+            if(button == UIMouseButton.Special3) {
                 return KeyCode.Mouse6;
             }
             return KeyCode.None;
@@ -75,20 +69,20 @@ namespace KianCommons.UI {
 
         private void RefreshBindableInputs() {
             foreach(UIButton c in GetComponentsInChildren<UIButton>()) {
-                if (c.name == "Binding" &&
-                    c.objectUserData is SavedInputKey savedInputKey) { 
-                        c.text = savedInputKey.ToLocalizedString("KEYNAME");
+                if(c.name == "Binding" &&
+                    c.objectUserData is SavedInputKey savedInputKey) {
+                    c.text = savedInputKey.ToLocalizedString("KEYNAME");
                 }
             }
         }
 
         private void OnBindingKeyDown(UIComponent comp, UIKeyEventParameter p) {
-            if (this.m_EditingBinding != null && !IsModifierKey(p.keycode)) {
+            if(this.m_EditingBinding != null && !IsModifierKey(p.keycode)) {
                 p.Use();
                 UIView.PopModal();
                 KeyCode keycode = p.keycode;
                 InputKey value = (p.keycode == KeyCode.Escape) ? this.m_EditingBinding.value : SavedInputKey.Encode(keycode, p.control, p.shift, p.alt);
-                if (p.keycode == KeyCode.Backspace) {
+                if(p.keycode == KeyCode.Backspace) {
                     value = SavedInputKey.Empty;
                 }
                 this.m_EditingBinding.value = value;
@@ -98,7 +92,7 @@ namespace KianCommons.UI {
         }
 
         private void OnBindingMouseDown(UIComponent comp, UIMouseEventParameter p) {
-            if (this.m_EditingBinding == null) {
+            if(this.m_EditingBinding == null) {
                 p.Use();
                 this.m_EditingBinding = (SavedInputKey)p.source.objectUserData;
                 UIButton uibutton = p.source as UIButton;
@@ -108,7 +102,7 @@ namespace KianCommons.UI {
                 UIView.PushModal(p.source);
                 return;
             }
-            if (!IsUnbindableMouseButton(p.buttons)) {
+            if(!IsUnbindableMouseButton(p.buttons)) {
                 p.Use();
                 UIView.PopModal();
                 InputKey value = SavedInputKey.Encode(ButtonToKeycode(p.buttons), IsControlDown(), IsShiftDown(), IsAltDown());
