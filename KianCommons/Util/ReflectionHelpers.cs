@@ -375,21 +375,33 @@ namespace KianCommons {
             get => CurrentMethod(2);
         }
 
+        private static string JoinArgs(object[] args) {
+            if(args.IsNullorEmpty())
+                return "";
+            else
+                return args.Select(a => a.ToSTR()).Join(", ");
+        }
+
         [MethodImpl(MethodImplOptions.NoInlining)]
-        internal static string CurrentMethod(int i = 1) {
+        internal static string CurrentMethod(int i = 1,  params object[] args) {
             var method = new StackFrame(i).GetMethod();
-            return $"{method.DeclaringType.Name}.{method.Name}()";
+                return $"{method.DeclaringType.Name}.{method.Name}({JoinArgs(args)})";
         }
         [MethodImpl(MethodImplOptions.NoInlining)]
-        internal static string CurrentMethodFull(int i = 1) {
+        internal static string CurrentMethodFull(int i = 1, params object[] args) {
             var method = new StackFrame(i).GetMethod();
-            var parameters = method
-                .GetParameters()
-                .Select(p => $"{p.ParameterType.Name} {p.Name}")
-                .Join(" ,");
-            return $"{method.FullName()}({parameters})";
+            if(args.IsNullorEmpty()) {
+                var parameters = method
+                    .GetParameters()
+                    .Select(p => $"{p.ParameterType.Name} {p.Name}")
+                    .Join(" ,");
+                return $"{method.FullName()}({parameters})";
+            } else {
+                return $"{method.FullName()}({JoinArgs(args)})";
+            }
         }
-        internal static void LogCalled() => Log.Info(CurrentMethod(2) + " called.", false);
+
+        internal static void LogCalled(params object [] args) => Log.Info(CurrentMethod(2, args) + " called.", false);
         internal static void LogSucceeded() => Log.Info(CurrentMethod(2) + " succeeded!", false);
     }
 
