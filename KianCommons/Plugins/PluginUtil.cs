@@ -11,7 +11,7 @@ namespace KianCommons.Plugins {
     using System.Collections;
     using System.Collections.Generic;
 
-    public static class PluginExtensions {
+    internal static class PluginExtensions {
         public static IUserMod GetUserModInstance(this PluginInfo plugin) => plugin.userModInstance as IUserMod;
 
         public static string GetModName(this PluginInfo plugin) => GetUserModInstance(plugin).Name;
@@ -29,7 +29,7 @@ namespace KianCommons.Plugins {
             plugin.GetWorkshopID() == 0 || plugin.publishedFileID == PublishedFileId.invalid;
     }
 
-    public static class PluginUtil {
+    internal static class PluginUtil {
         static PluginManager man => PluginManager.instance;
 
         public static PluginInfo GetCurrentAssemblyPlugin() => GetPlugin(Assembly.GetExecutingAssembly());
@@ -67,6 +67,11 @@ namespace KianCommons.Plugins {
         public static PluginInfo GetTrafficManager() => GetPlugin("TrafficManager", searchOptions: AssemblyEquals);
         public static PluginInfo GetNetworkDetective() => GetPlugin("NetworkDetective", searchOptions: AssemblyEquals);
         public static PluginInfo GetNetworkSkins() => GetPlugin("NetworkSkins", searchOptions: AssemblyEquals);
+        public static PluginInfo GetNodeController() => GetPlugin("Node Controller");
+        public static PluginInfo GetPedestrianBridge() => GetPlugin("Pedestrian Bridge");
+        public static PluginInfo GetIMT() => GetPlugin("Intersection Marking", new[] { 2140418403ul, 2159934925ul});
+        public static PluginInfo GetRAB() => GetPlugin("Roundabout Builder");
+        
 
 
         [Obsolete]
