@@ -13,7 +13,7 @@ namespace KianCommons {
     /// When mod activates, it creates a log file in same location as `output_log.txt`.
     /// Mac users: It will be in the Cities app contents.
     /// </summary>
-    public static class Log {
+    internal static class Log {
         /// <summary>
         /// Set to <c>true</c> to include log level in log entries.
         /// </summary>
