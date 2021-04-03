@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.CompilerServices;
 
-namespace KianCommons {
+namespace KianCommons.Plugins {
     public static class CSURUtil {
         public const string HARMONY_ID = "csur.toolbox";
         public static float GetMinCornerOffset(ushort nodeID) {
