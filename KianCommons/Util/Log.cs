@@ -195,7 +195,7 @@ namespace KianCommons {
             LogImpl(message, LogLevel.Warning, copyToGameLog);
         }
 
-        internal static void Exception(Exception ex, string m = "", bool showInPanel = true) {
+        internal static void Exception(this Exception ex, string m = "", bool showInPanel = true) {
             if (ex == null)
                 Log.Error("null argument e was passed to Log.Exception()");
             try {
@@ -326,5 +326,7 @@ namespace KianCommons {
             Log.Debug(m + " -> " + a);
             return a;
         }
+
+
     }
 }
