@@ -1,22 +1,22 @@
 namespace KianCommons.IImplict {
-    public interface IUpdatableObject {
+    internal interface IUpdatableObject {
         void Update();
     }
-    public interface ILateUpdatableObject {
+    internal interface ILateUpdatableObject {
         void LateUpdate();
     }
-    public interface IGUIObject {
+    internal interface IGUIObject {
         void OnGUI();
     }
 
-    public interface IDestroyableObject {
+    internal interface IDestroyableObject {
         void OnDestroy();
     }
 
-    public interface IAwakingObject {
+    internal interface IAwakingObject {
         void Awake();
     }
-    public interface IStartingObject {
+    internal interface IStartingObject {
         void Start();
     }
 }
