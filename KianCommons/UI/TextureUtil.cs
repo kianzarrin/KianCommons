@@ -143,7 +143,7 @@ namespace KianCommons.UI {
             try { 
             string path = string.Concat(PATH, file);
             return Assembly.GetExecutingAssembly().GetManifestResourceStream(path)
-                ?? throw new Exception(path + "not find");
+                ?? throw new Exception(path + " not find");
             } catch (Exception ex) {
                 Log.Exception(ex);
                 throw ex;
