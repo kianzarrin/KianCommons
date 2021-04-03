@@ -9,7 +9,6 @@ namespace KianCommons.UI {
         }
     }
 
-
     public class UIKeymappingsPanel : UICustomControl {
         internal UIComponent AddKeymapping(string label, SavedInputKey savedInputKey) {
             UIPanel uipanel = base.component.AttachUIComponent(UITemplateManager.GetAsGameObject(kKeyBindingTemplate)) as UIPanel;

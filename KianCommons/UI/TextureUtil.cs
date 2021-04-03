@@ -37,13 +37,15 @@ namespace KianCommons.UI {
 
         public static UITextureAtlas CreateTextureAtlas(string textureFile, string atlasName, string[] spriteNames) {
             Texture2D texture2D;
-#pragma warning disable CS0618 // Type or member is obsolete
-            if (!EmbededResources)
+            if(!EmbededResources)
                 texture2D = GetTextureFromFile(textureFile);
             else
                 texture2D = GetTextureFromAssemblyManifest(textureFile);
-#pragma warning restore CS0618 // Type or member is obsolete
+            return CreateTextureAtlas(texture2D, atlasName, spriteNames);
+        }
 
+
+        public static UITextureAtlas CreateTextureAtlas(Texture2D texture2D, string atlasName, string[] spriteNames) {
             UITextureAtlas uitextureAtlas = ScriptableObject.CreateInstance<UITextureAtlas>();
             Assert(uitextureAtlas != null, "uitextureAtlas");
             Material material = Object.Instantiate<Material>(UIView.GetAView().defaultAtlas.material);
@@ -148,8 +150,6 @@ namespace KianCommons.UI {
             }
         }
 
-        // useful to load cursor textures.
-        [Obsolete("load textures from files")]
         public static Texture2D GetTextureFromAssemblyManifest(string file) {
             using (Stream stream = GetManifestResourceStream(file))
                 return GetTextureFromStream(stream);
