@@ -26,7 +26,7 @@ namespace KianCommons {
                 UI.TextureUtil.EmbededResources = false;
                 Log.VERBOSE = false;
 
-                if(HelpersExtensions.InGameOrEditor)
+                if(!Helpers.InStartupMenu)
                     HotReload();
             } catch(Exception ex) { Log.Exception(ex); }
         }
