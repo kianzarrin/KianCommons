@@ -1,4 +1,4 @@
-namespace UnifiedUILib.KianCommons.KianCommons.IImplict {
+namespace KianCommons.IImplict {
     using ICities;
 
     internal interface IMod : IUserMod {

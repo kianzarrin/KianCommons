@@ -1,4 +1,4 @@
-namespace UnifiedUILib.KianCommons.KianCommons.IImplict {
+namespace KianCommons.IImplict {
     public interface IUpdatableObject {
         void Update();
     }
