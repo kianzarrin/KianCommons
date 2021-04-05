@@ -27,6 +27,8 @@ namespace KianCommons.Plugins {
 
         public static bool IsLocal(this PluginInfo plugin) =>
             plugin.GetWorkshopID() == 0 || plugin.publishedFileID == PublishedFileId.invalid;
+
+        public static PluginInfo GetPlugin(this Assembly assembly) => PluginUtil.GetPlugin(assembly);
     }
 
     internal static class PluginUtil {
@@ -92,10 +94,18 @@ namespace KianCommons.Plugins {
             }
         }
 
-        public static PluginInfo GetPlugin(IUserMod userMod) {
+        public static PluginInfo GetPlugin(this IUserMod userMod) {
             foreach (PluginInfo current in man.GetPluginsInfo()) {
                 if (userMod == current.userModInstance)
                     return current;
+            }
+            return null;
+        }
+
+        public static PluginInfo GetPlugin<UserModT> () where UserModT: IUserMod {
+            foreach(PluginInfo plugin in man.GetPluginsInfo()) {
+                if(plugin.userModInstance is UserModT)
+                    return plugin;
             }
             return null;
         }

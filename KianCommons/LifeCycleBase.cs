@@ -5,7 +5,7 @@ namespace KianCommons {
     using System.Diagnostics;
     using UnityEngine.SceneManagement;
 
-    internal abstract class LifeCycleBase : ILoadingExtension, IMod {
+    public abstract class LifeCycleBase : ILoadingExtension, IMod, IUserMod {
         public static SimulationManager.UpdateMode UpdateMode => SimulationManager.instance.m_metaData.m_updateMode;
         public static LoadMode Mode => (LoadMode)UpdateMode;
         public static string Scene => SceneManager.GetActiveScene().name;

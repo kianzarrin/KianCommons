@@ -1,7 +1,7 @@
 namespace KianCommons.IImplict {
     using ICities;
 
-    internal interface IMod : IUserMod {
+    internal interface IMod {
         void OnEnabled();
         void OnDisabled();
     }
