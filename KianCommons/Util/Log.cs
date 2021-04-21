@@ -5,6 +5,7 @@ namespace KianCommons {
     using System.IO;
     using System.Linq;
     using System.Reflection;
+    using System.Threading;
     using UnityEngine;
 
     /// <summary>
@@ -51,6 +52,8 @@ namespace KianCommons {
 
         private static long prev_ms_;
 
+        internal static int FlushInterval = 500; //ms
+
         /// <summary>
         /// buffered logging is much faster but requires extra care for hot-reload/external modifications.
         /// to use Buffered mode with hot-reload: set when mod is enabled and unset when mod is disabled.
@@ -77,7 +80,39 @@ namespace KianCommons {
         internal static void Flush() {
             if (filerWrier_ != null) {
                 lock (LogLock)
-                    filerWrier_.Flush();
+                    filerWrier_?.Flush();
+            }
+        }
+
+        internal static class FlushTread {
+            static bool isRunning_;
+            private static Thread flushThraad_;
+
+            internal static void Init() {
+                flushThraad_ = new Thread(FlushThread);
+                flushThraad_.Name = "FlushThread";
+                flushThraad_.IsBackground = true;
+                isRunning_ = true;
+                flushThraad_.Start();
+            }
+
+            internal static void Terminate() {
+                isRunning_ = false;
+                Log.Info("FlushTread.Terminate()");
+            }
+
+
+            private static void FlushThread() {
+                try {
+                    while (isRunning_) {
+                        Thread.Sleep(FlushInterval);
+                        Log.Flush();
+                    }
+                    Log.Flush();
+                    Log.Info("Flush Thread Exiting...");
+                } catch (Exception ex) {
+                    Log.Exception(ex);
+                }
             }
         }
 
@@ -118,6 +153,9 @@ namespace KianCommons {
                 if (File.Exists(oldPath))
                     File.Delete(oldPath);
 
+                FlushTread.Init();
+
+                
             } catch (Exception ex) {
                 Log.LogUnityException(ex);
             }
@@ -243,12 +281,13 @@ namespace KianCommons {
                     m += string.Format($"{{0, -{maxLen}}}", $"[{level}] ");
                 }
 
+                long ms = Timer.ElapsedMilliseconds;
+                long gapms = ms - prev_ms_;
+                prev_ms_ = ms;
+
                 if (ShowTimestamp) {
-                    long ms = Timer.ElapsedMilliseconds;
                     m += $"{ms:#,0}ms | ";
                     if (ShowGap) {
-                        long gapms = ms - prev_ms_;
-                        prev_ms_ = ms;
                         m += $"gap={gapms:#,0}ms | ";
                     }
                 }
@@ -287,6 +326,8 @@ namespace KianCommons {
                             break;
                     }
                 }
+                if (gapms > FlushInterval)
+                    Log.Flush();
             } catch (Exception ex) {
                 Log.LogUnityException(ex);
             }

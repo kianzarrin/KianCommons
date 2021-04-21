@@ -33,6 +33,7 @@ namespace KianCommons {
         public virtual void OnDisabled() {
             try {
                 UnLoad();
+                Log.Flush();
             } catch(Exception ex) { Log.Exception(ex); }
         }
         #endregion
