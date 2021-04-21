@@ -3,6 +3,7 @@ namespace KianCommons {
     using HarmonyLib;
     using System.Reflection;
     using System;
+    using System.Linq;
     using System.Runtime.CompilerServices;
     using static KianCommons.ReflectionHelpers;
 
@@ -94,20 +95,32 @@ namespace KianCommons {
         /// <param name="harmonyID"></param>
         [MethodImpl(MethodImplOptions.NoInlining)]
         static void PatchAll(string harmonyID, Type required = null, Type forbidden=null) {
-            var harmony = new Harmony(harmonyID);
-            var assembly = Assembly.GetExecutingAssembly();
-            foreach(var type in AccessTools.GetTypesFromAssembly(assembly)) {
-                try {
-                    if(required is not null && !type.HasAttribute(required))
-                        continue;
-                    if(forbidden is not null && type.HasAttribute(forbidden))
-                        continue;
-                    harmony.CreateClassProcessor(type).Patch();
-                } catch(Exception ex) {
-                    Log.Exception(ex);
+            try {
+                var harmony = new Harmony(harmonyID);
+                var assembly = Assembly.GetExecutingAssembly();
+                foreach (var type in AccessTools.GetTypesFromAssembly(assembly)) {
+                    try {
+                        if (required is not null && !type.HasAttribute(required))
+                            continue;
+                        if (forbidden is not null && type.HasAttribute(forbidden))
+                            continue;
+                        if (type.HasAttribute<HarmonyPatch>())
+                            Log.Info($"applying {type.FullName} ...");
+                        var patchedMethods = harmony.CreateClassProcessor(type).Patch();
+                        if (!patchedMethods.IsNullorEmpty()) {
+                            var strPatchedMethods = patchedMethods
+                                .Select(item => item.DeclaringType + "." + item.Name)
+                                .Join(", ");
+                            Log.Info($"{type.FullName} successfully patched : {strPatchedMethods}");
+                        }
+                    } catch (Exception ex) {
+                        Log.Exception(new Exception($"{type} failed.",ex));
+                    }
                 }
+                harmony.LogPatchedMethods();
+            } catch (Exception ex) {
+                Log.Exception(ex);
             }
-            harmony.LogPatchedMethods();
         }
 
         public static void LogPatchedMethods(this Harmony harmony) {
