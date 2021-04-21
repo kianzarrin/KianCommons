@@ -3,7 +3,9 @@ namespace KianCommons {
     using System;
     using UnityEngine;
     using UnityEngine.SceneManagement;
+    using System.Linq;
 
+    [Obsolete]
     internal static class HelpersExtensions {
         internal static bool InSimulationThread() =>
             System.Threading.Thread.CurrentThread == SimulationManager.instance.m_simulationThread;
@@ -25,12 +27,15 @@ namespace KianCommons {
             return false;
         }
 
+
         /// <summary>
         /// determines if simulation is inside game/editor. useful to detect hot-reload.
         /// </summary>
-        internal static bool InGameOrEditor =>
-            SceneManager.GetActiveScene().name != "IntroScreen" &&
-            SceneManager.GetActiveScene().name != "Startup";
+        internal static bool InGameOrEditor => !InStartup;
+
+        internal static bool IsActive => InGameOrEditor;
+
+        internal static bool InStartup => Helpers.InStartupMenu;
 
 
         /// <summary>
@@ -42,12 +47,6 @@ namespace KianCommons {
         /// checks if game is loaded in asset editor mod. (returns false early in the loading process)
         /// </summary>
         internal static bool InAssetEditor => CheckGameMode(AppMode.AssetEditor);
-
-        [Obsolete]
-        internal static bool IsActive => InGameOrEditor;
-
-        [Obsolete("use Helpers.InStartupMenu instead")]
-        internal static bool InStartup => Helpers.InStartupMenu;
 
         internal static bool ShiftIsPressed => Helpers.ShiftIsPressed;
 
@@ -63,9 +62,8 @@ namespace KianCommons {
             b = t;
         }
 
-        internal static bool InStartupMenu =>
-            SceneManager.GetActiveScene().name == "IntroScreen" ||
-            SceneManager.GetActiveScene().name == "Startup";
+        internal static string[] StartupScenes = new[] { "IntroScreen", "Startup", "MainMenu" };
+        internal static bool InStartupMenu => StartupScenes.Contains(SceneManager.GetActiveScene().name);
 
         internal static bool ShiftIsPressed => Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
 
