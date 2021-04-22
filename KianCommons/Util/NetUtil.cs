@@ -240,7 +240,14 @@ namespace KianCommons {
         }
 
         #region copied from TMPE
+        /// <summary>
+        /// left hand traffic (traffic drives on left like UK).
+        /// </summary>
         public static bool LHT => TrafficDrivesOnLeft;
+
+        /// <summary>
+        /// right hand traffic (traffic drives on right like most places).
+        /// </summary>
         public static bool RHT => !LHT;
         public static bool TrafficDrivesOnLeft =>
             Singleton<SimulationManager>.instance?.m_metaData?.m_invertTraffic
