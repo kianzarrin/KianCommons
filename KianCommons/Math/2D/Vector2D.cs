@@ -104,8 +104,8 @@ namespace KianCommons.Math {
         }
 
         public Vector2D Rotate90CCW() => new Vector2D(-z, +x);
-        public Vector2D PerpendicularCCW() => normalized.Rotate90CCW();
         public Vector2D Rotate90CW() => new Vector2D(+z, -x);
-        public Vector2D PerpendicularCW() => normalized.Rotate90CW();
+        public Vector2D Rotate90(bool cw) => cw ? Rotate90CW() : Rotate90CCW();
+
     }
 }

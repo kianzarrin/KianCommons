@@ -165,10 +165,9 @@ namespace KianCommons {
             return bezier.GetClosestT(position);
         }
 
-        /// <param name="bLeft2">if other segment is to the left side of segmentID.</param>
-        /// <param name="cornerPoint">is normalized</param>
-        /// <param name="cornerDir">is normalized</param>
-        internal static ControlPoint2D CalculateCorner(ushort segmentID, ushort nodeID, bool bLeft2) {
+
+        /// <param name="bLeft2">if other segment is to the left side of segmentID going toward nodeID.</param>
+        internal static DoubleControlPoint2D CalculateCorner(ushort segmentID, ushort nodeID, bool bLeft2) {
             segmentID.ToSegment().CalculateCorner(
                 segmentID,
                 true,
@@ -177,11 +176,18 @@ namespace KianCommons {
                 out Vector3 cornerPos,
                 out Vector3 cornerDirection,
                 out bool smooth);
-            return new ControlPoint2D(cornerPos.To2D(), cornerDirection.To2D());
+            var point = cornerPos.To2D();
+            var tangent = cornerDirection.To2D().normalized;
+            var normal = tangent.Rotate90(!bLeft2);
+            return new DoubleControlPoint2D {
+                Point = point,
+                Dir1 = tangent,
+                Dir2 = normal
+            };
         }
 
-        /// <param name="bLeft2">if other segment is to the left side of segmentID.</param>
-        internal static ControlPoint2D CalculateOtherCorner(ushort segmentID, ushort nodeID, bool bLeft2) {
+        /// <param name="bLeft2">if other segment is to the left side of segmentID going toward nodeID.</param>
+        internal static DoubleControlPoint2D CalculateOtherCorner(ushort segmentID, ushort nodeID, bool bLeft2) {
             ushort otherSegmentID = bLeft2 ?
                 segmentID.ToSegment().GetLeftSegment(nodeID) :
                 segmentID.ToSegment().GetRightSegment(nodeID);
