@@ -65,10 +65,12 @@ namespace KianCommons {
                 if (value == Buffered) return;
                 if (value) {
                     filerWrier_ = new StreamWriter(LogFilePath, true);
+                    FlushTread.Init();
                 } else {
                     filerWrier_.Flush();
                     filerWrier_.Dispose();
                     filerWrier_ = null;
+                    FlushTread.Terminate();
                 }
             }
         }
@@ -89,16 +91,29 @@ namespace KianCommons {
             private static Thread flushThraad_;
 
             internal static void Init() {
-                flushThraad_ = new Thread(FlushThread);
-                flushThraad_.Name = "FlushThread";
-                flushThraad_.IsBackground = true;
-                isRunning_ = true;
-                flushThraad_.Start();
+                try {
+                    if (isRunning_) return; //already initialized
+                    Log.Info("Initializing Log.FlushTread");
+                    flushThraad_ = new Thread(FlushThread);
+                    flushThraad_.Name = "FlushThread";
+                    flushThraad_.IsBackground = true;
+                    isRunning_ = true;
+                    flushThraad_.Start();
+                } catch (Exception ex) {
+                    Log.Exception(ex);
+                }
             }
 
             internal static void Terminate() {
-                isRunning_ = false;
-                Log.Info("FlushTread.Terminate()");
+                try {
+                    Log.Info("FlushTread.Terminate() called");
+                    isRunning_ = false;
+                    flushThraad_.Join();
+                    flushThraad_ = null;
+                    Log.Flush();
+                }catch(Exception ex) {
+                    Log.Exception(ex);
+                }
             }
 
 
@@ -108,7 +123,6 @@ namespace KianCommons {
                         Thread.Sleep(FlushInterval);
                         Log.Flush();
                     }
-                    Log.Flush();
                     Log.Info("Flush Thread Exiting...");
                 } catch (Exception ex) {
                     Log.Exception(ex);
@@ -152,10 +166,6 @@ namespace KianCommons {
                 string oldPath = Path.Combine(Application.dataPath, LogFileName);
                 if (File.Exists(oldPath))
                     File.Delete(oldPath);
-
-                FlushTread.Init();
-
-                
             } catch (Exception ex) {
                 Log.LogUnityException(ex);
             }
