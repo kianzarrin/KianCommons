@@ -151,6 +151,10 @@ namespace KianCommons {
         /// get value of the instant field target.Field.
         /// </summary>
         internal static object GetFieldValue(object target, string fieldName) {
+            if (target == null)
+                throw new ArgumentNullException("target");
+            if (fieldName == null)
+                throw new ArgumentNullException("fieldName");
             var type = target.GetType();
             var field = type.GetField(fieldName, ALL)
                 ?? throw new Exception($"{type}.{fieldName} not found");
@@ -167,6 +171,11 @@ namespace KianCommons {
         /// Get value of a static field from type.fieldName
         /// </summary>
         internal static object GetFieldValue(Type type, string fieldName) {
+            if (type == null)
+                throw new ArgumentNullException("target");
+            if (fieldName == null)
+                throw new ArgumentNullException("fieldName");
+
             var field = type.GetField(fieldName, ALL)
                 ?? throw new Exception($"{type}.{fieldName} not found");
             return field.GetValue(null);

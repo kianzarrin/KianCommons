@@ -143,11 +143,11 @@ namespace KianCommons {
             return ret;
         }
 
-        internal static string[] Split(this string str, string separator) =>
-            str.Split(new[] { separator }, StringSplitOptions.None);
+        internal static string[] Split(this string str, string separator, StringSplitOptions options = StringSplitOptions.None) =>
+            str.Split(new[] { separator }, options);
 
-        internal static string[] SplitLines(this string str) =>
-            str.Split("\n");
+        internal static string[] SplitLines(this string str, StringSplitOptions options = StringSplitOptions.None) =>
+            str.Split("\n", options);
 
         internal static string Join(this IEnumerable<string> str, string separator)
             => string.Join(separator, str.ToArray());
