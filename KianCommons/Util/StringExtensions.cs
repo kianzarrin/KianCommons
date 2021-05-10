@@ -154,5 +154,7 @@ namespace KianCommons {
 
         internal static string JoinLines(this IEnumerable<string> str)
             => str.Join("\n");
+        internal static string RemoveEmptyLines(this string str)
+            => str.SplitLines(StringSplitOptions.RemoveEmptyEntries).JoinLines();
     }
 }

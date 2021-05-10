@@ -62,7 +62,7 @@ namespace KianCommons {
             b = t;
         }
 
-        internal static string[] StartupScenes = new[] { "IntroScreen", "Startup", "MainMenu" };
+        internal static string[] StartupScenes = new[] { "IntroScreen", "IntroScreen2", "Startup", "MainMenu" };
         internal static bool InStartupMenu => StartupScenes.Contains(SceneManager.GetActiveScene().name);
 
         internal static bool ShiftIsPressed => Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
