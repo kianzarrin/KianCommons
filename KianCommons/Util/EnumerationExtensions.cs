@@ -47,6 +47,13 @@ namespace KianCommons {
             array = ret;
         }
 
+        internal static T[] RemoveAt<T>(this T[] array, int index) {
+            var list = new List<T>(array);
+            list.RemoveAt(index);
+            return list.ToArray();
+        }
+
+
         internal static bool ContainsRef<T>(this IEnumerable<T> list, T element) where T : class {
             foreach (T item in list) {
                 if (object.ReferenceEquals(item, element))

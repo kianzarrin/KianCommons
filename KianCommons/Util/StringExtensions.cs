@@ -143,16 +143,18 @@ namespace KianCommons {
             return ret;
         }
 
-        internal static string[] Split(this string str, string separator) =>
-            str.Split(new[] { separator }, StringSplitOptions.None);
+        internal static string[] Split(this string str, string separator, StringSplitOptions options = StringSplitOptions.None) =>
+            str.Split(new[] { separator }, options);
 
-        internal static string[] SplitLines(this string str) =>
-            str.Split("\n");
+        internal static string[] SplitLines(this string str, StringSplitOptions options = StringSplitOptions.None) =>
+            str.Split("\n", options);
 
         internal static string Join(this IEnumerable<string> str, string separator)
             => string.Join(separator, str.ToArray());
 
         internal static string JoinLines(this IEnumerable<string> str)
             => str.Join("\n");
+        internal static string RemoveEmptyLines(this string str)
+            => str.SplitLines(StringSplitOptions.RemoveEmptyEntries).JoinLines();
     }
 }
