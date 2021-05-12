@@ -324,7 +324,7 @@ namespace KianCommons {
         }
 
         public static bool IsValid(this ref NetSegment segment) {
-            if (segment.Info == null)
+            if (!segment.Info)
                 return false;
             return segment.m_flags
                 .CheckFlags(required: NetSegment.Flags.Created, forbidden: NetSegment.Flags.Deleted);

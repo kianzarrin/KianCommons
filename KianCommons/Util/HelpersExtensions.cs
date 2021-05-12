@@ -71,6 +71,8 @@ namespace KianCommons {
 
         internal static bool AltIsPressed => Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt);
 
+        internal static bool InSimulationThread() =>
+            System.Threading.Thread.CurrentThread == SimulationManager.instance.m_simulationThread;
     }
 
 
