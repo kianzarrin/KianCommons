@@ -1,6 +1,7 @@
 namespace KianCommons {
     using ColossalFramework.UI;
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
@@ -242,14 +243,30 @@ namespace KianCommons {
         public static void Warning(string message, bool copyToGameLog = true) {
             LogImpl(message, LogLevel.Warning, copyToGameLog);
         }
+        static string ExceptionData(Exception ex) {
+            var keys = ex.Data?.Keys;
+            if (keys != null) {
+                var data = new List<string>();
+                foreach (var key in keys)
+                    data.Add($"'{key}' : '{ex.Data[key]}'");
+                if (data.Any())
+                    return "Data: " + string.Join(" | ", data.ToArray());
+            }
+            return null;
+        }
 
         internal static void Exception(this Exception ex, string m = "", bool showInPanel = true) {
             if (ex == null)
                 Log.Error("null argument e was passed to Log.Exception()");
             try {
-                string message = ex.ToString() + $"\n\t-- {assemblyName_}:end of inner stack trace --";
+                string message = ex.ToString() + $"\n\t-- end of exception --";
                 if (!string.IsNullOrEmpty(m))
                     message = m + " -> \n" + message;
+
+                var data = ExceptionData(ex);
+                if(!string.IsNullOrEmpty(data))
+                    message = data + "\n" + message;
+
                 LogImpl(message, LogLevel.Exception, true);
                 if (showInPanel)
                     UIView.ForwardException(ex);
@@ -374,10 +391,15 @@ namespace KianCommons {
         /// TYPE inlinefunctionname(...) => expression.LogRet("messege");
         /// </summary>
         internal static T LogRet<T>(this T a, string m) {
-            Log.Debug(m + " -> " + a);
+            KianCommons.Log.Debug(m + " -> " + a);
             return a;
         }
 
+        internal static void Log(this Exception ex, string message, bool showInPannel = true) =>
+            KianCommons.Log.Exception(ex, message, showInPannel);
+
+        internal static void Log(this Exception ex, bool showInPannel = true) =>
+            KianCommons.Log.Exception(ex, "", showInPannel);
 
     }
 }
