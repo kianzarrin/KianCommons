@@ -58,6 +58,7 @@ namespace KianCommons {
         /// <summary>
         /// buffered logging is much faster but requires extra care for hot-reload/external modifications.
         /// to use Buffered mode with hot-reload: set when mod is enabled and unset when mod is disabled.
+        /// IMPORTANT: Buffer must be set to false as part of cleanup (particularly for hot reload).
         /// Note: buffered mode is 20 times faster but only if you do not copy to game log.
         /// </summary>
         internal static bool Buffered {
@@ -65,7 +66,11 @@ namespace KianCommons {
             set {
                 if (value == Buffered) return;
                 if (value) {
-                    filerWrier_ = new StreamWriter(LogFilePath, true);
+                    try {
+                        filerWrier_ = new StreamWriter(LogFilePath, true);
+                    } catch (Exception ex) {
+                        Log.Exception(ex, "failed to setup log buffer");
+                    }
                     FlushTread.Init();
                 } else {
                     filerWrier_.Flush();
@@ -325,13 +330,17 @@ namespace KianCommons {
                     m = nl + m + nl; // create line space to draw attention.
                 }
 
-                lock (LogLock) {
-                    if (filerWrier_ != null) {
-                        filerWrier_.WriteLine(m);
-                    } else {
-                        using (StreamWriter w = File.AppendText(LogFilePath))
-                            w.WriteLine(m);
+                try {
+                    lock (LogLock) {
+                        if (filerWrier_ != null) {
+                            filerWrier_.WriteLine(m);
+                        } else {
+                            using (StreamWriter w = File.AppendText(LogFilePath))
+                                w.WriteLine(m);
+                        }
                     }
+                } catch (Exception ex) {
+                    LogUnityException(ex, false);
                 }
 
                 if (copyToGameLog) {
