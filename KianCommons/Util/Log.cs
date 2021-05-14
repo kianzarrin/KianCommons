@@ -139,7 +139,7 @@ namespace KianCommons {
         public static Stopwatch GetSharedTimer() {
             var asm = AppDomain.CurrentDomain.GetAssemblies()
                 .FirstOrDefault(_asm => _asm.GetName().Name == "LoadOrderIPatch");
-            var t = asm?.GetType("LoadOrderIPatch.Patches.LoggerPatch", throwOnError: false);
+            var t = asm?.GetType("LoadOrderIPatch.Patches.UnityLoggerPatch", throwOnError: false);
             return t?.GetField("m_Timer")?.GetValue(null) as Stopwatch;
         }
 
