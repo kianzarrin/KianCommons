@@ -6,6 +6,7 @@ namespace KianCommons {
     using static KianCommons.Math.MathUtil;
     using System.Reflection;
     using static KianCommons.ReflectionHelpers;
+    using KianCommons.Math;
 
     internal static class EnumBitMaskExtensions {
         [Obsolete("this is buggy as it assumes enum is 0,1,2,3,4 ...\n" +
@@ -67,37 +68,48 @@ namespace KianCommons {
         internal static bool CheckFlags(this NetLane.Flags value, NetLane.Flags required, NetLane.Flags forbidden=0) =>
             (value & (required | forbidden)) == required;
 
-        public static IEnumerable<T> GetPow2ValuesU32<T>() where T : struct, IConvertible {
-            CheckEnumWithFlags<T>();
-            Array values = Enum.GetValues(typeof(T));
-            foreach (object val in values) {
-                if (IsPow2((ulong)val))
-                    yield return (T)val;
+
+        public static ulong ToUInt64(this IConvertible value) {
+            Type type = value.GetType();
+            if (type.IsEnum)
+                type = Enum.GetUnderlyingType(type);
+
+            if (type.IsSigned()) {
+                return (ulong)(value.ToInt64(null));
+            } else {
+                return value.ToUInt64(null);
             }
         }
-        public static IEnumerable<T> ExtractPow2Flags<T>(this T flags) where T : struct, IConvertible {
-            foreach (T value in GetPow2ValuesU32<T>()) {
-                if (flags.IsFlagSet(value))
-                    yield return value;
-            }
+
+        public static bool IsPow2(IConvertible x) => IsPow2Internal(x.ToUInt64());
+        static bool IsPow2Internal(ulong x) => x != 0 && (x & (x - 1)) == 0;
+
+        public static IEnumerable<T> GetPow2Values<T>() where T : struct, Enum, IConvertible {
+            CheckEnumWithFlags(typeof(T));
+            var values = Enum.GetValues(typeof(T)).Cast<T>();
+            return values.Where(val => IsPow2(val));
+        }
+        public static IEnumerable<Enum> GetPow2Values(Type enumType) {
+            CheckEnumWithFlags(enumType);
+            var values = Enum.GetValues(enumType).Cast<Enum>();
+            return values.Where(val => IsPow2(val));
+        }
+
+        public static IEnumerable<T> ExtractPow2Flags<T>(this T flags)
+            where T : struct, Enum, IConvertible {
+            return GetPow2Values<T>().Where(flag => flags.IsFlagSet(flag));
         }
 
         public static IEnumerable<uint> GetPow2ValuesU32(Type enumType) {
             CheckEnumWithFlags(enumType);
-            Array values = Enum.GetValues(enumType);
-            foreach (object val in values) {
-                if (IsPow2((uint)val))
-                    yield return (uint)val;
-            }
+            var values = Enum.GetValues(enumType).Cast<uint>();
+            return values.Where(v => IsPow2(v));
         }
 
         public static IEnumerable<int> GetPow2ValuesI32(Type enumType) {
             CheckEnumWithFlags(enumType);
-            Array values = Enum.GetValues(enumType);
-            foreach (object val in values) {
-                if (IsPow2((int)val))
-                    yield return (int)val;
-            }
+            var values = Enum.GetValues(enumType).Cast<int>();
+            return values.Where(v => IsPow2(v));
         }
 
         public static MemberInfo GetEnumMember(this Type enumType, object value) {

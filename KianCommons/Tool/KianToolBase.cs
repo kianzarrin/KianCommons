@@ -20,6 +20,12 @@ namespace KianCommons.Tool {
         protected bool IsMouseRayValid => !UIView.IsInsideUI() && Cursor.visible && MouseRayValid;
         protected bool HoverValid => IsMouseRayValid && (HoveredSegmentID != 0 || HoveredNodeID != 0);
 
+        protected override void OnDisable() {
+            base.OnDisable();
+            if(ToolsModifierControl.toolController.CurrentTool == this)
+                ToolsModifierControl.SetTool<DefaultTool>();
+        }
+
         protected abstract void OnPrimaryMouseClicked();
         protected abstract void OnSecondaryMouseClicked();
         static InfoManager infoMan => Singleton<InfoManager>.instance;
