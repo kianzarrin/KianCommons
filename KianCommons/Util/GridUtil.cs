@@ -7,7 +7,7 @@ namespace KianCommons {
     using static NetUtil;
     using static GridUtil;
 
-    public struct GridVector {
+    internal struct GridVector {
         public int x;
         public int y;
         public GridVector(int x, int y) {
@@ -60,7 +60,7 @@ namespace KianCommons {
 
     }
 
-    public static class GridUtil {
+    internal static class GridUtil {
         public const float GRID_SIZE = NetManager.NODEGRID_CELL_SIZE;
         public const int GRID_LENGTH = NetManager.NODEGRID_RESOLUTION;
         public static int ConvertGrid(float a) =>

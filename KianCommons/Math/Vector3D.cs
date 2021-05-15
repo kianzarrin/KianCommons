@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace KianCommons.Math {
-    public struct Vector3D {
+    internal struct Vector3D {
         public float x;
         public float z;
         public float h;

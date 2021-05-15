@@ -627,22 +627,8 @@ namespace KianCommons {
                 segmentId: segmentId,
                 startNode: startNode,
                 laneType: laneType,
-                vehicleType: vehicleType).ToArray();
-
-            LaneData[] ret = new LaneData[lanes.Length];
-            for (int i = 0; i < lanes.Length; ++i) {
-                int j = segmentId.ToSegment().Info.m_sortedLanes[i];
-                ret[i] = lanes[j];
-            }
-
-            // make sure that the outmost lane is the first lane.
-            bool reverse = ret[0].LaneInfo.m_direction == NetInfo.Direction.Backward;
-
-            if (reverse) {
-                // reverse order so that the first lane is the outer lane.
-                ret = ret.Reverse().ToArray();
-            }
-            return ret;
+                vehicleType: vehicleType);
+            return lanes.OrderBy(lane => lane.LaneInfo.m_position).ToArray();
         }
 
         public static int GetLaneIndex(uint laneID) {

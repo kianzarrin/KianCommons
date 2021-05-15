@@ -5,7 +5,7 @@ namespace KianCommons.UI {
     using System.Linq;
     using System.Collections.Generic;
 
-    public class UIUtils {
+    internal class UIUtils {
         // Token: 0x17000006 RID: 6
         // (get) Token: 0x06000038 RID: 56 RVA: 0x00004CF0 File Offset: 0x00002EF0
         public static UIUtils Instance {

@@ -1,7 +1,7 @@
 using UnityEngine;
 
 namespace KianCommons.Math {
-    public struct Vector2D {
+    internal struct Vector2D {
         private Vector2 _vector2;
         public const float kEpsilon = 1E-05F;
         public float x => _vector2.x;

@@ -1,7 +1,7 @@
 namespace KianCommons.Math {
     using UnityEngine;
 
-    public struct ControlPoint3 {
+    internal struct ControlPoint3 {
         public Vector3 Point;
         public Vector3 Dir;
         public ControlPoint3(Vector3 point, Vector3 dir) {

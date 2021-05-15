@@ -3,7 +3,7 @@ namespace KianCommons {
     using System.Threading;
     using System;
 
-    public static class AuxiluryThread {
+    internal static class AuxiluryThread {
         static AuxiluryThread() {
             Start();
         }

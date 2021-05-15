@@ -8,7 +8,7 @@ using System.Reflection;
 namespace KianCommons.UI {
     using static KianCommons.Assertion;
 
-    public class UIToolButton : UIButton {
+    internal class UIToolButton : UIButton {
         public static UIToolButton Instace { get; private set;}
 
         AssemblyName assemblyName => GetType().Assembly.GetName();

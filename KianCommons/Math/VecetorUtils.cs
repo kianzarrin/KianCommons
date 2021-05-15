@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace KianCommons.Math {
     [Obsolete("Use Vector2D or Vector3D instead")]
-    public static class VectorUtil {
+    internal static class VectorUtil {
         /// <summary>
         /// return value is between 0 to pi. v1 and v2 are interchangable.
         /// </summary>

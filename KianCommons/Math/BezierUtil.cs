@@ -3,7 +3,7 @@ namespace KianCommons.Math {
     using UnityEngine;
     using static MathUtil;
 
-    public static class BezierUtil {
+    internal static class BezierUtil {
         public static string STR(this Bezier2 bezier) {
             return $"Bezier2(" + bezier.a + ", " + bezier.b + ", " + bezier.c + ", " + bezier.d + ")";
         }

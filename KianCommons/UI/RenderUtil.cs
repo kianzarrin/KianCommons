@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Experimental.Director;
 
 namespace KianCommons.UI {
-    public static class RenderUtil {
+    internal static class RenderUtil {
         /// <summary>
         /// Draws a half sausage at segment end.
         /// </summary>

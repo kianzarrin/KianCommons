@@ -2,7 +2,7 @@ namespace KianCommons.Math {
     using UnityEngine;
     using KianCommons.Math;
 
-    public static class LineUtil {
+    internal static class LineUtil {
         public static bool IntersectLine(Vector2 A, Vector2 B, Vector2 C, Vector2 D, out Vector2 center) {
             // Line AB represented as a1x + b1y = c1 
             float a1 = B.y - A.y;

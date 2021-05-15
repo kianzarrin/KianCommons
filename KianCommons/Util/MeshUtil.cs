@@ -7,7 +7,7 @@ using System.Reflection;
 using UnityEngine;
 
 namespace KianCommons {
-    public static class MeshUtil {
+    internal static class MeshUtil {
         public static Mesh LoadMesh(string fileName) {
             Assembly executingAssembly = Assembly.GetExecutingAssembly();
             var stream = executingAssembly.GetManifestResourceStream("HideUnconnectedTracks.Resources." + fileName);

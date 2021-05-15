@@ -5,7 +5,7 @@ using System.Text;
 
 namespace KianCommons.Math {
     // start dir and end dir are pointing inwards.
-    public struct CubicBezier3 {
+    internal struct CubicBezier3 {
         public ControlPoint3 Start;
         public ControlPoint3 End;
 
