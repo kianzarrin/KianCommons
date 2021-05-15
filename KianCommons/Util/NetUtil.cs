@@ -620,7 +620,7 @@ namespace KianCommons {
         /// <returns></returns>
         public static LaneData[] GetSortedLanes(
             ushort segmentId,
-            bool? startNode,
+            bool? startNode = null,
             NetInfo.LaneType laneType = NetInfo.LaneType.All,
             VehicleInfo.VehicleType vehicleType = VehicleInfo.VehicleType.All) {
             var lanes = IterateLanes(
