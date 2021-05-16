@@ -74,7 +74,7 @@ namespace KianCommons.Plugins {
         public static PluginInfo GetIMT() => GetPlugin("Intersection Marking", new[] { 2140418403ul, 2159934925ul});
         public static PluginInfo GetRAB() => GetPlugin("Roundabout Builder");
         
-
+        public static PluginInfo GetLoadOrderMod() => GetPlugin("LoadOrderMod", searchOptions: AssemblyEquals);
 
         [Obsolete]
         internal static bool CSUREnabled;
