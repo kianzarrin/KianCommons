@@ -589,10 +589,10 @@ namespace KianCommons {
             foreach (LaneData laneData in IterateSegmentLanes(segmentId)) {
                 if (startNode != null && startNode != laneData.StartNode)
                     continue;
-                if (laneType == NetInfo.LaneType.All ||
+                if (laneType != NetInfo.LaneType.All &&
                     !laneData.LaneInfo.m_laneType.IsFlagSet(laneType))
                     continue;
-                if (vehicleType == VehicleInfo.VehicleType.All ||
+                if (vehicleType != VehicleInfo.VehicleType.All &&
                     !laneData.LaneInfo.m_vehicleType.IsFlagSet(vehicleType))
                     continue;
                 yield return laneData;
