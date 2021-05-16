@@ -589,9 +589,11 @@ namespace KianCommons {
             foreach (LaneData laneData in IterateSegmentLanes(segmentId)) {
                 if (startNode != null && startNode != laneData.StartNode)
                     continue;
-                if (!laneData.LaneInfo.m_laneType.IsFlagSet(laneType))
+                if (laneType == NetInfo.LaneType.All ||
+                    !laneData.LaneInfo.m_laneType.IsFlagSet(laneType))
                     continue;
-                if (!laneData.LaneInfo.m_vehicleType.IsFlagSet(vehicleType))
+                if (vehicleType == VehicleInfo.VehicleType.All ||
+                    !laneData.LaneInfo.m_vehicleType.IsFlagSet(vehicleType))
                     continue;
                 yield return laneData;
             }
@@ -613,11 +615,6 @@ namespace KianCommons {
         /// <summary>
         /// sorted from outer lane to inner lane when heading toward <paramref name="startNode"/>
         /// </summary>
-        /// <param name="segmentId"></param>
-        /// <param name="startNode"></param>
-        /// <param name="laneType"></param>
-        /// <param name="vehicleType"></param>
-        /// <returns></returns>
         public static LaneData[] GetSortedLanes(
             ushort segmentId,
             bool? startNode = null,

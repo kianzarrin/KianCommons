@@ -7,6 +7,8 @@ namespace KianCommons {
     using System.Reflection;
     using static KianCommons.ReflectionHelpers;
     using KianCommons.Math;
+    using System.Globalization;
+    using System.Diagnostics;
 
     internal static class EnumBitMaskExtensions {
         [Obsolete("this is buggy as it assumes enum is 0,1,2,3,4 ...\n" +
@@ -37,25 +39,21 @@ namespace KianCommons {
         internal static int GetEnumCount<T>() =>
             System.Enum.GetValues(typeof(T)).Length;
 
-        private static void CheckEnumWithFlags<T>() {
-            // copy of:
-            // private static void ColossalFramework.EnumExtensions.CheckEnumWithFlags<T>()
-            if (!typeof(T).IsEnum) {
-                throw new ArgumentException(string.Format("Type '{0}' is not an enum", typeof(T).FullName));
-            }
-            if (!Attribute.IsDefined(typeof(T), typeof(FlagsAttribute))) {
-                throw new ArgumentException(string.Format("Type '{0}' doesn't have the 'Flags' attribute", typeof(T).FullName));
-            }
-        }
-        private static void CheckEnumWithFlags(Type t) {
-            // copy of:
-            // private static void ColossalFramework.EnumExtensions.CheckEnumWithFlags<T>()
-            if (!t.IsEnum) {
-                throw new ArgumentException(string.Format("Type '{0}' is not an enum", t.FullName));
-            }
-            if (!Attribute.IsDefined(t, typeof(FlagsAttribute))) {
-                throw new ArgumentException(string.Format("Type '{0}' doesn't have the 'Flags' attribute", t.FullName));
-            }
+        [Conditional("DEBUG")]
+        private static void CheckEnumWithFlags<T>() where T : struct, Enum, IConvertible =>
+            CheckEnumWithFlags(typeof(T));
+
+        [Conditional("DEBUG")]
+        private static void CheckEnumWithFlags(Type type) {
+            // code from: private static void ColossalFramework.EnumExtensions.CheckEnumWithFlags<T>()
+            if (!type.IsEnum)
+                throw new ArgumentException($"Type '{type.FullName}' is not an enum");
+
+            if (!Attribute.IsDefined(type, typeof(FlagsAttribute)))
+                throw new ArgumentException($"Type '{type.FullName}' doesn't have the 'Flags' attribute");
+
+            if (!Enum.GetUnderlyingType(type).IsInteger())
+                throw new Exception($"Type '{type.FullName}' is not integer based enum.");
         }
 
         internal static bool CheckFlags(this NetNode.Flags value, NetNode.Flags required, NetNode.Flags forbidden =0) =>
@@ -68,16 +66,50 @@ namespace KianCommons {
         internal static bool CheckFlags(this NetLane.Flags value, NetLane.Flags required, NetLane.Flags forbidden=0) =>
             (value & (required | forbidden)) == required;
 
+        public static bool CheckFlags<T>(this T value, T required, T forbidden)
+            where T : struct, Enum, IConvertible {
+            CheckEnumWithFlags<T>();
+            long value2 = value.ToInt64();
+            long required2 = required.ToInt64();
+            long forbidden2 = forbidden.ToInt64();
+            return (value2 & (required2 | forbidden2)) == required2;
+        }
 
+        public static bool CheckFlags<T>(this T value, T required)
+            where T : struct, Enum, IConvertible {
+            CheckEnumWithFlags<T>();
+            long value2 = value.ToInt64();
+            long required2 = required.ToInt64();
+            return (value2 & required2) == required2;
+        }
+
+        /// <summary>
+        /// can convirt any enum based on signed/unsigned integer to long
+        /// </summary>
         public static ulong ToUInt64(this IConvertible value) {
             Type type = value.GetType();
             if (type.IsEnum)
                 type = Enum.GetUnderlyingType(type);
 
             if (type.IsSigned()) {
-                return (ulong)(value.ToInt64(null));
+                return (ulong)(value.ToInt64(CultureInfo.InvariantCulture));
             } else {
-                return value.ToUInt64(null);
+                return value.ToUInt64(CultureInfo.InvariantCulture);
+            }
+        }
+
+        /// <summary>
+        /// can convirt any enum based on signed/unsigned integer to long
+        /// </summary>
+        public static long ToInt64(this IConvertible value) {
+            Type type = value.GetType();
+            if (type.IsEnum)
+                type = Enum.GetUnderlyingType(type);
+
+            if (type.IsSigned()) {
+                return value.ToInt64(CultureInfo.InvariantCulture);
+            } else {
+                return (long)value.ToUInt64(CultureInfo.InvariantCulture);
             }
         }
 
@@ -126,8 +158,7 @@ namespace KianCommons {
             return enumType.GetEnumMember(value).GetAttributes<T>();
         }
 
-
-        public static T[] GetEnumValues<T>() where T: struct, IConvertible =>
+        public static T[] GetEnumValues<T>() where T: struct, Enum, IConvertible =>
             Enum.GetValues(typeof(T)) as T[];
     }
 }
