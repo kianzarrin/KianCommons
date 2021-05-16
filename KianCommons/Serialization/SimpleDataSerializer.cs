@@ -55,8 +55,13 @@ namespace KianCommons.Serialization {
             Stream.WriteByte((byte)(value & 255u));
         }
 
-        public Version ReadVersion() =>
-            new Version(ReadInt32(), ReadInt32(), ReadInt32(), ReadInt32());
+        public Version ReadVersion() {
+            return new Version(
+                Math.Max(0, ReadInt32()),
+                Math.Max(0, ReadInt32()),
+                Math.Max(0, ReadInt32()),
+                Math.Max(0, ReadInt32()));
+        }
         public void WriteVersion(Version version) {
             Assertion.AssertNotNull(version);
             WriteInt32(version.Major);
