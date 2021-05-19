@@ -113,29 +113,31 @@ namespace KianCommons {
             }
         }
 
-        public static bool IsPow2(IConvertible x) => IsPow2Internal(x.ToUInt64());
-        static bool IsPow2Internal(ulong x) => x != 0 && (x & (x - 1)) == 0;
+
+        public static IEnumerable<IConvertible> GetPow2Values(Type enumType) {
+            CheckEnumWithFlags(enumType);
+            var values = Enum.GetValues(enumType).Cast<IConvertible>();
+            return values.Where(val => IsPow2(val));
+        }
 
         public static IEnumerable<T> GetPow2Values<T>() where T : struct, Enum, IConvertible {
             CheckEnumWithFlags(typeof(T));
             var values = Enum.GetValues(typeof(T)).Cast<T>();
             return values.Where(val => IsPow2(val));
         }
-        public static IEnumerable<Enum> GetPow2Values(Type enumType) {
-            CheckEnumWithFlags(enumType);
-            var values = Enum.GetValues(enumType).Cast<Enum>();
-            return values.Where(val => IsPow2(val));
-        }
-
         public static IEnumerable<T> ExtractPow2Flags<T>(this T flags)
             where T : struct, Enum, IConvertible {
             return GetPow2Values<T>().Where(flag => flags.IsFlagSet(flag));
         }
 
-        public static IEnumerable<uint> GetPow2ValuesU32(Type enumType) {
-            CheckEnumWithFlags(enumType);
-            var values = Enum.GetValues(enumType).Cast<uint>();
-            return values.Where(v => IsPow2(v));
+        public static IEnumerable<IConvertible> ExtractPow2Flags(this IConvertible flags){
+            return GetPow2Values(flags.GetType()).Where(flag => flags.IsFlagSet(flag));
+        }
+        public static bool IsFlagSet(this IConvertible flags, IConvertible flag) {
+            CheckEnumWithFlags(flags.GetType());
+            long a = flags.ToInt64();
+            long b = flag.ToInt64();
+            return (a & b) != 0;
         }
 
         public static IEnumerable<int> GetPow2ValuesI32(Type enumType) {
@@ -144,7 +146,7 @@ namespace KianCommons {
             return values.Where(v => IsPow2(v));
         }
 
-        public static MemberInfo GetEnumMember(this Type enumType, object value) {
+        public static MemberInfo GetEnumMemberInfo(this Type enumType, object value) {
             if (enumType is null) throw new ArgumentNullException("enumType");
             string name = Enum.GetName(enumType, value);
             if (name == null)
@@ -153,9 +155,13 @@ namespace KianCommons {
                 throw new Exception($"{enumType.GetType().Name}.{name} not found");
         }
 
+        public static MemberInfo GetEnumMemberInfo(this Enum value) {
+            return value.GetType().BaseType.GetEnumMemberInfo(value);
+        }
+
         public static T[] GetEnumMemberAttributes<T>(Type enumType, object value)
             where T : Attribute {
-            return enumType.GetEnumMember(value).GetAttributes<T>();
+            return enumType.GetEnumMemberInfo(value).GetAttributes<T>();
         }
 
         public static T[] GetEnumValues<T>() where T: struct, Enum, IConvertible =>

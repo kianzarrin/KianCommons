@@ -42,6 +42,21 @@ namespace KianCommons {
         internal static void AssertGTEq<T>(T a, T b, string m = "") where T : IComparable =>
             Assert(a.CompareTo(b) >= 0, $"expected {a} >= {b} | " + m);
 
+        internal static void NotNull(object obj, string m = "") =>
+            Assert(obj != null, " unexpected null " + m);
+
+        internal static void Equal<T>(T a, T b, string m = "") where T : IComparable =>
+            Assert(a.CompareTo(b) == 0, $"expected {a} == {b} | " + m);
+
+        internal static void Neq<T>(T a, T b, string m = "") where T : IComparable =>
+            Assert(a.CompareTo(b) != 0, $"expected {a} != {b} | " + m);
+
+        internal static void GT<T>(T a, T b, string m = "") where T : IComparable =>
+            Assert(a.CompareTo(b) > 0, $"expected {a} > {b} | " + m);
+
+        internal static void GTEq<T>(T a, T b, string m = "") where T : IComparable =>
+            Assert(a.CompareTo(b) >= 0, $"expected {a} >= {b} | " + m);
+
         internal static void Assert(bool con, string m = "") {
             if (!con) {
                 m = "Assertion failed: " + m;

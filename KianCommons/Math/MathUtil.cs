@@ -8,12 +8,40 @@ namespace KianCommons.Math {
             float diff = a - b;
             return (diff > -error) & (diff < error);
         }
+
+        public static bool IsPow2(IConvertible x) {
+            switch (Type.GetTypeCode(x.GetType())) {
+                case TypeCode.Byte:
+                    return IsPow2((ulong)(byte)x);
+                case TypeCode.UInt16:
+                    return IsPow2((ulong)(UInt16)x);
+                case TypeCode.UInt32:
+                    return IsPow2((ulong)(UInt32)x);
+                case TypeCode.UInt64:
+                    return IsPow2((ulong)(UInt64)x);
+                case TypeCode.SByte:
+                    return IsPow2((SByte)x);
+                case TypeCode.Int16:
+                    return IsPow2((short)x);
+                case TypeCode.Int32:
+                    return IsPow2((int)x);
+                case TypeCode.Int64:
+                    return IsPow2((long)x);
+                default:
+                    throw new ArgumentException("expected x to be integer. got " + x);
+            }
+        }
+
         public static bool IsPow2(ulong x) => x != 0 && (x & (x - 1)) == 0;
         public static bool IsPow2(long x) => x != 0 && (x & (x - 1)) == 0;
 
         // these are required to support negative numbers.
         public static bool IsPow2(int x) => x != 0 && (x & (x - 1)) == 0;
         public static bool IsPow2(short x) => x != 0 && (x & (x - 1)) == 0;
+        public static bool IsPow2(SByte x) => x != 0 && (x & (x - 1)) == 0;
+
+
+
 
         internal static ushort Clamp2U16(int value) => (ushort)Mathf.Clamp(value, 0, ushort.MaxValue);
     }

@@ -12,7 +12,6 @@ namespace KianCommons {
                 case TypeCode.Int16:
                 case TypeCode.Int32:
                 case TypeCode.Int64:
-                case TypeCode.Decimal:
                     return true;
                 default:
                     return type.IsArray && IsIntegerType(type.GetElementType());
