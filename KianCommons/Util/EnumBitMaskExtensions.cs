@@ -155,14 +155,16 @@ namespace KianCommons {
                 throw new Exception($"{enumType.GetType().Name}.{name} not found");
         }
 
-        public static MemberInfo GetEnumMemberInfo(this Enum value) {
-            return value.GetType().BaseType.GetEnumMemberInfo(value);
-        }
+        public static MemberInfo GetEnumMemberInfo(this Enum value) =>
+            value.GetType().GetEnumMemberInfo(value);
+        
 
-        public static T[] GetEnumMemberAttributes<T>(Type enumType, object value)
-            where T : Attribute {
-            return enumType.GetEnumMemberInfo(value).GetAttributes<T>();
-        }
+        public static T[] GetEnumMemberAttributes<T>(Type enumType, object value) where T : Attribute =>
+            enumType.GetEnumMemberInfo(value).GetAttributes<T>();
+        
+        public static T[] GetEnumMemberAttributes<T>(this Enum value) where T : Attribute =>
+            GetEnumMemberAttributes<T>(value.GetType(), value);
+        
 
         public static T[] GetEnumValues<T>() where T: struct, Enum, IConvertible =>
             Enum.GetValues(typeof(T)) as T[];

@@ -108,12 +108,12 @@ namespace KianCommons {
             return s;
         }
 
-        internal static T GetAttribute<T>(this MemberInfo member, bool inherit = true) where T : Attribute {
-            return member.GetAttributes<T>().FirstOrDefault();
+        internal static T GetAttribute<T>(this ICustomAttributeProvider memberInfo, bool inherit = true) where T : Attribute {
+            return memberInfo.GetAttributes<T>().FirstOrDefault();
         }
 
-        internal static T[] GetAttributes<T>(this MemberInfo member, bool inherit = true) where T : Attribute {
-            return member.GetCustomAttributes(typeof(T), inherit) as T[];
+        internal static T[] GetAttributes<T>(this ICustomAttributeProvider memberInfo, bool inherit = true) where T : Attribute {
+            return memberInfo.GetCustomAttributes(typeof(T), inherit) as T[];
         }
 
         internal static bool HasAttribute<T>(this MemberInfo member, bool inherit = true) where T : Attribute
