@@ -29,6 +29,30 @@ namespace KianCommons {
         internal static IEnumerable<T?> EmptyIfNull<T>(this IEnumerable<T?> a) where T: struct=>
             a ?? Enumerable.Empty<T?>();
 
+        internal static bool AllEqual<T>(this IEnumerable<T> source, IEqualityComparer<T> comparer = null) {
+            if (source == null)
+                throw new ArgumentNullException(nameof(source));
+
+            comparer = comparer ?? EqualityComparer<T>.Default;
+
+            using (var enumerator = source.GetEnumerator()) {
+                if (enumerator.MoveNext()) {
+                    var value = enumerator.Current;
+
+                    while (enumerator.MoveNext()) {
+                        if (!comparer.Equals(enumerator.Current, value))
+                            return false;
+                    }
+                }
+
+                return true;
+            }
+        }
+
+        internal static bool AllEqual<T,T2>(this IEnumerable<T> source, Func<T,T2> selector, IEqualityComparer<T2> comparer = null) {
+            return source.Select(selector).AllEqual();
+        }
+
         internal static int FindIndex<T>(this IEnumerable<T> e, Func<T,bool> predicate) {
             int i = 0;
             foreach(var item in e) {
