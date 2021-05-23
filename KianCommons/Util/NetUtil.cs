@@ -375,7 +375,7 @@ namespace KianCommons {
             return false;
         }
 
-        public static ushort GetHeadNode(ref NetSegment segment) {
+        public static ushort GetHeadNode(this ref NetSegment segment) {
             // tail node>-------->head node
             bool invert = (segment.m_flags & NetSegment.Flags.Invert) != NetSegment.Flags.None;
             invert = invert ^ LHT;
@@ -389,7 +389,7 @@ namespace KianCommons {
         public static ushort GetHeadNode(ushort segmentId) =>
             GetHeadNode(ref segmentId.ToSegment());
 
-        public static ushort GetTailNode(ref NetSegment segment) {
+        public static ushort GetTailNode(this ref NetSegment segment) {
             bool invert = (segment.m_flags & NetSegment.Flags.Invert) != NetSegment.Flags.None;
             invert = invert ^ LHT;
             if (!invert) {
