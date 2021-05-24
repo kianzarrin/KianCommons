@@ -12,22 +12,22 @@ namespace KianCommons.StockCode {
                 VehicleInfo info = otherData.Info;
                 Vector3 otherPos = otherData.m_position;
                 Vector3 diff = otherPos - pos;
-                float carWidth = info.m_generatedInfo.m_size.z;
-                float num = (length + carWidth) * 0.5f + 1f;
+                float carLength = info.m_generatedInfo.m_size.z;
+                float lengthAvr = (length + carLength) * 0.5f + 1f;
                 float diffLength = diff.magnitude;
-                if (diffLength < num - 0.5f) {
+                if (diffLength < lengthAvr - 0.5f) {
                     overlap = true;
-                    float distance;
-                    float num2;
+                    float l1;
+                    float l2;
                     if (Vector3.Dot(diff, dir) >= 0f) {
-                        distance = num + diffLength;
-                        num2 = num - diffLength;
+                        l1 = lengthAvr + diffLength;
+                        l2 = lengthAvr - diffLength;
                     } else {
-                        distance = num - diffLength;
-                        num2 = num + diffLength;
+                        l1 = lengthAvr - diffLength;
+                        l2 = lengthAvr + diffLength;
                     }
-                    maxPos = Mathf.Max(maxPos, bezier.Travel(offset, distance));
-                    minPos = Mathf.Min(minPos, bezier.Travel(offset, -num2));
+                    maxPos = Mathf.Max(maxPos, bezier.Travel(offset, l1));
+                    minPos = Mathf.Min(minPos, bezier.Travel(offset, -l2));
                 }
             }
             return otherData.m_nextGridParked;
