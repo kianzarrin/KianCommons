@@ -472,5 +472,11 @@ namespace KianCommons.Patches {
                 && code.operand is string str
                 && str == value;
         }
+
+        public static bool Calls(this CodeInstruction code, string method) {
+            if (method is null) throw new ArgumentNullException(nameof(method));
+            if (code.opcode != OpCodes.Call && code.opcode != OpCodes.Callvirt) return false;
+            return (code.operand as MethodBase)?.Name == method;
+        }
     }
 }

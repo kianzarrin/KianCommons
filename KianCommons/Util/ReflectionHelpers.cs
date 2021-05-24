@@ -300,7 +300,8 @@ namespace KianCommons {
 
         internal static object InvokeSetter(object instance, string propertyName, object value) {
             var type = instance.GetType();
-            return GetMethod(type, propertyName, true)?.Invoke(instance, new object[] { value });
+            var property = type.GetProperty(propertyName) ?? throw new Exception($"{type}.{propertyName} not found");
+            return property.GetSetMethod().Invoke(instance, new object[] { value });
         }
 
         internal static EventInfo GetEvent(Type type, string eventName, bool throwOnError = true) {
