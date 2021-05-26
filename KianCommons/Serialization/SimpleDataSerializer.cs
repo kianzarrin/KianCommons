@@ -43,9 +43,9 @@ namespace KianCommons.Serialization {
         }
 
         public uint ReadUInt32() {
-            uint num = (uint)((uint)(Stream.ReadByte() & 255) << 24);
-            num |= (uint)((uint)(Stream.ReadByte() & 255) << 16);
-            num |= (uint)((uint)(Stream.ReadByte() & 255) << 8);
+            uint num = ((uint)(Stream.ReadByte() & 255)) << 24;
+            num |= ((uint)(Stream.ReadByte() & 255)) << 16;
+            num |= ((uint)(Stream.ReadByte() & 255)) << 8;
             return num | (uint)(Stream.ReadByte() & 255);
         }
         public void WriteUInt32(uint value) {
