@@ -6,6 +6,19 @@ namespace KianCommons.Patches {
     using System.Reflection;
     using System.Reflection.Emit;
 
+    public class HarmonyPatch2 : HarmonyLib.HarmonyPatch {
+        public HarmonyPatch2(Type delcaringType, Type delegateType){
+            info.declaringType = delcaringType;
+            info.methodName = delegateType.Name;
+            info.argumentTypes =
+                delegateType
+                .GetMethod("Invoke")
+                .GetParameters()
+                .Select(p => p.ParameterType)
+                .ToArray();
+        }
+    }
+
     public static class TranspilerUtils {
         static bool VERBOSE => KianCommons.Log.VERBOSE;
         static void Log(object message) {
