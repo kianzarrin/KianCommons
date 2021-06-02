@@ -6,6 +6,19 @@ namespace KianCommons.Patches {
     using System.Reflection;
     using System.Reflection.Emit;
 
+    public class HarmonyPatch2 : HarmonyLib.HarmonyPatch {
+        public HarmonyPatch2(Type delcaringType, Type delegateType){
+            info.declaringType = delcaringType;
+            info.methodName = delegateType.Name;
+            info.argumentTypes =
+                delegateType
+                .GetMethod("Invoke")
+                .GetParameters()
+                .Select(p => p.ParameterType)
+                .ToArray();
+        }
+    }
+
     public static class TranspilerUtils {
         static bool VERBOSE => KianCommons.Log.VERBOSE;
         static void Log(object message) {
@@ -317,6 +330,9 @@ namespace KianCommons.Patches {
             labels.Clear();
         }
 
+        public static int PeekBefore = 10;
+        public static int PeekAfter = 15;
+
         /// <summary>
         /// replaces one instruction at the given index with multiple instrutions
         /// </summary>
@@ -331,10 +347,18 @@ namespace KianCommons.Patches {
             codes.RemoveAt(index);
             codes.InsertRange(index, insertion);
 
-            if (VERBOSE)
+            if (VERBOSE) {
                 Log("Replacing with\n" + insertion.IL2STR());
-            if (VERBOSE)
-                Log("PEEK (RESULTING CODE):\n" + codes.GetRange(index - 4, insertion.Length + 8).IL2STR());
+                string message = "PEEK\n";
+                for (int i = index - PeekBefore; i <= index + PeekAfter && i < codes.Count; ++i) {
+                    if (i == index)
+                        message += " *** REPLACEMENT START ***\n";
+                    message += codes[i] + "\n";
+                    if (i == index + insertion.Length - 1)
+                        message += " *** REPLACEMENT END ***\n";
+                }
+                Log(message);
+            }
         }
 
         public static void InsertInstructions(List<CodeInstruction> codes, CodeInstruction[] insertion, int index, bool moveLabels = true) {
@@ -347,10 +371,18 @@ namespace KianCommons.Patches {
             MoveLabels(codes[index], insertion[0]);
             codes.InsertRange(index, insertion);
 
-            if (VERBOSE)
-                Log("\n" + insertion.IL2STR());
-            if (VERBOSE)
-                Log("PEEK:\n" + codes.GetRange(index - 4, insertion.Length + 12).IL2STR());
+            if (VERBOSE) {
+                Log("Insertion is:\n" + insertion.IL2STR());
+                string message = "PEEK\n";
+                for(int i=index-PeekBefore; i <= index + PeekAfter && i<codes.Count; ++i) {
+                    if (i == index)
+                        message += " *** INJECTION START ***\n";
+                    message += codes[i] + "\n";
+                    if (i == index + insertion.Length - 1)
+                        message += " *** INJECTION END ***\n";
+                }
+                Log(message);
+            }
         }
     }
 
@@ -443,10 +475,21 @@ namespace KianCommons.Patches {
             return loc == loc0;
         }
 
-        public static bool IsLdLoc(this CodeInstruction code, Type type) {
-            return code.IsLdloc()
-                && code.operand is LocalBuilder lb
-                && lb.LocalType == type;
+        public static bool IsLdLoc(this CodeInstruction code, Type type, MethodBase method) {
+            if (!code.IsLdloc())
+                return false;
+            if (code.opcode == OpCodes.Ldloc_0) {
+                return method.GetMethodBody().LocalVariables[0].LocalType == type;
+            } else if (code.opcode == OpCodes.Ldloc_1) {
+                return method.GetMethodBody().LocalVariables[1].LocalType == type;
+            } else if (code.opcode == OpCodes.Ldloc_2) {
+                return method.GetMethodBody().LocalVariables[2].LocalType == type;
+            } else if (code.opcode == OpCodes.Ldloc_3) {
+                return method.GetMethodBody().LocalVariables[3].LocalType == type;
+            } else {
+                return code.operand is LocalBuilder lb && lb.LocalType == type;
+            }
+            
         }
 
         public static bool IsLdLocA(this CodeInstruction code, Type type, out int loc) {
@@ -461,10 +504,21 @@ namespace KianCommons.Patches {
             return false;
 
         }
-        public static bool IsStLoc(this CodeInstruction code, Type type) {
-            return code.IsStloc()
-                && code.operand is LocalBuilder lb
-                && lb.LocalType == type;
+
+        public static bool IsStLoc(this CodeInstruction code, Type type, MethodBase method) {
+            if (!code.IsStloc())
+                return false;
+            if (code.opcode == OpCodes.Stloc_0) {
+                return method.GetMethodBody().LocalVariables[0].LocalType == type;
+            } else if (code.opcode == OpCodes.Stloc_1) {
+                return method.GetMethodBody().LocalVariables[1].LocalType == type;
+            } else if (code.opcode == OpCodes.Stloc_2) {
+                return method.GetMethodBody().LocalVariables[2].LocalType == type;
+            } else if (code.opcode == OpCodes.Stloc_3) {
+                return method.GetMethodBody().LocalVariables[3].LocalType == type;
+            } else {
+                return code.operand is LocalBuilder lb && lb.LocalType == type;
+            }
         }
 
         public static bool LoadsConstant(this CodeInstruction code, string value) {
