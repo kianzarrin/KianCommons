@@ -32,6 +32,8 @@ namespace KianCommons {
         internal static ref NetSegment ToSegment(this ushort id) => ref segmentBuffer_[id];
         internal static ref NetLane ToLane(this uint id) => ref laneBuffer_[id];
         internal static NetLane.Flags Flags(this ref NetLane lane) => (NetLane.Flags)lane.m_flags;
+        internal static NetInfo.Lane GetLaneInfo(uint laneId) =>
+            laneId.ToLane().m_segment.ToSegment().Info.m_lanes[GetLaneIndex(laneId)];
 
         /// <summary>
         /// returns lane data of the given lane ID.
@@ -558,47 +560,15 @@ namespace KianCommons {
         //}
 
 
-        public static IEnumerable<LaneData> IterateSegmentLanes(ushort segmentId) {
-            int idx = 0;
-            if (segmentId.ToSegment().Info == null) {
-                Log.Error("null info: potentially caused by missing assets. segmentId=" + segmentId);
-                yield break;
-            }
-            int n = segmentId.ToSegment().Info.m_lanes.Length;
-            bool inverted = segmentId.ToSegment().m_flags.IsFlagSet(NetSegment.Flags.Invert);
-            for (uint laneID = segmentId.ToSegment().m_lanes;
-                laneID != 0 && idx < n;
-                laneID = laneID.ToLane().m_nextLane, idx++) {
-                var laneInfo = segmentId.ToSegment().Info.m_lanes[idx];
-                bool forward = laneInfo.m_finalDirection == NetInfo.Direction.Forward;
-                var ret = new LaneData {
-                    LaneID = laneID,
-                    LaneIndex = idx,
-                    LaneInfo = laneInfo,
-                    StartNode = forward ^ !inverted,
-                };
-                yield return ret;
-            }
-        }
+        public static LaneDataIterator IterateSegmentLanes(ushort segmentId) =>
+            new LaneDataIterator(segmentId);
 
-        public static IEnumerable<LaneData> IterateLanes(
+        public static LaneDataIterator IterateLanes(
          ushort segmentId,
          bool? startNode = null,
          NetInfo.LaneType laneType = NetInfo.LaneType.All,
-         VehicleInfo.VehicleType vehicleType = VehicleInfo.VehicleType.All) {
-            foreach (LaneData laneData in IterateSegmentLanes(segmentId)) {
-                if (startNode != null && startNode != laneData.StartNode)
-                    continue;
-                if (laneType != NetInfo.LaneType.All &&
-                    !laneData.LaneInfo.m_laneType.IsFlagSet(laneType))
-                    continue;
-                if (vehicleType != VehicleInfo.VehicleType.All &&
-                    !laneData.LaneInfo.m_vehicleType.IsFlagSet(vehicleType))
-                    continue;
-                yield return laneData;
-            }
-        }
-
+         VehicleInfo.VehicleType vehicleType = VehicleInfo.VehicleType.All) =>
+            new LaneDataIterator(segmentId, startNode, laneType, vehicleType);
 
         public static NetInfo.Lane SortedLane(this NetInfo info, int index) {
             int sortedIndex = info.m_sortedLanes[index];
@@ -674,7 +644,7 @@ namespace KianCommons {
             ushort segmentID = LaneID.ToLane().m_segment;
             laneInfo_ = segmentID.ToSegment().Info.m_lanes[LaneIndex];
             bool backward = laneInfo_.IsGoingBackward();
-            bool inverted = segmentID.ToSegment().m_flags.IsFlagSet(NetSegment.Flags.Invert);
+            bool inverted = segmentID.ToSegment().m_flags.CheckFlags(NetSegment.Flags.Invert);
             StartNode = backward == inverted; //xnor
         }
 
@@ -727,6 +697,59 @@ namespace KianCommons {
 
         public LaneIDIterator GetEnumerator() => this; 
         IEnumerator<uint> IEnumerable<uint>.GetEnumerator() => this;
+        IEnumerator IEnumerable.GetEnumerator() => this;
+        object IEnumerator.Current => Current;
+    }
+
+    public struct LaneDataIterator : IEnumerable<LaneData>, IEnumerator<LaneData> {
+        ushort segmentID_;
+        bool? startNode_;
+        NetInfo.LaneType? laneType_;
+        VehicleInfo.VehicleType? vehicleType_;
+
+        LaneData current_;
+
+        public LaneDataIterator(
+            ushort segmentID,
+            bool? startNode = null,
+            NetInfo.LaneType? laneType = null,
+            VehicleInfo.VehicleType? vehicleType = null) { 
+            segmentID_ = segmentID;
+            startNode_ = startNode;
+            laneType_ = laneType;
+            vehicleType_ = vehicleType;
+
+            current_ = default;
+        }
+
+        public bool MoveNext() {
+            uint nextLaneId;
+            int nextLaneIndex;
+            if (current_.LaneID != 0) {
+                nextLaneId = current_.Lane.m_nextLane;
+                nextLaneIndex = current_.LaneIndex+1;
+            } else {
+                nextLaneId = segmentID_.ToSegment().m_lanes;
+                nextLaneIndex = 0;
+            }
+            if (nextLaneId == 0) return false;
+            current_ = new LaneData(nextLaneId, nextLaneIndex);
+
+            if (startNode_.HasValue && startNode_.Value != current_.StartNode)
+                return MoveNext(); //continue
+            if (laneType_.HasValue && !current_.LaneInfo.m_laneType.IsFlagSet(laneType_.Value))
+                return MoveNext(); //continue
+            if (vehicleType_.HasValue && !current_.LaneInfo.m_vehicleType.IsFlagSet(vehicleType_.Value))
+                return MoveNext(); //continue
+
+            return true;
+        }
+
+        public LaneData Current => current_;
+        public void Reset() => current_ = default;
+        public LaneDataIterator GetEnumerator() => this;
+        public void Dispose() { }
+        IEnumerator<LaneData> IEnumerable<LaneData>.GetEnumerator() => this;
         IEnumerator IEnumerable.GetEnumerator() => this;
         object IEnumerator.Current => Current;
     }
