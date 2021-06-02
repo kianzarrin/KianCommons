@@ -6,14 +6,10 @@ using System.Text;
 
 namespace KianCommons.UI.Table {
     class UITable : UIPanel {
-        public UITableRow[] rows = new UITableRow[0];
+        private UITableRow[] rows = new UITableRow[0];
         private float[] columnWidths = new float[0];
-        public int RowCount {
-            get => rows.Length;
-        }
-        public int ColumnCount {
-            get => columnWidths.Length;
-        }
+        public int RowCount => rows.Length;
+        public int ColumnCount => columnWidths.Length;
         public override void Awake() {
             base.Awake();
             autoLayout = true;
@@ -39,12 +35,11 @@ namespace KianCommons.UI.Table {
         }
         public void Shrink(int rowCount, int columnCount) {
             var reducedRowCount = rowCount != rows.Length;
-            columnWidths = columnWidths.Shrink(columnCount, (_,_)=> { });
+            columnWidths = columnWidths.Shrink(columnCount, (_, _) => { });
             rows = rows.Shrink(rowCount, (row, rowIndex) => {
-                RemoveUIComponent(row);
                 Destroy(row?.gameObject);
             });
-            foreach(var row in rows) {
+            foreach (var row in rows) {
                 row.Shrink(columnCount);
             }
             if (reducedRowCount) {
@@ -58,26 +53,25 @@ namespace KianCommons.UI.Table {
             return rows[row].cells[column];
         }
         public void ResizeAllColums() {
-            
+            for(int columnIndex = 0; columnIndex < columnWidths.Length; columnIndex++) {
+                ResizeColumn(columnIndex);
+            }
         }
         public void ResizeColumn(int columnIndex) {
             float maxWidth = 0;
-            for(int rowIndex = 0; rowIndex < rows.Length; rowIndex++) {
+            for (int rowIndex = 0; rowIndex < rows.Length; rowIndex++) {
                 var innerCell = GetCell(rowIndex, columnIndex);
-                if(innerCell.width > maxWidth) {
+                if (innerCell.width > maxWidth) {
                     maxWidth = innerCell.width;
                 }
             }
-            if(columnWidths[columnIndex] != maxWidth) {
+            if (columnWidths[columnIndex] != maxWidth) {
                 columnWidths[columnIndex] = maxWidth;
-                for(int rowIndex = 0; rowIndex<rows.Length; rowIndex++) {
+                for (int rowIndex = 0; rowIndex < rows.Length; rowIndex++) {
                     var outerCell = GetOuterCell(rowIndex, columnIndex);
                     outerCell.width = maxWidth;
                 }
             }
-        }
-        public override void Start() {
-            base.Start();
         }
     }
 }

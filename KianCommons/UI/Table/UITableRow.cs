@@ -3,8 +3,8 @@ using System;
 
 namespace KianCommons.UI.Table {
     class UITableRow : UIPanel {
-        public UITableCellOuter[] cells = new UITableCellOuter[0];
-        public int rowIndex = -1;
+        internal UITableCellOuter[] cells = new UITableCellOuter[0];
+        internal int rowIndex = -1;
         public override void Awake() {
             base.Awake();
             autoLayout = true;
@@ -16,7 +16,7 @@ namespace KianCommons.UI.Table {
             atlas = TextureUtil.Ingame;
         }
 
-        public void Expand(int columnCount) {
+        internal void Expand(int columnCount) {
             cells = cells.Expand(columnCount, (columnIndex)=> {
                 var cell = AddUIComponent<UITableCellOuter>();
                 cell.columnIndex = columnIndex;
@@ -27,7 +27,6 @@ namespace KianCommons.UI.Table {
 
         internal void Shrink(int columnCount) {
             cells = cells.Shrink(columnCount, (cell, columnIndex) => {
-                RemoveUIComponent(cell);
                 Destroy(cell?.gameObject);
             });
         }
