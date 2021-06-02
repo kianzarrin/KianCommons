@@ -56,13 +56,20 @@ namespace KianCommons {
                 throw new Exception($"Type '{type.FullName}' is not integer based enum.");
         }
 
+        internal static bool IsFlagSet(this NetInfo.LaneType value, NetInfo.LaneType flag) => (value & flag) != 0;
+        internal static bool IsFlagSet(this VehicleInfo.VehicleType value, VehicleInfo.VehicleType flag) => (value & flag) != 0;
+        internal static bool IsFlagSet(this NetNode.Flags value, NetNode.Flags flag) => (value & flag) != 0;
+        internal static bool IsFlagSet(this NetSegment.Flags value, NetSegment.Flags flag) => (value & flag) != 0;
+        internal static bool IsFlagSet(this NetLane.Flags value, NetLane.Flags flag) => (value & flag) != 0;
+
+        internal static bool CheckFlags(this NetInfo.LaneType value, NetInfo.LaneType required, NetInfo.LaneType forbidden = 0) =>
+            (value & (required | forbidden)) == required;
+        internal static bool CheckFlags(this VehicleInfo.VehicleType value, VehicleInfo.VehicleType required, VehicleInfo.VehicleType forbidden = 0) =>
+            (value & (required | forbidden)) == required;
         internal static bool CheckFlags(this NetNode.Flags value, NetNode.Flags required, NetNode.Flags forbidden =0) =>
             (value & (required | forbidden)) == required;
-
-
         internal static bool CheckFlags(this NetSegment.Flags value, NetSegment.Flags required, NetSegment.Flags forbidden=0) =>
             (value & (required | forbidden)) == required;
-
         internal static bool CheckFlags(this NetLane.Flags value, NetLane.Flags required, NetLane.Flags forbidden=0) =>
             (value & (required | forbidden)) == required;
 
@@ -75,13 +82,14 @@ namespace KianCommons {
             return (value2 & (required2 | forbidden2)) == required2;
         }
 
-        public static bool CheckFlags<T>(this T value, T required)
-            where T : struct, Enum, IConvertible {
-            CheckEnumWithFlags<T>();
-            long value2 = value.ToInt64();
-            long required2 = required.ToInt64();
-            return (value2 & required2) == required2;
-        }
+        // this was commented out to make DCR mod faster. we want compiler to choose one of the faster overloads.
+        //public static bool CheckFlags<T>(this T value, T required)
+        //    where T : struct, Enum, IConvertible {
+        //    CheckEnumWithFlags<T>();
+        //    long value2 = value.ToInt64();
+        //    long required2 = required.ToInt64();
+        //    return (value2 & required2) == required2;
+        //}
 
         /// <summary>
         /// can convirt any enum based on signed/unsigned integer to long
