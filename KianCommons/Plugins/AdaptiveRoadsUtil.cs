@@ -8,7 +8,11 @@ namespace KianCommons.Plugins {
     internal static class AdaptiveRoadsUtil {
         static AdaptiveRoadsUtil() {
             PluginManager.instance.eventPluginsStateChanged +=
-                () => plugin_ = null;
+                () => {
+                    plugin_ = null;
+                    nodeLaneTypes_ = null;
+                    nodeVehicleTypes_ = null;
+                };
 
         }
 
@@ -22,6 +26,8 @@ namespace KianCommons.Plugins {
             API_.GetMethod(name) ?? throw new Exception(name + " not found");
         static object Invoke(string methodName, params object[] args) =>
             GetMethod(methodName).Invoke(null, args);
+
+        static TDelegate CreateDelegate<TDelegate>() where TDelegate : Delegate => DelegateUtil.CreateDelegate<TDelegate>(API_);
 
 #pragma warning disable HAA0601, HAA0101
         public static bool IsAdaptive(this NetInfo info) {
@@ -49,6 +55,21 @@ namespace KianCommons.Plugins {
             if (!IsActive) return null;
             return Invoke("GetARLaneFlags", laneId);
         }
-        #pragma warning restore HAA0101, HAA0601
+
+        public delegate VehicleInfo.VehicleType NodeVehicleTypes(NetInfo.Node node);
+        static NodeVehicleTypes nodeVehicleTypes_;
+        public static VehicleInfo.VehicleType VehicleTypes(this NetInfo.Node node) {
+            nodeVehicleTypes_ ??= CreateDelegate<NodeVehicleTypes>();
+            return nodeVehicleTypes_(node);
+        }
+
+
+        public delegate NetInfo.LaneType NodeLaneTypes(NetInfo.Node node);
+        static NodeLaneTypes nodeLaneTypes_;
+        public static NetInfo.LaneType LaneTypes(this NetInfo.Node node) {
+            nodeLaneTypes_ ??= CreateDelegate<NodeLaneTypes>();
+            return nodeLaneTypes_(node);
+        }
+#pragma warning restore HAA0101, HAA0601
     }
 }

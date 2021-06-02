@@ -256,6 +256,8 @@ namespace KianCommons {
 
         internal static string ToSTR(this BindingFlags flags) => flags == ALL ? "ALL" : flags.ToString();
 
+
+
         /// <summary>
         /// Invokes static method of any access type.
         /// like: type.method()
