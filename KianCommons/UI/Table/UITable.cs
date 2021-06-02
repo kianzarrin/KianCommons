@@ -8,6 +8,12 @@ namespace KianCommons.UI.Table {
     class UITable : UIPanel {
         public UITableRow[] rows = new UITableRow[0];
         private float[] columnWidths = new float[0];
+        public int RowCount {
+            get => rows.Length;
+        }
+        public int ColumnCount {
+            get => columnWidths.Length;
+        }
         public override void Awake() {
             base.Awake();
             autoLayout = true;
