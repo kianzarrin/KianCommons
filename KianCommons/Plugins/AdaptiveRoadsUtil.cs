@@ -7,27 +7,35 @@ namespace KianCommons.Plugins {
 
     internal static class AdaptiveRoadsUtil {
         static AdaptiveRoadsUtil() {
-            PluginManager.instance.eventPluginsStateChanged +=
-                () => {
-                    plugin_ = null;
-                    nodeLaneTypes_ = null;
-                    nodeVehicleTypes_ = null;
-                };
+            Init();
+            PluginManager.instance.eventPluginsStateChanged += Init;
+            LoadingManager.instance.m_levelPreLoaded += Init;
+        }
 
+        static void Init() {
+            Log.Info("AdaptiveRoadsUtil.Init() called");
+            Log.Debug(Environment.StackTrace);
+            plugin_ = null;
+            API_ = null;
+            nodeLaneTypes_ = null;
+            nodeVehicleTypes_ = null;
+            IsActive = plugin.IsActive();
         }
 
         static PluginInfo plugin_;
         static PluginInfo plugin => plugin_ ??= GetAdaptiveRoads();
-        public static bool IsActive => plugin.IsActive();
+
+        public static bool IsActive { get; private set; }
 
         public static Assembly asm => plugin.GetMainAssembly();
-        public static Type API_ => asm.GetType("AdaptiveRoads.API", throwOnError: true, ignoreCase: true);
+        public static Type API_;
+        public static Type API => API_ ??= asm.GetType("AdaptiveRoads.API", throwOnError: true, ignoreCase: true);
         static MethodInfo GetMethod(string name) =>
-            API_.GetMethod(name) ?? throw new Exception(name + " not found");
+            API.GetMethod(name) ?? throw new Exception(name + " not found");
         static object Invoke(string methodName, params object[] args) =>
             GetMethod(methodName).Invoke(null, args);
 
-        static TDelegate CreateDelegate<TDelegate>() where TDelegate : Delegate => DelegateUtil.CreateDelegate<TDelegate>(API_);
+        static TDelegate CreateDelegate<TDelegate>() where TDelegate : Delegate => DelegateUtil.CreateDelegate<TDelegate>(API);
 
 #pragma warning disable HAA0601, HAA0101
         public static bool IsAdaptive(this NetInfo info) {
@@ -59,6 +67,7 @@ namespace KianCommons.Plugins {
         public delegate VehicleInfo.VehicleType NodeVehicleTypes(NetInfo.Node node);
         static NodeVehicleTypes nodeVehicleTypes_;
         public static VehicleInfo.VehicleType VehicleTypes(this NetInfo.Node node) {
+            if (!IsActive) return 0;
             nodeVehicleTypes_ ??= CreateDelegate<NodeVehicleTypes>();
             return nodeVehicleTypes_(node);
         }
@@ -67,6 +76,7 @@ namespace KianCommons.Plugins {
         public delegate NetInfo.LaneType NodeLaneTypes(NetInfo.Node node);
         static NodeLaneTypes nodeLaneTypes_;
         public static NetInfo.LaneType LaneTypes(this NetInfo.Node node) {
+            if (!IsActive) return 0;
             nodeLaneTypes_ ??= CreateDelegate<NodeLaneTypes>();
             return nodeLaneTypes_(node);
         }
