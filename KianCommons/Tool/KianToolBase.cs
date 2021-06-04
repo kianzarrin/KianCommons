@@ -21,7 +21,7 @@ namespace KianCommons.Tool {
         protected bool HoverValid => IsMouseRayValid && (HoveredSegmentID != 0 || HoveredNodeID != 0);
 
         public static T Instance { get; private set; }
-        public static T Create() => Instance = UIView.GetAView().AddUIComponent(typeof(T)) as T;
+        public static T Create() => Instance = ToolsModifierControl.toolController.gameObject.AddComponent<T>();
         public static void Release() {
             DestroyImmediate(Instance?.gameObject);
             Instance = null;
