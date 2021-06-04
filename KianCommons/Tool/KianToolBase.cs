@@ -23,7 +23,11 @@ namespace KianCommons.Tool {
         public static T Instance { get; private set; }
         public static T Create() => Instance = ToolsModifierControl.toolController.gameObject.AddComponent<T>();
         public static void Release() {
-            DestroyImmediate(Instance?.gameObject);
+            try {
+                Destroy(Instance?.gameObject);
+            } catch(Exception ex) {
+                ex.Log();
+            }
             Instance = null;
         }
 
