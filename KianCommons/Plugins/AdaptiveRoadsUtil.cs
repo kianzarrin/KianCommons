@@ -19,10 +19,14 @@ namespace KianCommons.Plugins {
             API_ = null;
             nodeLaneTypes_ = null;
             nodeVehicleTypes_ = null;
-            IsActive = plugin.IsActive();
+            IsActive = plugin_.IsActive();
+            var version = plugin_?.userModInstance.VersionOf() ?? new Version(0,0);
+            supports_V2_1_8_ = version >= new Version(2,1,8);
         }
 
         static PluginInfo plugin_;
+        static bool supports_V2_1_8_;
+
         static PluginInfo plugin => plugin_ ??= GetAdaptiveRoads();
 
         public static bool IsActive { get; private set; }
@@ -66,8 +70,9 @@ namespace KianCommons.Plugins {
 
         public delegate VehicleInfo.VehicleType NodeVehicleTypes(NetInfo.Node node);
         static NodeVehicleTypes nodeVehicleTypes_;
+
         public static VehicleInfo.VehicleType VehicleTypes(this NetInfo.Node node) {
-            if (!IsActive) return 0;
+            if (!IsActive || !supports_V2_1_8_) return 0;
             nodeVehicleTypes_ ??= CreateDelegate<NodeVehicleTypes>();
             return nodeVehicleTypes_(node);
         }
@@ -76,7 +81,7 @@ namespace KianCommons.Plugins {
         public delegate NetInfo.LaneType NodeLaneTypes(NetInfo.Node node);
         static NodeLaneTypes nodeLaneTypes_;
         public static NetInfo.LaneType LaneTypes(this NetInfo.Node node) {
-            if (!IsActive) return 0;
+            if (!IsActive || !supports_V2_1_8_) return 0;
             nodeLaneTypes_ ??= CreateDelegate<NodeLaneTypes>();
             return nodeLaneTypes_(node);
         }
