@@ -566,8 +566,8 @@ namespace KianCommons {
         public static LaneDataIterator IterateLanes(
          ushort segmentId,
          bool? startNode = null,
-         NetInfo.LaneType laneType = NetInfo.LaneType.All,
-         VehicleInfo.VehicleType vehicleType = VehicleInfo.VehicleType.All) =>
+         NetInfo.LaneType ?laneType = null,
+         VehicleInfo.VehicleType ?vehicleType = null) =>
             new LaneDataIterator(segmentId, startNode, laneType, vehicleType);
 
         public static NetInfo.Lane SortedLane(this NetInfo info, int index) {
@@ -588,10 +588,10 @@ namespace KianCommons {
         public static LaneData[] GetSortedLanes(
             ushort segmentId,
             bool? startNode = null,
-            NetInfo.LaneType laneType = NetInfo.LaneType.All,
-            VehicleInfo.VehicleType vehicleType = VehicleInfo.VehicleType.All) {
-            var lanes = IterateLanes(
-                segmentId: segmentId,
+            NetInfo.LaneType? laneType = null,
+            VehicleInfo.VehicleType? vehicleType = null) {
+            var lanes = new LaneDataIterator(
+                segmentID: segmentId,
                 startNode: startNode,
                 laneType: laneType,
                 vehicleType: vehicleType);
@@ -743,6 +743,19 @@ namespace KianCommons {
                 return MoveNext(); //continue
 
             return true;
+        }
+
+        public int Count {
+            get {
+                int ret = 0;
+                try {
+                    while (MoveNext())
+                        ret++;
+                } finally {
+                    Reset();
+                }
+                return ret;
+            }
         }
 
         public LaneData Current => current_;
