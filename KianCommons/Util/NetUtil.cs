@@ -642,7 +642,13 @@ namespace KianCommons {
             LaneIndex = laneIndex;
 
             ushort segmentID = LaneID.ToLane().m_segment;
-            laneInfo_ = segmentID.ToSegment().Info.m_lanes[LaneIndex];
+            try {
+                laneInfo_ = segmentID.ToSegment().Info.m_lanes[LaneIndex];
+            } catch (IndexOutOfRangeException ex) {
+                ex.Log($"LaneIndex:{LaneIndex} laneID={laneID} segmentID={segmentID}.\n" +
+                    $"Use network detective mod to debug the segment.", false);
+                throw ex;
+            }
             bool backward = laneInfo_.IsGoingBackward();
             bool inverted = segmentID.ToSegment().m_flags.CheckFlags(NetSegment.Flags.Invert);
             StartNode = backward == inverted; //xnor
