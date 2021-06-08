@@ -3,7 +3,7 @@ using System;
 using UnityEngine;
 
 namespace KianCommons.UI.Table {
-    class UITableCellInner : UIPanel {
+    internal class UITableCellInner : UIPanel {
 
         public override void Awake() {
             base.Awake();
@@ -16,10 +16,10 @@ namespace KianCommons.UI.Table {
             atlas = TextureUtil.Ingame;
             eventSizeChanged += (_, _) => {
                 try { // the first size change occurs within UITableCellOuter::Activate, at which point UITableCellOuter.parent isn't a UITableRow yet.
-                    var outerCell = parent as UITableCellOuter;
-                    var row = outerCell.parent as UITableRow;
-                    var table = row.parent as UITable;
-                    table.ResizeColumn(outerCell.columnIndex);
+                    var _outerCell = parent as UITableCellOuter;
+                    var _row = _outerCell.parent as UITableRow;
+                    var _table = _row.parent as UITable;
+                    _table.ResizeColumn(_outerCell.ColumnIndex);
                 }catch(NullReferenceException _) {
 
                 }

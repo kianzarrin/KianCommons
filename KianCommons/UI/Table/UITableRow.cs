@@ -2,9 +2,9 @@ using ColossalFramework.UI;
 using System;
 
 namespace KianCommons.UI.Table {
-    class UITableRow : UIPanel {
-        internal UITableCellOuter[] cells = new UITableCellOuter[0];
-        internal int rowIndex = -1;
+    internal class UITableRow : UIPanel {
+        internal UITableCellOuter[] Cells = new UITableCellOuter[0];
+        internal int RowIndex = -1;
         public override void Awake() {
             base.Awake();
             autoLayout = true;
@@ -17,16 +17,16 @@ namespace KianCommons.UI.Table {
         }
 
         internal void Expand(int columnCount) {
-            cells = cells.Expand(columnCount, (columnIndex)=> {
+            Cells = Cells.Expand(columnCount, (_columnIndex)=> {
                 var cell = AddUIComponent<UITableCellOuter>();
-                cell.columnIndex = columnIndex;
-                cell.rowIndex = rowIndex;
+                cell.ColumnIndex = _columnIndex;
+                cell.RowIndex = RowIndex;
                 return cell;
             });
         }
 
         internal void Shrink(int columnCount) {
-            cells = cells.Shrink(columnCount, (cell, columnIndex) => {
+            Cells = Cells.Shrink(columnCount, (cell, columnIndex) => {
                 Destroy(cell?.gameObject);
             });
         }

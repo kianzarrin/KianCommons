@@ -5,11 +5,11 @@ using System.Linq;
 using System.Text;
 
 namespace KianCommons.UI.Table {
-    class UITable : UIPanel {
-        private UITableRow[] rows = new UITableRow[0];
-        private float[] columnWidths = new float[0];
-        public int RowCount => rows.Length;
-        public int ColumnCount => columnWidths.Length;
+    public class UITable : UIPanel {
+        private UITableRow[] rows_ = new UITableRow[0];
+        private float[] columnWidths_ = new float[0];
+        public int RowCount => rows_.Length;
+        public int ColumnCount => columnWidths_.Length;
         public override void Awake() {
             base.Awake();
             autoLayout = true;
@@ -23,23 +23,23 @@ namespace KianCommons.UI.Table {
         }
 
         public void Expand(int rowCount, int columnCount) {
-            columnWidths = columnWidths.Expand(columnCount, (_) => -1f);
-            rows = rows.Expand(rowCount, (rowIndex) => {
+            columnWidths_ = columnWidths_.Expand(columnCount, (_) => -1f);
+            rows_ = rows_.Expand(rowCount, (_rowIndex) => {
                 var row = AddUIComponent<UITableRow>();
-                row.rowIndex = rowIndex;
+                row.RowIndex = _rowIndex;
                 return row;
             });
-            foreach (var row in rows) {
-                row.Expand(columnWidths.Length);
+            foreach (var row in rows_) {
+                row.Expand(columnWidths_.Length);
             }
         }
         public void Shrink(int rowCount, int columnCount) {
-            var reducedRowCount = rowCount != rows.Length;
-            columnWidths = columnWidths.Shrink(columnCount, (_, _) => { });
-            rows = rows.Shrink(rowCount, (row, rowIndex) => {
-                Destroy(row?.gameObject);
+            var reducedRowCount = rowCount != rows_.Length;
+            columnWidths_ = columnWidths_.Shrink(columnCount, (_, _) => { });
+            rows_ = rows_.Shrink(rowCount, (_row, _rowIndex) => {
+                Destroy(_row?.gameObject);
             });
-            foreach (var row in rows) {
+            foreach (var row in rows_) {
                 row.Shrink(columnCount);
             }
             if (reducedRowCount) {
@@ -47,27 +47,27 @@ namespace KianCommons.UI.Table {
             }
         }
         public UITableCellInner GetCell(int row, int column) {
-            return GetOuterCell(row, column).innerCell;
+            return GetOuterCell(row, column).InnerCell;
         }
         public UITableCellOuter GetOuterCell(int row, int column) {
-            return rows[row].cells[column];
+            return rows_[row].Cells[column];
         }
         public void ResizeAllColums() {
-            for(int columnIndex = 0; columnIndex < columnWidths.Length; columnIndex++) {
+            for(int columnIndex = 0; columnIndex < columnWidths_.Length; columnIndex++) {
                 ResizeColumn(columnIndex);
             }
         }
         public void ResizeColumn(int columnIndex) {
             float maxWidth = 0;
-            for (int rowIndex = 0; rowIndex < rows.Length; rowIndex++) {
+            for (int rowIndex = 0; rowIndex < rows_.Length; rowIndex++) {
                 var innerCell = GetCell(rowIndex, columnIndex);
                 if (innerCell.width > maxWidth) {
                     maxWidth = innerCell.width;
                 }
             }
-            if (columnWidths[columnIndex] != maxWidth) {
-                columnWidths[columnIndex] = maxWidth;
-                for (int rowIndex = 0; rowIndex < rows.Length; rowIndex++) {
+            if (columnWidths_[columnIndex] != maxWidth) {
+                columnWidths_[columnIndex] = maxWidth;
+                for (int rowIndex = 0; rowIndex < rows_.Length; rowIndex++) {
                     var outerCell = GetOuterCell(rowIndex, columnIndex);
                     outerCell.width = maxWidth;
                 }

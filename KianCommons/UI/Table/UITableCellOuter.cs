@@ -1,11 +1,11 @@
 using ColossalFramework.UI;
 
 namespace KianCommons.UI.Table {
-    class UITableCellOuter : UIPanel {
+    internal class UITableCellOuter : UIPanel {
 
-        public UITableCellInner innerCell;
-        public int rowIndex;
-        public int columnIndex;
+        public UITableCellInner InnerCell;
+        public int RowIndex;
+        public int ColumnIndex;
         public override void Awake() {
             base.Awake();
             autoLayout = true;
@@ -16,7 +16,7 @@ namespace KianCommons.UI.Table {
             name = GetType().Name;
             atlas = TextureUtil.Ingame;
 
-            innerCell = AddUIComponent<UITableCellInner>();
+            InnerCell = AddUIComponent<UITableCellInner>();
         }
     }
 }
