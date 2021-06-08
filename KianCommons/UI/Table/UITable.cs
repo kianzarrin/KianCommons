@@ -43,7 +43,7 @@ namespace KianCommons.UI.Table {
                 row.Shrink(columnCount);
             }
             if (reducedRowCount) {
-                ResizeAllColums();
+                FitAllColumns();
             }
         }
         internal UITableCellInner GetInnerCell(int row, int column) {
@@ -55,12 +55,12 @@ namespace KianCommons.UI.Table {
         internal UITableCellOuter GetOuterCell(int row, int column) {
             return rows_[row].Cells[column];
         }
-        public void ResizeAllColums() {
-            for(int columnIndex = 0; columnIndex < columnWidths_.Length; columnIndex++) {
-                ResizeColumn(columnIndex);
+        public void FitAllColumns() {
+            for (int columnIndex = 0; columnIndex < columnWidths_.Length; columnIndex++) {
+                FitColumn(columnIndex);
             }
         }
-        public void ResizeColumn(int columnIndex) {
+        public void FitColumn(int columnIndex) {
             float maxWidth = 0;
             for (int rowIndex = 0; rowIndex < rows_.Length; rowIndex++) {
                 var innerCell = GetCell(rowIndex, columnIndex);
@@ -68,10 +68,10 @@ namespace KianCommons.UI.Table {
                     maxWidth = innerCell.width;
                 }
             }
-            if (columnWidths_[columnIndex] != maxWidth) {
-                columnWidths_[columnIndex] = maxWidth;
-                for (int rowIndex = 0; rowIndex < rows_.Length; rowIndex++) {
-                    var outerCell = GetOuterCell(rowIndex, columnIndex);
+            columnWidths_[columnIndex] = maxWidth;
+            for (int rowIndex = 0; rowIndex < rows_.Length; rowIndex++) {
+                var outerCell = GetOuterCell(rowIndex, columnIndex);
+                if (outerCell.width != maxWidth) { //avoid triggering an infinite eventSizeChanged loop
                     outerCell.width = maxWidth;
                 }
             }

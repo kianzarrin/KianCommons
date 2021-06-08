@@ -19,7 +19,7 @@ namespace KianCommons.UI.Table {
                     var _outerCell = parent as UITableCellOuter;
                     var _row = _outerCell.parent as UITableRow;
                     var _table = _row.parent as UITable;
-                    _table.ResizeColumn(_outerCell.ColumnIndex);
+                    _table.FitColumn(_outerCell.ColumnIndex);
                 }catch(NullReferenceException _) {
 
                 }
