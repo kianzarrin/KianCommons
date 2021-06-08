@@ -46,10 +46,13 @@ namespace KianCommons.UI.Table {
                 ResizeAllColums();
             }
         }
-        public UITableCellInner GetCell(int row, int column) {
+        internal UITableCellInner GetInnerCell(int row, int column) {
             return GetOuterCell(row, column).InnerCell;
         }
-        public UITableCellOuter GetOuterCell(int row, int column) {
+        public UIPanel GetCell(int row, int column) {
+            return GetInnerCell(row, column);
+        }
+        internal UITableCellOuter GetOuterCell(int row, int column) {
             return rows_[row].Cells[column];
         }
         public void ResizeAllColums() {
