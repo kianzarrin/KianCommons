@@ -621,6 +621,26 @@ namespace KianCommons {
             }
             return 0;
         }
+
+        public static string PrintSegmentLanes(ushort segmentID) {
+            ref var segment = ref segmentID.ToSegment();
+            List<string> ret = new List<string>();
+            ret.Add($"ushort segment:{segmentID} info:{segment.Info}");
+
+            var lanes = segment.Info.m_lanes;
+            int laneIndex = 0;
+            for (uint laneID = segment.m_lanes; laneID != 0; laneID = laneID.ToLane().m_nextLane) {
+                if (laneIndex < lanes.Length) {
+                    var laneInfo = lanes[laneIndex];
+                    ret.Add($"lane[{laneIndex}]:{laneID} {laneInfo.m_laneType}:{laneInfo.m_vehicleType}");
+                } else {
+                    ret.Add($"WARNING: laneID:{laneID} laneIndex:{laneIndex} exceeds laneCount:{lanes.Length} lane.segment:{laneID.ToLane().m_segment}");
+                }
+                laneIndex++;
+            }
+
+            return ret.Join("\n");
+        }
     }
 
     [Serializable]
@@ -647,6 +667,7 @@ namespace KianCommons {
             } catch (IndexOutOfRangeException ex) {
                 ex.Log($"LaneIndex:{LaneIndex} laneID={laneID} segmentID={segmentID}.\n" +
                     $"Use network detective mod to debug the segment.", false);
+                Log.Info(NetUtil.PrintSegmentLanes(segmentID));
                 throw ex;
             }
             bool backward = laneInfo_.IsGoingBackward();
@@ -678,27 +699,41 @@ namespace KianCommons {
     }
 
     public struct LaneIDIterator : IEnumerable<uint>, IEnumerator<uint> {
-        uint laneID_;
         ushort segmentID_;
+
+        uint laneID_;
+        int laneIndex_;
+        int laneCount_;
+
 
         public LaneIDIterator(ushort segmentID) {
             segmentID_ = segmentID;
             laneID_ = 0;
+            laneIndex_ = 0;
+            laneCount_ = segmentID.ToSegment().Info.m_lanes.Length;
         }
 
-        public void Reset() => laneID_ = 0;
+        public void Reset() {
+            laneID_ = 0;
+            laneIndex_ = 0;
+        }
+
         public void Dispose() { }
 
         public uint Current => laneID_;
+        public int CurrentLaneIndex => laneIndex_;
 
         public bool MoveNext() {
+            uint ret;
             if (laneID_ == 0) {
+                if (laneIndex_ > 0)
+                    return false; 
                 laneID_ = segmentID_.ToSegment().m_lanes;
-                return laneID_ != 0;
+            } else {
+                laneID_ = laneID_.ToLane().m_nextLane;
             }
-            uint ret = laneID_.ToLane().m_nextLane;
-            if (ret != 0) laneID_ = ret;
-            return ret != 0;
+            laneIndex_++;
+            return laneID_ != 0 && laneIndex_ < laneCount_;
         }
 
         public LaneIDIterator GetEnumerator() => this; 
@@ -712,6 +747,7 @@ namespace KianCommons {
         bool? startNode_;
         NetInfo.LaneType? laneType_;
         VehicleInfo.VehicleType? vehicleType_;
+        int nLanes_;
 
         LaneData current_;
 
@@ -724,8 +760,11 @@ namespace KianCommons {
             startNode_ = startNode;
             laneType_ = laneType;
             vehicleType_ = vehicleType;
+            nLanes_ = segmentID.ToSegment().Info.m_lanes.Length;
 
             current_ = default;
+
+            Log.Info(NetUtil.PrintSegmentLanes(segmentID_));
         }
 
         public bool MoveNext() {
@@ -739,6 +778,12 @@ namespace KianCommons {
                 nextLaneIndex = 0;
             }
             if (nextLaneId == 0) return false;
+            if (nextLaneIndex >= nLanes_) {
+                Log.Warning($"lane count mismatch! segment:{segmentID_} laneID:{nextLaneId} laneIndex:{nextLaneIndex}");
+                Log.Info(NetUtil.PrintSegmentLanes(segmentID_));
+                throw new Exception("lane count mismatch");
+                return false; 
+            }
             current_ = new LaneData(nextLaneId, nextLaneIndex);
 
             if (startNode_.HasValue && startNode_.Value != current_.StartNode)
