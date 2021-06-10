@@ -763,8 +763,6 @@ namespace KianCommons {
             nLanes_ = segmentID.ToSegment().Info.m_lanes.Length;
 
             current_ = default;
-
-            Log.Info(NetUtil.PrintSegmentLanes(segmentID_));
         }
 
         public bool MoveNext() {
