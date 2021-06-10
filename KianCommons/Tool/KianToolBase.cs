@@ -4,7 +4,17 @@ using System;
 using ColossalFramework;
 
 namespace KianCommons.Tool {
-    public abstract class KianToolBase<T> : ToolBase where T : ToolBase {
+    internal abstract class KianToolBase<T> : KianToolBase where T : ToolBase {
+        public static T Instance { get; private set; }
+        public static T Create() => Instance = ToolsModifierControl.toolController.gameObject.AddComponent<T>();
+
+        public static void Release() {
+            try { DestroyImmediate(Instance); } catch (Exception ex) { ex.Log(); }
+            Instance = null;
+        }
+    }
+
+    internal abstract class KianToolBase : ToolBase  {
         bool leftMouseWasDown_;
         public static Vector3 MousePosition => Input.mousePosition;
         public static Ray MouseRay => Camera.main.ScreenPointToRay(MousePosition);
@@ -19,13 +29,6 @@ namespace KianCommons.Tool {
 
         protected bool IsMouseRayValid => !UIView.IsInsideUI() && Cursor.visible && MouseRayValid;
         protected bool HoverValid => IsMouseRayValid && (HoveredSegmentID != 0 || HoveredNodeID != 0);
-
-        public static T Instance { get; private set; }
-        public static T Create() => Instance = ToolsModifierControl.toolController.gameObject.AddComponent<T>();
-        public static void Release() {
-            try { DestroyImmediate(Instance); } catch (Exception ex) { ex.Log(); }
-            Instance = null;
-        }
 
         protected override void OnDisable() {
             base.OnDisable();
