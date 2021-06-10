@@ -1,7 +1,7 @@
 namespace KianCommons {
     using KianCommons.Plugins;
 
-    internal class DCUtil {
+    internal static class DCUtil {
         //public const VehicleInfo.VehicleType TRACK_VEHICLE_TYPES =
         //    VehicleInfo.VehicleType.Tram |
         //    VehicleInfo.VehicleType.Metro |
@@ -12,14 +12,18 @@ namespace KianCommons {
              (segmentID.ToSegment().Info.m_vehicleTypes & vehicleType) != 0;
 
         public static bool IsMedian(NetInfo.Node nodeInfo, NetInfo netInfo) {
-            VehicleInfo.VehicleType vehicleType = GetVehicleType(nodeInfo.m_connectGroup);
-            vehicleType |= AdaptiveRoadsUtil.VehicleTypes(nodeInfo);
+            VehicleInfo.VehicleType vehicleType = GetVehicleType(nodeInfo);
             return !netInfo.m_vehicleTypes.IsFlagSet(vehicleType); // vehicleType == 0 => median
         }
 
-        public static bool IsTrack(NetInfo.Node nodeInfo, NetInfo info) {
+        public static VehicleInfo.VehicleType GetVehicleType(this NetInfo.Node nodeInfo) {
             VehicleInfo.VehicleType vehicleType = GetVehicleType(nodeInfo.m_connectGroup);
             vehicleType |= AdaptiveRoadsUtil.VehicleTypes(nodeInfo);
+            return vehicleType;
+        }
+
+        public static bool IsTrack(NetInfo.Node nodeInfo, NetInfo info) {
+            VehicleInfo.VehicleType vehicleType = GetVehicleType(nodeInfo);
             return info.m_vehicleTypes.IsFlagSet(vehicleType); // vehicleType == 0 is checked here.
         }
 
@@ -61,10 +65,8 @@ namespace KianCommons {
             NetInfo.ConnectGroup.WideTrolleybus;
 
 
-        internal static VehicleInfo.VehicleType GetVehicleType(NetInfo.ConnectGroup flags, NetInfo info = null) {
+        internal static VehicleInfo.VehicleType GetVehicleType(NetInfo.ConnectGroup flags) {
             VehicleInfo.VehicleType ret = 0;
-            if (info != null && (info.m_netAI is MetroTrackBaseAI))
-                return VehicleInfo.VehicleType.Metro; //MOM workaround
 
             if ((flags & TRAM) != 0) {
                 ret |= VehicleInfo.VehicleType.Tram;
