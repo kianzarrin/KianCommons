@@ -15,25 +15,31 @@ namespace KianCommons.Plugins {
         static void Init() {
             Log.Info("AdaptiveRoadsUtil.Init() called");
             Log.Debug(Environment.StackTrace);
-            plugin_ = null;
-            API_ = null;
-            nodeLaneTypes_ = null;
-            nodeVehicleTypes_ = null;
-            IsActive = plugin_.IsActive();
-            var version = plugin_?.userModInstance.VersionOf() ?? new Version(0,0);
-            supports_V2_1_8_ = version >= new Version(2,1,8);
+            Plugin = GetAdaptiveRoads();
+            IsActive = Plugin.IsActive();
+
+            if (IsActive) {
+                asm = Plugin.GetMainAssembly();
+                API = asm.GetType("AdaptiveRoads.API", throwOnError: true, ignoreCase: true);
+                var version = Plugin.userModInstance.VersionOf() ?? new Version(0, 0);
+                Log.Info("AR Version=" + version);
+                if (version >= new Version(2, 1, 8)) {
+                    nodeVehicleTypes_ = CreateDelegate<NodeVehicleTypes>();
+                    nodeLaneTypes_ = CreateDelegate<NodeLaneTypes>();
+                }
+            } else {
+                Log.Info("AR not found.");
+                asm = null;
+                API = null;
+            }
         }
 
-        static PluginInfo plugin_;
-        static bool supports_V2_1_8_;
-
-        static PluginInfo plugin => plugin_ ??= GetAdaptiveRoads();
+        public static PluginInfo Plugin { get; private set; }
 
         public static bool IsActive { get; private set; }
 
-        public static Assembly asm => plugin.GetMainAssembly();
-        public static Type API_;
-        public static Type API => API_ ??= asm.GetType("AdaptiveRoads.API", throwOnError: true, ignoreCase: true);
+        public static Assembly asm { get; private set; }
+        public static Type API { get; private set; }
         static MethodInfo GetMethod(string name) =>
             API.GetMethod(name) ?? throw new Exception(name + " not found");
         static object Invoke(string methodName, params object[] args) =>
@@ -72,8 +78,10 @@ namespace KianCommons.Plugins {
         static NodeVehicleTypes nodeVehicleTypes_;
 
         public static VehicleInfo.VehicleType ARVehicleTypes(this NetInfo.Node node) {
-            if (!IsActive || !supports_V2_1_8_) return 0;
-            nodeVehicleTypes_ ??= CreateDelegate<NodeVehicleTypes>();
+            Log.Called($"{node.m_mesh.name} [BEFORE]");
+            if (nodeVehicleTypes_ == null)
+                return 0;
+            Log.Called($"{node.m_mesh.name}");
             return nodeVehicleTypes_(node);
         }
 
@@ -81,8 +89,8 @@ namespace KianCommons.Plugins {
         public delegate NetInfo.LaneType NodeLaneTypes(NetInfo.Node node);
         static NodeLaneTypes nodeLaneTypes_;
         public static NetInfo.LaneType LaneTypes(this NetInfo.Node node) {
-            if (!IsActive || !supports_V2_1_8_) return 0;
-            nodeLaneTypes_ ??= CreateDelegate<NodeLaneTypes>();
+            if (nodeLaneTypes_ == null)
+                return 0;
             return nodeLaneTypes_(node);
         }
 #pragma warning restore HAA0101, HAA0601
