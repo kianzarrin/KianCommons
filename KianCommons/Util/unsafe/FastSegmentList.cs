@@ -1,4 +1,4 @@
-namespace KianCommons.Util {
+namespace KianCommons {
     using System;
     using System.Collections;
     using System.Collections.Generic;
