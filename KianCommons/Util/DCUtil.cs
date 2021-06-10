@@ -8,6 +8,10 @@ namespace KianCommons {
         //    VehicleInfo.VehicleType.Train |
         //    VehicleInfo.VehicleType.Monorail;
 
+        /// <summary>
+        /// returns true if asset has vehicle type
+        /// returns false if asset does not have vehicle type or the given vehilce type is 0.
+        /// </summary>
         public static bool HasLane(ushort segmentID, VehicleInfo.VehicleType vehicleType) =>
              (segmentID.ToSegment().Info.m_vehicleTypes & vehicleType) != 0;
 
