@@ -78,10 +78,8 @@ namespace KianCommons.Plugins {
         static NodeVehicleTypes nodeVehicleTypes_;
 
         public static VehicleInfo.VehicleType ARVehicleTypes(this NetInfo.Node node) {
-            Log.Called($"{node.m_mesh.name} [BEFORE]");
             if (nodeVehicleTypes_ == null)
                 return 0;
-            Log.Called($"{node.m_mesh.name}");
             return nodeVehicleTypes_(node);
         }
 
