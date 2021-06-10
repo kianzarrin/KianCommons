@@ -17,7 +17,7 @@ namespace KianCommons {
         }
 
         public static VehicleInfo.VehicleType GetVehicleType(this NetInfo.Node nodeInfo) {
-            VehicleInfo.VehicleType vehicleType = AdaptiveRoadsUtil.VehicleTypes(nodeInfo);
+            VehicleInfo.VehicleType vehicleType = AdaptiveRoadsUtil.ARVehicleTypes(nodeInfo);
             if(vehicleType == 0)
                 vehicleType = GetVehicleType(nodeInfo.m_connectGroup);
             return vehicleType;

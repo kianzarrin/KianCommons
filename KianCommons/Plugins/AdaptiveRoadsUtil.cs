@@ -71,7 +71,7 @@ namespace KianCommons.Plugins {
         public delegate VehicleInfo.VehicleType NodeVehicleTypes(NetInfo.Node node);
         static NodeVehicleTypes nodeVehicleTypes_;
 
-        public static VehicleInfo.VehicleType VehicleTypes(this NetInfo.Node node) {
+        public static VehicleInfo.VehicleType ARVehicleTypes(this NetInfo.Node node) {
             if (!IsActive || !supports_V2_1_8_) return 0;
             nodeVehicleTypes_ ??= CreateDelegate<NodeVehicleTypes>();
             return nodeVehicleTypes_(node);
