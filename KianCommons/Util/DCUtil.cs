@@ -11,9 +11,9 @@ namespace KianCommons {
         public static bool HasLane(ushort segmentID, VehicleInfo.VehicleType vehicleType) =>
              (segmentID.ToSegment().Info.m_vehicleTypes & vehicleType) != 0;
 
-        public static bool IsMedian(NetInfo.Node nodeInfo, NetInfo info) {
+        public static bool IsMedian(NetInfo.Node nodeInfo, NetInfo netInfo) {
             VehicleInfo.VehicleType vehicleType = GetVehicleType(nodeInfo);
-            return !info.m_vehicleTypes.IsFlagSet(vehicleType); // vehicleType == 0 => median
+            return !netInfo.m_vehicleTypes.IsFlagSet(vehicleType); // vehicleType == 0 => median
         }
 
         public static VehicleInfo.VehicleType GetVehicleType(this NetInfo.Node nodeInfo) {
