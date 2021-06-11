@@ -667,7 +667,7 @@ namespace KianCommons {
             } catch (IndexOutOfRangeException ex) {
                 ex.Log($"LaneIndex:{LaneIndex} laneID={laneID} segmentID={segmentID}.\n" +
                     $"Use network detective mod to debug the segment.", false);
-                Log.Info(NetUtil.PrintSegmentLanes(segmentID));
+                Log.Error(NetUtil.PrintSegmentLanes(segmentID));
                 throw ex;
             }
             bool backward = laneInfo_.IsGoingBackward();
@@ -777,9 +777,10 @@ namespace KianCommons {
             }
             if (nextLaneId == 0) return false;
             if (nextLaneIndex >= nLanes_) {
-                Log.Warning($"lane count mismatch! segment:{segmentID_} laneID:{nextLaneId} laneIndex:{nextLaneIndex}");
-                Log.Info(NetUtil.PrintSegmentLanes(segmentID_));
-                throw new Exception("lane count mismatch");
+                if (Log.VERBOSE) {
+                    Log.Warning($"lane count mismatch! segment:{segmentID_} laneID:{nextLaneId} laneIndex:{nextLaneIndex}", false);
+                    Log.Warning(NetUtil.PrintSegmentLanes(segmentID_), false);
+                }
                 return false; 
             }
             current_ = new LaneData(nextLaneId, nextLaneIndex);
