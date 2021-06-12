@@ -600,14 +600,14 @@ namespace KianCommons {
 
         public static int GetLaneIndex(uint laneID) {
             ushort segmentId = laneID.ToLane().m_segment;
-            var id = segmentId.ToSegment().m_lanes;
-            
-            for(int i = 0;
-                i< segmentId.ToSegment().Info.m_lanes.Length && id != 0;
-                i++) {
-                if (id == laneID)
-                    return i;
-                id = id.ToLane().m_nextLane;
+            var laneID2 = segmentId.ToSegment().m_lanes;
+            int nLanes = segmentId.ToSegment().Info.m_lanes.Length;
+            for (int laneIndex2 = 0;
+                laneIndex2< nLanes && laneID2 != 0;
+                laneIndex2++) {
+                if (laneID2 == laneID)
+                    return laneIndex2;
+                laneID2 = laneID2.ToLane().m_nextLane;
             }
             return -1;
         }
@@ -647,7 +647,9 @@ namespace KianCommons {
     public struct LaneData {
         public uint LaneID;
         public int LaneIndex;
+        /// <summary>if the lane is going toward the start node of its segment (undefined for bidirectional lanes)</summary>
         public bool StartNode;
+
 
         [NonSerialized] private NetInfo.Lane laneInfo_;
         public NetInfo.Lane LaneInfo {
@@ -671,8 +673,8 @@ namespace KianCommons {
                 throw ex;
             }
             bool backward = laneInfo_.IsGoingBackward();
-            bool inverted = segmentID.ToSegment().m_flags.CheckFlags(NetSegment.Flags.Invert);
-            StartNode = backward == inverted; //xnor
+            bool invert = segmentID.ToSegment().IsInvert();
+            StartNode = backward == invert; //xnor
         }
 
         public readonly ushort SegmentID => Lane.m_segment;
