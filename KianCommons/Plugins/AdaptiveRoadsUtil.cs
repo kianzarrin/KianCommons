@@ -9,6 +9,7 @@ namespace KianCommons.Plugins {
         static AdaptiveRoadsUtil() {
             Init();
             PluginManager.instance.eventPluginsStateChanged += Init;
+            PluginManager.instance.eventPluginsChanged += Init;
             LoadingManager.instance.m_levelPreLoaded += Init;
         }
 
