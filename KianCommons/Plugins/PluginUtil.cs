@@ -29,14 +29,17 @@ namespace KianCommons.Plugins {
         /// <param name="type">the class/type where the method is delcared</param>
         /// <param name="name">the name of the method</param>
         internal static MethodInfo GetMethod<TDelegate>(this Type type, string name) where TDelegate : Delegate {
-            return type.GetMethod(
+            var ret = type.GetMethod(
                 name,
-                types: GetParameterTypes<TDelegate>())
-                ?? throw new Exception("could not find method " + name);
+                types: GetParameterTypes<TDelegate>());
+            if(ret == null) 
+                Log.Warning($"could not find method {type.Name}.{name}");
+            return ret;
         }
 
         internal static TDelegate CreateDelegate<TDelegate>(Type type, string name = null) where TDelegate : Delegate {
             var method = type.GetMethod<TDelegate>(name ?? typeof(TDelegate).Name);
+            if (method == null) return null;
             return (TDelegate)Delegate.CreateDelegate(typeof(TDelegate), method);
         }
     }
