@@ -9,6 +9,7 @@ namespace KianCommons.Plugins {
         static AdaptiveRoadsUtil() {
             Init();
             PluginManager.instance.eventPluginsStateChanged += Init;
+            PluginManager.instance.eventPluginsChanged += Init;
             LoadingManager.instance.m_levelPreLoaded += Init;
         }
 
@@ -26,6 +27,7 @@ namespace KianCommons.Plugins {
                 if (version >= new Version(2, 1, 8)) {
                     nodeVehicleTypes_ = CreateDelegate<NodeVehicleTypes>();
                     nodeLaneTypes_ = CreateDelegate<NodeLaneTypes>();
+                    hideBrokenMedians_ = CreateDelegate<HideBrokenMedians>();
                 }
             } else {
                 Log.Info("AR not found.");
@@ -74,7 +76,7 @@ namespace KianCommons.Plugins {
             return Invoke("GetARLaneFlags", laneId);
         }
 
-        public delegate VehicleInfo.VehicleType NodeVehicleTypes(NetInfo.Node node);
+        delegate VehicleInfo.VehicleType NodeVehicleTypes(NetInfo.Node node);
         static NodeVehicleTypes nodeVehicleTypes_;
 
         public static VehicleInfo.VehicleType ARVehicleTypes(this NetInfo.Node node) {
@@ -83,14 +85,22 @@ namespace KianCommons.Plugins {
             return nodeVehicleTypes_(node);
         }
 
-
-        public delegate NetInfo.LaneType NodeLaneTypes(NetInfo.Node node);
+        delegate NetInfo.LaneType NodeLaneTypes(NetInfo.Node node);
         static NodeLaneTypes nodeLaneTypes_;
         public static NetInfo.LaneType LaneTypes(this NetInfo.Node node) {
             if (nodeLaneTypes_ == null)
                 return 0;
             return nodeLaneTypes_(node);
         }
+
+        delegate bool HideBrokenMedians(NetInfo.Node node);
+        static HideBrokenMedians hideBrokenMedians_;
+        public static bool ARHideBrokenMedians(this NetInfo.Node node) {
+            if (hideBrokenMedians_ == null)
+                return true;
+            return hideBrokenMedians_(node);
+        }
+
 #pragma warning restore HAA0101, HAA0601
     }
 }
