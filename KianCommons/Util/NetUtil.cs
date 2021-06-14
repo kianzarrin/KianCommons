@@ -320,7 +320,7 @@ namespace KianCommons {
             segmentID1.ToSegment().GetSharedNode(segmentID2);
 
         public static bool IsSegmentValid(ushort segmentId) {
-            if (segmentId == 0)
+            if (segmentId == 0 || segmentId >= NetManager.MAX_SEGMENT_COUNT)
                 return false;
             return segmentId.ToSegment().IsValid();
         }
@@ -348,6 +348,7 @@ namespace KianCommons {
 
         public static void AssertSegmentValid(ushort segmentId) {
             Assertion.AssertNeq(segmentId, 0, "segmentId");
+            Assertion.AssertGT(NetManager.MAX_SEGMENT_COUNT, segmentId);
             Assertion.AssertNotNull(segmentId.ToSegment().Info, $"segment:{segmentId} info");
             var flags = segmentId.ToSegment().m_flags;
             var goodFlags = flags.CheckFlags(required: NetSegment.Flags.Created, forbidden: NetSegment.Flags.Deleted);
@@ -357,7 +358,7 @@ namespace KianCommons {
 
 
         public static bool IsNodeValid(ushort nodeId) {
-            if (nodeId == 0)
+            if (nodeId == 0 || nodeId >= NetManager.MAX_NODE_COUNT)
                 return false;
             return nodeId.ToNode().IsValid();
         }
@@ -370,7 +371,7 @@ namespace KianCommons {
         }
 
         public static bool IsLaneValid(uint laneId) {
-            if (laneId != 0) {
+            if (laneId != 0 && laneId < NetManager.MAX_LANE_COUNT) {
                 return laneId.ToLane().Flags().
                     CheckFlags(required: NetLane.Flags.Created, forbidden: NetLane.Flags.Deleted);
             }
