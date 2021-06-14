@@ -356,7 +356,6 @@ namespace KianCommons {
                 $"segment {segmentId} {segmentId.ToSegment().Info} has bad flags: {flags}");
         }
 
-
         public static bool IsNodeValid(ushort nodeId) {
             if (nodeId == 0 || nodeId >= NetManager.MAX_NODE_COUNT)
                 return false;
