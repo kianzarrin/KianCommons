@@ -54,6 +54,8 @@ namespace KianCommons.UI {
         }
 
         public static UILabel AddLabel(this UIHelper helper, string text, string tooltip = null, Color32 ?textColor = null) {
+            Assertion.NotNull(helper.self, "self");
+            Assertion.Assert(helper.self is UIComponent, "self is " + helper.self.GetType().Name);
             var label = (helper.self as UIComponent).AddUIComponent<UILabel>();
             label.text = text;
             label.tooltip = tooltip;
