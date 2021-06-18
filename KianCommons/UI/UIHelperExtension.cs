@@ -52,5 +52,14 @@ namespace KianCommons.UI {
         public static UITextField AddSavedClampedIntTextfield(this UIHelperBase helper, string label, SavedInt savedInt, int min, int max) {
             return helper.AddSavedClampedIntTextfield(label, savedInt, min, max, (_) => { });
         }
+
+        public static UILabel AddLabel(this UIHelper helper, string text, string tooltip = null, Color32 ?textColor = null) {
+            var label = (helper.self as UIComponent).AddUIComponent<UILabel>();
+            label.text = text;
+            label.tooltip = tooltip;
+            if (textColor.HasValue)
+                label.textColor = textColor.Value;
+            return label;
+        }
     }
 }
