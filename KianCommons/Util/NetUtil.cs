@@ -668,7 +668,7 @@ namespace KianCommons {
                 laneInfo_ = segmentID.ToSegment().Info.m_lanes[LaneIndex];
             } catch (IndexOutOfRangeException ex) {
                 ex.Log($"LaneIndex:{LaneIndex} laneID={laneID} segmentID={segmentID}.\n" +
-                    $"Use network detective mod to debug the segment.", false);
+                    $"Use network detective mod to debug the segment.", showInPannel: false);
                 Log.Error(NetUtil.PrintSegmentLanes(segmentID));
                 throw ex;
             }
@@ -786,7 +786,18 @@ namespace KianCommons {
                 }
                 return false; 
             }
-            current_ = new LaneData(nextLaneId, nextLaneIndex);
+            if (nextLaneId.ToLane().m_segment != segmentID_) {
+                if (Log.VERBOSE) {
+                    Log.Warning($"lane has different segment:{nextLaneId.ToLane().m_segment}! segment:{segmentID_} laneID:{nextLaneId} laneIndex:{nextLaneIndex}", false);
+                    Log.Warning(NetUtil.PrintSegmentLanes(segmentID_), false);
+                }
+                return false;
+            }
+            try {
+                current_ = new LaneData(nextLaneId, nextLaneIndex);
+            } catch (Exception ex) {
+                ex.Log($"bad lane! segment:{segmentID_} laneID:{nextLaneId} laneIndex:{nextLaneIndex}", false);
+            }
 
             if (startNode_.HasValue && startNode_.Value != current_.StartNode)
                 return MoveNext(); //continue
