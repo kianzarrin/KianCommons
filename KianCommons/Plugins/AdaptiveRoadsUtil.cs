@@ -95,7 +95,7 @@ namespace KianCommons.Plugins {
 
         delegate bool HideBrokenMedians(NetInfo.Node node);
         static HideBrokenMedians hideBrokenMedians_;
-        public static bool ARHideBrokenMedians(this NetInfo.Node node) {
+        public static bool HideBrokenARMedians(this NetInfo.Node node) {
             if (hideBrokenMedians_ == null)
                 return true;
             return hideBrokenMedians_(node);

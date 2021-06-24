@@ -24,7 +24,7 @@ namespace KianCommons {
             string dir = "DC_Dumps";
             Directory.CreateDirectory(dir);
             string path = Path.Combine(dir, fileName + ".obj");
-            Log.Debug($"dumping mesh {mesh.name} to " + path);
+            Log.Info($"dumping mesh {mesh.name} to " + path);
             using (FileStream fs = new FileStream( path, FileMode.Create)) {
                 OBJLoader.ExportOBJ(mesh.EncodeOBJ(), fs);
             }

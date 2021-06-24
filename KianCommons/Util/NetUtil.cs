@@ -320,7 +320,7 @@ namespace KianCommons {
             segmentID1.ToSegment().GetSharedNode(segmentID2);
 
         public static bool IsSegmentValid(ushort segmentId) {
-            if (segmentId == 0)
+            if (segmentId == 0 || segmentId >= NetManager.MAX_SEGMENT_COUNT)
                 return false;
             return segmentId.ToSegment().IsValid();
         }
@@ -348,6 +348,7 @@ namespace KianCommons {
 
         public static void AssertSegmentValid(ushort segmentId) {
             Assertion.AssertNeq(segmentId, 0, "segmentId");
+            Assertion.AssertGT(NetManager.MAX_SEGMENT_COUNT, segmentId);
             Assertion.AssertNotNull(segmentId.ToSegment().Info, $"segment:{segmentId} info");
             var flags = segmentId.ToSegment().m_flags;
             var goodFlags = flags.CheckFlags(required: NetSegment.Flags.Created, forbidden: NetSegment.Flags.Deleted);
@@ -355,9 +356,8 @@ namespace KianCommons {
                 $"segment {segmentId} {segmentId.ToSegment().Info} has bad flags: {flags}");
         }
 
-
         public static bool IsNodeValid(ushort nodeId) {
-            if (nodeId == 0)
+            if (nodeId == 0 || nodeId >= NetManager.MAX_NODE_COUNT)
                 return false;
             return nodeId.ToNode().IsValid();
         }
@@ -370,7 +370,7 @@ namespace KianCommons {
         }
 
         public static bool IsLaneValid(uint laneId) {
-            if (laneId != 0) {
+            if (laneId != 0 && laneId < NetManager.MAX_LANE_COUNT) {
                 return laneId.ToLane().Flags().
                     CheckFlags(required: NetLane.Flags.Created, forbidden: NetLane.Flags.Deleted);
             }
@@ -668,8 +668,8 @@ namespace KianCommons {
                 laneInfo_ = segmentID.ToSegment().Info.m_lanes[LaneIndex];
             } catch (IndexOutOfRangeException ex) {
                 ex.Log($"LaneIndex:{LaneIndex} laneID={laneID} segmentID={segmentID}.\n" +
-                    $"Use network detective mod to debug the segment.", false);
-                Log.Info(NetUtil.PrintSegmentLanes(segmentID));
+                    $"Use network detective mod to debug the segment.", showInPannel: false);
+                Log.Error(NetUtil.PrintSegmentLanes(segmentID));
                 throw ex;
             }
             bool backward = laneInfo_.IsGoingBackward();
@@ -780,12 +780,24 @@ namespace KianCommons {
             }
             if (nextLaneId == 0) return false;
             if (nextLaneIndex >= nLanes_) {
-                Log.Warning($"lane count mismatch! segment:{segmentID_} laneID:{nextLaneId} laneIndex:{nextLaneIndex}");
-                Log.Info(NetUtil.PrintSegmentLanes(segmentID_));
-                throw new Exception("lane count mismatch");
+                if (Log.VERBOSE) {
+                    Log.Warning($"lane count mismatch! segment:{segmentID_} laneID:{nextLaneId} laneIndex:{nextLaneIndex}", false);
+                    Log.Warning(NetUtil.PrintSegmentLanes(segmentID_), false);
+                }
                 return false; 
             }
-            current_ = new LaneData(nextLaneId, nextLaneIndex);
+            if (nextLaneId.ToLane().m_segment != segmentID_) {
+                if (Log.VERBOSE) {
+                    Log.Warning($"lane has different segment:{nextLaneId.ToLane().m_segment}! segment:{segmentID_} laneID:{nextLaneId} laneIndex:{nextLaneIndex}", false);
+                    Log.Warning(NetUtil.PrintSegmentLanes(segmentID_), false);
+                }
+                return false;
+            }
+            try {
+                current_ = new LaneData(nextLaneId, nextLaneIndex);
+            } catch (Exception ex) {
+                ex.Log($"bad lane! segment:{segmentID_} laneID:{nextLaneId} laneIndex:{nextLaneIndex}", false);
+            }
 
             if (startNode_.HasValue && startNode_.Value != current_.StartNode)
                 return MoveNext(); //continue
