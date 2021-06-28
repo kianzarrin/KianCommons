@@ -165,7 +165,7 @@ namespace KianCommons {
                 }
 
                 AssemblyName details = typeof(Log).Assembly.GetName();
-                Info($"Log file at " + LogFilePath, true);
+                Info($"Log file at {LogFilePath} now={DateTime.Now}", true);
                 Info($"{details.Name} Version:{details.Version} " +
                      $"Commit:{ThisAssembly.Git.Commit} " +
                      $"CommitDate:{ThisAssembly.Git.CommitDate}", true);
