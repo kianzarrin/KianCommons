@@ -41,7 +41,8 @@ namespace KianCommons.Serialization {
         }
 
         public static void GetObjectFields(SerializationInfo info, object instance) {
-            var fields = instance.GetType().GetFields().Where(field => !field.IsStatic);
+            var fields = instance.GetType().GetFields().Where(field =>
+                !field.IsStatic && !field.HasAttribute<NonSerializedAttribute>());
             foreach (FieldInfo field in fields) {
                 var type = field.GetType();
                 if (type == typeof(Vector3)) {
