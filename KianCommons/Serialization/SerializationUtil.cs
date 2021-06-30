@@ -82,6 +82,12 @@ namespace KianCommons.Serialization {
             return instance;
         }
 
+        public static void SetObjectFields<TStruct>(SerializationInfo info, ref TStruct s) where TStruct : struct =>
+            s = (TStruct)SetObjectFields(info, s);
+
+        public static void SetObjectProperties<TStruct>(SerializationInfo info, ref TStruct s) where TStruct : struct =>
+            s = (TStruct)SetObjectProperties(info, s);
+
         public static T GetValue<T>(this SerializationInfo info, string name) =>
             (T)info.GetValue(name, typeof(T));
     }
