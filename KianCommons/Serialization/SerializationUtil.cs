@@ -79,7 +79,7 @@ namespace KianCommons.Serialization {
                 FieldInfo field = s.GetType().GetField(item.Name, ReflectionHelpers.COPYABLE);
                 if (field != null) {
                     object val = Convert.ChangeType(item.Value, field.FieldType);
-                    field.SetValue(s, val);
+                    field.SetValue(ref s, val);
                 }
             }
         }
@@ -90,7 +90,7 @@ namespace KianCommons.Serialization {
                 var setter = p?.GetSetMethod();
                 if (setter != null) {
                     object val = Convert.ChangeType(item.Value, p.PropertyType);
-                    p.SetValue(s, val, null);
+                    p.SetValue(ref s, val, null);
                 }
             }
         }
