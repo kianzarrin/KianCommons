@@ -41,8 +41,7 @@ namespace KianCommons.Serialization {
         }
 
         public static void GetObjectFields(SerializationInfo info, object instance) {
-            var fields = instance.GetType().GetFields().Where(field =>
-                !field.IsStatic && !field.HasAttribute<NonSerializedAttribute>());
+            var fields = instance.GetType().GetFields(ReflectionHelpers.COPYABLE).Where(field => !field.HasAttribute<NonSerializedAttribute>());
             foreach (FieldInfo field in fields) {
                 var type = field.GetType();
                 if (type == typeof(Vector3)) {
@@ -54,30 +53,50 @@ namespace KianCommons.Serialization {
             }
         }
 
-        public static void SetObjectFields(SerializationInfo info, object instance) {
+        public static void SetObjectFields<TClass>(SerializationInfo info, TClass instance) where TClass : class {
             foreach (SerializationEntry item in info) {
-                FieldInfo field = instance.GetType().GetField(item.Name);
-                if (field != null && !field.IsStatic) {
+                FieldInfo field = instance.GetType().GetField(item.Name, ReflectionHelpers.COPYABLE);
+                if (field != null) {
                     object val = Convert.ChangeType(item.Value, field.FieldType);
                     field.SetValue(instance, val);
                 }
             }
         }
 
-        public static void SetObjectProperties(SerializationInfo info, object instance) {
+        public static void SetObjectProperties<TClass>(SerializationInfo info, TClass instance) where TClass: class {
             foreach (SerializationEntry item in info) {
-                var p = instance.GetType().GetProperty(item.Name, ReflectionHelpers.ALL);
+                var p = instance.GetType().GetProperty(item.Name, ReflectionHelpers.COPYABLE);
                 var setter = p?.GetSetMethod();
-                if (setter != null && !setter.IsStatic) {
+                if (setter != null) {
                     object val = Convert.ChangeType(item.Value, p.PropertyType);
                     p.SetValue(instance, val, null);
                 }
             }
         }
 
+        public static void SetObjectFields<TStruct>(SerializationInfo info, ref TStruct s) where TStruct : struct {
+            foreach (SerializationEntry item in info) {
+                FieldInfo field = s.GetType().GetField(item.Name, ReflectionHelpers.COPYABLE);
+                if (field != null) {
+                    object val = Convert.ChangeType(item.Value, field.FieldType);
+                    field.SetValue(s, val);
+                }
+            }
+        }
+
+        public static void SetObjectProperties<TStruct>(SerializationInfo info, ref TStruct s) where TStruct : struct {
+            foreach (SerializationEntry item in info) {
+                var p = s.GetType().GetProperty(item.Name, ReflectionHelpers.COPYABLE);
+                var setter = p?.GetSetMethod();
+                if (setter != null) {
+                    object val = Convert.ChangeType(item.Value, p.PropertyType);
+                    p.SetValue(s, val, null);
+                }
+            }
+        }
+
         public static T GetValue<T>(this SerializationInfo info, string name) =>
             (T)info.GetValue(name, typeof(T));
-        
     }
 
     internal static class IOExtensions {
