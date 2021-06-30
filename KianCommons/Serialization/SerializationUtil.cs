@@ -15,7 +15,7 @@ namespace KianCommons.Serialization {
             new BinaryFormatter { AssemblyFormat = FormatterAssemblyStyle.Simple };
 
         public static object Deserialize(byte[] data, Version version) {
-            if (data == null || data.Length==0) return null;
+            if (data == null || data.Length == 0) return null;
             try {
                 DeserializationVersion = version;
                 //Log.Debug($"SerializationUtil.Deserialize(data): data.Length={data?.Length}");
@@ -25,7 +25,7 @@ namespace KianCommons.Serialization {
                 return GetBinaryFormatter.Deserialize(memoryStream);
             }
             catch (Exception e) {
-                Log.Exception(e,showInPanel:false);
+                Log.Exception(e, showInPanel: false);
                 return null;
             } finally {
                 DeserializationVersion = null;

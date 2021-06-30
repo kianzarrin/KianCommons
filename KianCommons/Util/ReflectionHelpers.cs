@@ -438,7 +438,18 @@ namespace KianCommons {
             return ReflectionHelpers.GetMethod(type, name, binding, types, throwOnError);
         }
 
+        // boxing and unboxing on SetValue so that it can be called with ref on struct types.
+        internal static void SetValue<TStruct>(this FieldInfo fieldInfo, ref TStruct obj, object val) where TStruct:struct {
+            var tmp = (object)obj;
+            fieldInfo.SetValue(tmp, val);
+            obj = (TStruct)tmp;
+        }
 
+        internal static void SetValue<TStruct>(this PropertyInfo propertyInfo, ref TStruct obj, object value, object[] index) where TStruct:struct{
+            var tmp = (object)obj;
+            propertyInfo.SetValue(tmp, value, index);
+            obj = (TStruct)tmp;
+        }
 
     }
 }
