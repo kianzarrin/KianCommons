@@ -15,7 +15,7 @@ namespace KianCommons.Serialization {
             new BinaryFormatter { AssemblyFormat = FormatterAssemblyStyle.Simple };
 
         public static object Deserialize(byte[] data, Version version) {
-            if (data == null || data.Length==0) return null;
+            if (data == null || data.Length == 0) return null;
             try {
                 DeserializationVersion = version;
                 //Log.Debug($"SerializationUtil.Deserialize(data): data.Length={data?.Length}");
@@ -25,9 +25,10 @@ namespace KianCommons.Serialization {
                 return GetBinaryFormatter.Deserialize(memoryStream);
             }
             catch (Exception e) {
-                Log.Exception(e,showInPanel:false);
+                Log.Exception(e, showInPanel: false);
                 return null;
-            } finally {
+            }
+            finally {
                 DeserializationVersion = null;
             }
         }
@@ -47,13 +48,16 @@ namespace KianCommons.Serialization {
                 if (type == typeof(Vector3)) {
                     //Vector3Serializable v = (Vector3Serializable)field.GetValue(instance);
                     info.AddValue(field.Name, field.GetValue(instance), typeof(Vector3Serializable));
-                } else { 
+                } else {
                     info.AddValue(field.Name, field.GetValue(instance), field.FieldType);
                 }
             }
         }
 
-        public static void SetObjectFields<TClass>(SerializationInfo info, TClass instance) where TClass : class {
+        /// <summary>
+        /// warning, structs should make use of the return value.
+        /// </summary>
+        public static TClass SetObjectFields<TClass>(SerializationInfo info, TClass instance) where TClass : class {
             foreach (SerializationEntry item in info) {
                 FieldInfo field = instance.GetType().GetField(item.Name, ReflectionHelpers.COPYABLE);
                 if (field != null) {
@@ -61,9 +65,13 @@ namespace KianCommons.Serialization {
                     field.SetValue(instance, val);
                 }
             }
+            return instance;
         }
 
-        public static void SetObjectProperties<TClass>(SerializationInfo info, TClass instance) where TClass: class {
+        /// <summary>
+        /// warning, structs should make use of the return value.
+        /// </summary>
+        public static TClass SetObjectProperties<TClass>(SerializationInfo info, TClass instance) where TClass : class {
             foreach (SerializationEntry item in info) {
                 var p = instance.GetType().GetProperty(item.Name, ReflectionHelpers.COPYABLE);
                 var setter = p?.GetSetMethod();
@@ -72,6 +80,7 @@ namespace KianCommons.Serialization {
                     p.SetValue(instance, val, null);
                 }
             }
+            return instance;
         }
 
         public static void SetObjectFields<TStruct>(SerializationInfo info, ref TStruct s) where TStruct : struct {
