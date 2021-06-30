@@ -18,7 +18,6 @@ namespace KianCommons.UI {
             sprite.relativePosition = new Vector2(0, (height - sprite.height) / 2);
             sprite.atlas = TextureUtil.Ingame;
 
-
             var sprite2 = sprite.AddUIComponent<UISprite>();
             sprite2.atlas = TextureUtil.Ingame;
             sprite2.spriteName = "ToggleBaseFocused";

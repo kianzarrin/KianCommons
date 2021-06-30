@@ -4,8 +4,18 @@ using System;
 using ColossalFramework;
 
 namespace KianCommons.Tool {
-    public abstract class KianToolBase : ToolBase {
-        static bool leftMouseWasDown_;
+    internal abstract class KianToolBase<T> : KianToolBase where T : ToolBase {
+        public static T Instance { get; private set; }
+        public static T Create() => Instance = ToolsModifierControl.toolController.gameObject.AddComponent<T>();
+
+        public static void Release() {
+            try { DestroyImmediate(Instance); } catch (Exception ex) { ex.Log(); }
+            Instance = null;
+        }
+    }
+
+    internal abstract class KianToolBase : ToolBase  {
+        bool leftMouseWasDown_;
         public static Vector3 MousePosition => Input.mousePosition;
         public static Ray MouseRay => Camera.main.ScreenPointToRay(MousePosition);
         public static float MouseRayLength => Camera.main.farClipPlane;

@@ -107,6 +107,7 @@ namespace KianCommons.Math {
         /// <param name="source">angle to compare with</param>
         /// <param name="target">angle being comapred</param>
         public static bool CompareAngles_CCW_Right(float source, float target) {
+            if (source == 0) return false; //prevent infinite recursion
             if (source > 0)
                 return (0 < target) & (target < source);
             return !CompareAngles_CCW_Right(-source, -target);

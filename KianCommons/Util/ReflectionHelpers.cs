@@ -32,11 +32,12 @@ namespace KianCommons {
             return target;
         }
 
+        public const BindingFlags COPYABLE = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
         internal static void CopyProperties(object target, object origin) {
             var t1 = target.GetType();
             var t2 = origin.GetType();
             Assert(t1 == t2 || t1.IsSubclassOf(t2));
-            FieldInfo[] fields = origin.GetType().GetFields(ALL);
+            FieldInfo[] fields = origin.GetType().GetFields(COPYABLE);
             foreach(FieldInfo fieldInfo in fields) {
                 //Log.Debug($"Copying field:<{fieldInfo.Name}> ...>");
                 object value = fieldInfo.GetValue(origin);
@@ -50,7 +51,7 @@ namespace KianCommons {
         internal static void CopyProperties<T>(object target, object origin) {
             Assert(target is T, "target is T");
             Assert(origin is T, "origin is T");
-            FieldInfo[] fields = typeof(T).GetFields(ALL);
+            FieldInfo[] fields = typeof(T).GetFields(COPYABLE);
             foreach(FieldInfo fieldInfo in fields) {
                 //Log.Debug($"Copying field:<{fieldInfo.Name}> ...>");
                 object value = fieldInfo.GetValue(origin);
@@ -67,7 +68,7 @@ namespace KianCommons {
         /// only copies existing fields and their types match.
         /// </summary>
         internal static void CopyPropertiesForced<T>(object target, object origin) {
-            FieldInfo[] fields = typeof(T).GetFields();
+            FieldInfo[] fields = typeof(T).GetFields(COPYABLE);
             foreach(FieldInfo fieldInfo in fields) {
                 string fieldName = fieldInfo.Name;
                 var originFieldInfo = origin.GetType().GetField(fieldName, ALL);
@@ -255,6 +256,8 @@ namespace KianCommons {
         }
 
         internal static string ToSTR(this BindingFlags flags) => flags == ALL ? "ALL" : flags.ToString();
+
+
 
         /// <summary>
         /// Invokes static method of any access type.
