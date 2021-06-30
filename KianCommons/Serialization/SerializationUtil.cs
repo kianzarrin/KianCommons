@@ -53,7 +53,10 @@ namespace KianCommons.Serialization {
             }
         }
 
-        public static void SetObjectFields<TClass>(SerializationInfo info, TClass instance) where TClass : class {
+        /// <summary>
+        /// warning, structs should make use of the return value.
+        /// </summary>
+        public static object SetObjectFields(SerializationInfo info, object instance)  {
             foreach (SerializationEntry item in info) {
                 FieldInfo field = instance.GetType().GetField(item.Name, ReflectionHelpers.COPYABLE);
                 if (field != null) {
@@ -61,9 +64,13 @@ namespace KianCommons.Serialization {
                     field.SetValue(instance, val);
                 }
             }
+            return instance;
         }
 
-        public static void SetObjectProperties<TClass>(SerializationInfo info, TClass instance) where TClass: class {
+        /// <summary>
+        /// warning, structs should make use of the return value.
+        /// </summary>
+        public static object SetObjectProperties(SerializationInfo info, object instance)  {
             foreach (SerializationEntry item in info) {
                 var p = instance.GetType().GetProperty(item.Name, ReflectionHelpers.COPYABLE);
                 var setter = p?.GetSetMethod();
@@ -72,27 +79,7 @@ namespace KianCommons.Serialization {
                     p.SetValue(instance, val, null);
                 }
             }
-        }
-
-        public static void SetObjectFields<TStruct>(SerializationInfo info, ref TStruct s) where TStruct : struct {
-            foreach (SerializationEntry item in info) {
-                FieldInfo field = s.GetType().GetField(item.Name, ReflectionHelpers.COPYABLE);
-                if (field != null) {
-                    object val = Convert.ChangeType(item.Value, field.FieldType);
-                    field.SetValue(s, val);
-                }
-            }
-        }
-
-        public static void SetObjectProperties<TStruct>(SerializationInfo info, ref TStruct s) where TStruct : struct {
-            foreach (SerializationEntry item in info) {
-                var p = s.GetType().GetProperty(item.Name, ReflectionHelpers.COPYABLE);
-                var setter = p?.GetSetMethod();
-                if (setter != null) {
-                    object val = Convert.ChangeType(item.Value, p.PropertyType);
-                    p.SetValue(s, val, null);
-                }
-            }
+            return instance;
         }
 
         public static T GetValue<T>(this SerializationInfo info, string name) =>
