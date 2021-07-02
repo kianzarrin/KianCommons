@@ -5,7 +5,8 @@ using UnityEngine;
 namespace KianCommons.UI {
     internal static class UIExtensions {
         public static void FitToScreen(this UIComponent target) {
-            Log.Called("target=" + target);
+            Log.Called($"target={target} absolutePosition={target.absolutePosition}" );
+            Log.Debug(System.Environment.StackTrace, false);
             Vector2 resolution = target.GetUIView().GetScreenResolution();
             target.absolutePosition = new Vector2(
                 Mathf.Clamp(target.absolutePosition.x, 0, resolution.x - target.width),
