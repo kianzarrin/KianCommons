@@ -4,6 +4,7 @@ namespace KianCommons {
     using UnityEngine;
     using UnityEngine.SceneManagement;
     using System.Linq;
+    using ColossalFramework.Threading;
 
     [Obsolete]
     internal static class HelpersExtensions {
@@ -73,6 +74,8 @@ namespace KianCommons {
 
         internal static bool InSimulationThread() =>
             System.Threading.Thread.CurrentThread == SimulationManager.instance.m_simulationThread;
+        internal static bool InMainThread() =>
+            Dispatcher.currentSafe == ThreadHelper.dispatcher;
     }
 
 
