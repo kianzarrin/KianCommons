@@ -71,6 +71,7 @@ namespace KianCommons {
         ///  - returns id and type of both key and value if obj is InstanceID->InstanceID pair
         /// </summary>
         internal static string ToSTR(this object obj) {
+            Assertion.AssertStack();
             if (obj is null) return "<null>";
             if (obj is string str)
                 return str.ToSTR();
@@ -109,10 +110,10 @@ namespace KianCommons {
         /// <summary>
         /// returns all items as string
         /// </summary>
-        internal static string ToSTR<T>(this IEnumerable<T> list) {
+        internal static string ToSTR(this IEnumerable list) {
             if (list == null) return "<null>";
             string ret = "{ ";
-            foreach (T item in list) {
+            foreach (object item in list) {
                 string s;
                 if (item is KeyValuePair<InstanceID, InstanceID> map)
                     s = map.ToSTR();
@@ -129,7 +130,7 @@ namespace KianCommons {
         /// prints all items of the list with the given format.
         /// throws exception if T.ToString(format) does not exists.
         /// </summary>
-        internal static string ToSTR<T>(this IEnumerable<T> list, string format) {
+        internal static string ToSTR<T>(this IEnumerable list, string format) {
             MethodInfo mToString = typeof(T).GetMethod("ToString", new[] { typeof(string) })
                 ?? throw new Exception($"{typeof(T).Name}.ToString(string) was not found");
             var arg = new object[] { format };
