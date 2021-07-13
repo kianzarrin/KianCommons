@@ -1,5 +1,6 @@
 namespace KianCommons {
     using System;
+    using System.Collections;
     using System.Diagnostics;
     internal static class Assertion {
         [Conditional("DEBUG")]
@@ -65,6 +66,11 @@ namespace KianCommons {
             }
         }
 
+        internal static void InRange(IList list, int index) {
+            NotNull(list);
+            Assert(index >= 0 && index < list.Count, $"index={index} Count={list.Count}");
+        }
+        
 
         internal static void AssertStack() {
             var frames = new StackTrace().FrameCount;
