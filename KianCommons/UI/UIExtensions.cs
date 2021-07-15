@@ -12,6 +12,7 @@ namespace KianCommons.UI {
                 Mathf.Clamp(target.absolutePosition.x, 0, resolution.x - target.width),
                 Mathf.Clamp(target.absolutePosition.y, 0, resolution.y - target.height));
             Log.Info($"target.absolutePosition={target.absolutePosition}, resolution={resolution}");
+            target.MakePixelPerfect();
         }
 
         public static T AddUIComponent<T>(this UIView view) where T : UIComponent {
