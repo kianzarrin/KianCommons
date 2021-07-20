@@ -12,11 +12,13 @@ namespace KianCommons.UI {
     public static class UIHelperExtension {
 
         public static UICheckBox AddSavedToggle(this UIHelperBase helper, string label, SavedBool savedBool, Action<bool> OnToggled) {
-            Log.Debug($"option {label} is set to " + savedBool.value);
+            Log.Info($"option {label} is " + savedBool.value);
             return helper.AddCheckbox(label, savedBool, delegate (bool value) {
-                savedBool.value = value;
-                Log.Debug($"option {label} is set to " + value);
-                OnToggled(value);
+                try {
+                    savedBool.value = value;
+                    Log.Info($"option '{label}' is set to " + value);
+                    OnToggled(value);
+                } catch(Exception ex) { ex.Log(); }
             }) as UICheckBox;
         }
         public static UICheckBox AddSavedToggle(this UIHelperBase helper, string label, SavedBool savedBool, Action OnToggled) {

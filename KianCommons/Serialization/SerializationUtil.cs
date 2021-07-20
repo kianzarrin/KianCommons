@@ -15,7 +15,7 @@ namespace KianCommons.Serialization {
             new BinaryFormatter { AssemblyFormat = FormatterAssemblyStyle.Simple };
 
         public static object Deserialize(byte[] data, Version version) {
-            if (data == null || data.Length==0) return null;
+            if (data == null || data.Length == 0) return null;
             try {
                 DeserializationVersion = version;
                 //Log.Debug($"SerializationUtil.Deserialize(data): data.Length={data?.Length}");
@@ -25,7 +25,7 @@ namespace KianCommons.Serialization {
                 return GetBinaryFormatter.Deserialize(memoryStream);
             }
             catch (Exception e) {
-                Log.Exception(e,showInPanel:false);
+                Log.Exception(e, showInPanel: false);
                 return null;
             } finally {
                 DeserializationVersion = null;
@@ -41,7 +41,7 @@ namespace KianCommons.Serialization {
         }
 
         public static void GetObjectFields(SerializationInfo info, object instance) {
-            var fields = instance.GetType().GetFields().Where(field => !field.IsStatic);
+            var fields = instance.GetType().GetFields(ReflectionHelpers.COPYABLE).Where(field => !field.HasAttribute<NonSerializedAttribute>());
             foreach (FieldInfo field in fields) {
                 var type = field.GetType();
                 if (type == typeof(Vector3)) {
@@ -53,30 +53,43 @@ namespace KianCommons.Serialization {
             }
         }
 
-        public static void SetObjectFields(SerializationInfo info, object instance) {
+        /// <summary>
+        /// warning, structs should make use of the return value.
+        /// </summary>
+        public static object SetObjectFields(SerializationInfo info, object instance)  {
             foreach (SerializationEntry item in info) {
-                FieldInfo field = instance.GetType().GetField(item.Name);
-                if (field != null && !field.IsStatic) {
+                FieldInfo field = instance.GetType().GetField(item.Name, ReflectionHelpers.COPYABLE);
+                if (field != null) {
                     object val = Convert.ChangeType(item.Value, field.FieldType);
                     field.SetValue(instance, val);
                 }
             }
+            return instance;
         }
 
-        public static void SetObjectProperties(SerializationInfo info, object instance) {
+        /// <summary>
+        /// warning, structs should make use of the return value.
+        /// </summary>
+        public static object SetObjectProperties(SerializationInfo info, object instance)  {
             foreach (SerializationEntry item in info) {
-                var p = instance.GetType().GetProperty(item.Name, ReflectionHelpers.ALL);
+                var p = instance.GetType().GetProperty(item.Name, ReflectionHelpers.COPYABLE);
                 var setter = p?.GetSetMethod();
-                if (setter != null && !setter.IsStatic) {
+                if (setter != null) {
                     object val = Convert.ChangeType(item.Value, p.PropertyType);
                     p.SetValue(instance, val, null);
                 }
             }
+            return instance;
         }
+
+        public static void SetObjectFields<TStruct>(SerializationInfo info, ref TStruct s) where TStruct : struct =>
+            s = (TStruct)SetObjectFields(info, s);
+
+        public static void SetObjectProperties<TStruct>(SerializationInfo info, ref TStruct s) where TStruct : struct =>
+            s = (TStruct)SetObjectProperties(info, s);
 
         public static T GetValue<T>(this SerializationInfo info, string name) =>
             (T)info.GetValue(name, typeof(T));
-        
     }
 
     internal static class IOExtensions {

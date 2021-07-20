@@ -7,15 +7,12 @@ namespace KianCommons.Patches {
     using System.Reflection.Emit;
 
     public class HarmonyPatch2 : HarmonyLib.HarmonyPatch {
-        public HarmonyPatch2(Type delcaringType, Type delegateType){
+        public HarmonyPatch2(Type delcaringType, Type delegateType, bool instance = false){
             info.declaringType = delcaringType;
             info.methodName = delegateType.Name;
-            info.argumentTypes =
-                delegateType
-                .GetMethod("Invoke")
-                .GetParameters()
-                .Select(p => p.ParameterType)
-                .ToArray();
+            var args = delegateType.GetMethod("Invoke").GetParameters().Select(p => p.ParameterType);
+            if (instance) args = args.Skip(1); // skip arg0 because its instance method.
+            info.argumentTypes = args.ToArray();
         }
     }
 

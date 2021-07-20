@@ -32,12 +32,12 @@ namespace KianCommons {
             return target;
         }
 
-        const BindingFlags COPIABLE = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+        public const BindingFlags COPYABLE = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
         internal static void CopyProperties(object target, object origin) {
             var t1 = target.GetType();
             var t2 = origin.GetType();
             Assert(t1 == t2 || t1.IsSubclassOf(t2));
-            FieldInfo[] fields = origin.GetType().GetFields(COPIABLE);
+            FieldInfo[] fields = origin.GetType().GetFields(COPYABLE);
             foreach(FieldInfo fieldInfo in fields) {
                 //Log.Debug($"Copying field:<{fieldInfo.Name}> ...>");
                 object value = fieldInfo.GetValue(origin);
@@ -51,7 +51,7 @@ namespace KianCommons {
         internal static void CopyProperties<T>(object target, object origin) {
             Assert(target is T, "target is T");
             Assert(origin is T, "origin is T");
-            FieldInfo[] fields = typeof(T).GetFields(COPIABLE);
+            FieldInfo[] fields = typeof(T).GetFields(COPYABLE);
             foreach(FieldInfo fieldInfo in fields) {
                 //Log.Debug($"Copying field:<{fieldInfo.Name}> ...>");
                 object value = fieldInfo.GetValue(origin);
@@ -68,7 +68,7 @@ namespace KianCommons {
         /// only copies existing fields and their types match.
         /// </summary>
         internal static void CopyPropertiesForced<T>(object target, object origin) {
-            FieldInfo[] fields = typeof(T).GetFields(COPIABLE);
+            FieldInfo[] fields = typeof(T).GetFields(COPYABLE);
             foreach(FieldInfo fieldInfo in fields) {
                 string fieldName = fieldInfo.Name;
                 var originFieldInfo = origin.GetType().GetField(fieldName, ALL);
@@ -438,7 +438,18 @@ namespace KianCommons {
             return ReflectionHelpers.GetMethod(type, name, binding, types, throwOnError);
         }
 
+        // boxing and unboxing on SetValue so that it can be called with ref on struct types.
+        internal static void SetValue<TStruct>(this FieldInfo fieldInfo, ref TStruct obj, object val) where TStruct:struct {
+            var tmp = (object)obj;
+            fieldInfo.SetValue(tmp, val);
+            obj = (TStruct)tmp;
+        }
 
+        internal static void SetValue<TStruct>(this PropertyInfo propertyInfo, ref TStruct obj, object value, object[] index) where TStruct:struct{
+            var tmp = (object)obj;
+            propertyInfo.SetValue(tmp, value, index);
+            obj = (TStruct)tmp;
+        }
 
     }
 }

@@ -165,7 +165,7 @@ namespace KianCommons {
                 }
 
                 AssemblyName details = typeof(Log).Assembly.GetName();
-                Info($"Log file at " + LogFilePath, true);
+                Info($"Log file at {LogFilePath} now={DateTime.Now}", true);
                 Info($"{details.Name} Version:{details.Version} " +
                      $"Commit:{ThisAssembly.Git.Commit} " +
                      $"CommitDate:{ThisAssembly.Git.CommitDate}", true);
@@ -392,7 +392,7 @@ namespace KianCommons {
         }
 
         internal static void Called(params object[] args) => Info(ReflectionHelpers.CurrentMethod(2, args) + " called.", false);
-        internal static void Succeeded() => Info(ReflectionHelpers.CurrentMethod(2) + " succeeded!", false);
+        internal static void Succeeded(string m) => Info(ReflectionHelpers.CurrentMethod(2) + " succeeded! " + m, false);
     }
 
     internal static class LogExtensions {
