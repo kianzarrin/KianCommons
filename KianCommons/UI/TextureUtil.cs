@@ -1,19 +1,19 @@
 namespace KianCommons.UI {
     using ColossalFramework.UI;
+    using Plugins;
     using System;
     using System.IO;
     using System.Reflection;
     using UnityEngine;
     using static KianCommons.Assertion;
     using Object = UnityEngine.Object;
-    using Plugins;
     internal static class TextureUtil {
-
+        #region atlas
         static UITextureAtlas inGame_;
         static UITextureAtlas inMapEditor_;
         public static UITextureAtlas Ingame {
             get {
-                if(!inGame_)
+                if (!inGame_)
                     inGame_ = GetAtlas("Ingame");
                 return inGame_;
             }
@@ -37,7 +37,7 @@ namespace KianCommons.UI {
 
         public static UITextureAtlas CreateTextureAtlas(string textureFile, string atlasName, string[] spriteNames) {
             Texture2D texture2D;
-            if(!EmbededResources)
+            if (!EmbededResources)
                 texture2D = GetTextureFromFile(textureFile);
             else
                 texture2D = GetTextureFromAssemblyManifest(textureFile);
@@ -120,6 +120,7 @@ namespace KianCommons.UI {
             }
             return UIView.GetAView().defaultAtlas;
         }
+        #endregion
 
         #region loading textures
 
@@ -128,7 +129,7 @@ namespace KianCommons.UI {
             try {
                 string path = Path.Combine(FILE_PATH, file);
                 return File.OpenRead(path) ?? throw new Exception(path + "not find");
-            } catch (Exception ex){
+            } catch (Exception ex) {
                 Log.Exception(ex);
                 throw ex;
             }
@@ -140,10 +141,10 @@ namespace KianCommons.UI {
         }
 
         public static Stream GetManifestResourceStream(string file) {
-            try { 
-            string path = string.Concat(PATH, file);
-            return Assembly.GetExecutingAssembly().GetManifestResourceStream(path)
-                ?? throw new Exception(path + " not find");
+            try {
+                string path = string.Concat(PATH, file);
+                return Assembly.GetExecutingAssembly().GetManifestResourceStream(path)
+                    ?? throw new Exception(path + " not find");
             } catch (Exception ex) {
                 Log.Exception(ex);
                 throw ex;
