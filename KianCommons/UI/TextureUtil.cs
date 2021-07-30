@@ -7,6 +7,7 @@ namespace KianCommons.UI {
     using static KianCommons.Assertion;
     using Object = UnityEngine.Object;
     using Plugins;
+    using System.Linq;
     internal static class TextureUtil {
 
         static UITextureAtlas inGame_;
@@ -120,6 +121,12 @@ namespace KianCommons.UI {
             }
             return UIView.GetAView().defaultAtlas;
         }
+
+        public static UITextureAtlas GetAtlasOrNull(string name) {
+            UITextureAtlas[] atlases = Resources.FindObjectsOfTypeAll(typeof(UITextureAtlas)) as UITextureAtlas[];
+            return atlases.FirstOrDefault(atlas => atlas.name == name);
+        }
+
 
         #region loading textures
 
