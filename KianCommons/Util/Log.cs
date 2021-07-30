@@ -392,7 +392,7 @@ namespace KianCommons {
         }
 
         internal static void Called(params object[] args) => Info(ReflectionHelpers.CurrentMethod(2, args) + " called.", false);
-        internal static void Succeeded(string m) => Info(ReflectionHelpers.CurrentMethod(2) + " succeeded! " + m, false);
+        internal static void Succeeded(string m = null) => Info(ReflectionHelpers.CurrentMethod(2) + " succeeded! " + m, false);
     }
 
     internal static class LogExtensions {

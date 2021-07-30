@@ -9,12 +9,12 @@ namespace KianCommons.UI {
     using Plugins;
     using System.Linq;
     internal static class TextureUtil {
-
+        #region atlas
         static UITextureAtlas inGame_;
         static UITextureAtlas inMapEditor_;
         public static UITextureAtlas Ingame {
             get {
-                if(!inGame_)
+                if (!inGame_)
                     inGame_ = GetAtlas("Ingame");
                 return inGame_;
             }
@@ -38,7 +38,7 @@ namespace KianCommons.UI {
 
         public static UITextureAtlas CreateTextureAtlas(string textureFile, string atlasName, string[] spriteNames) {
             Texture2D texture2D;
-            if(!EmbededResources)
+            if (!EmbededResources)
                 texture2D = GetTextureFromFile(textureFile);
             else
                 texture2D = GetTextureFromAssemblyManifest(textureFile);
@@ -121,6 +121,7 @@ namespace KianCommons.UI {
             }
             return UIView.GetAView().defaultAtlas;
         }
+        #endregion
 
         public static UITextureAtlas GetAtlasOrNull(string name) {
             UITextureAtlas[] atlases = Resources.FindObjectsOfTypeAll(typeof(UITextureAtlas)) as UITextureAtlas[];
@@ -135,7 +136,7 @@ namespace KianCommons.UI {
             try {
                 string path = Path.Combine(FILE_PATH, file);
                 return File.OpenRead(path) ?? throw new Exception(path + "not find");
-            } catch (Exception ex){
+            } catch (Exception ex) {
                 Log.Exception(ex);
                 throw ex;
             }
@@ -147,10 +148,10 @@ namespace KianCommons.UI {
         }
 
         public static Stream GetManifestResourceStream(string file) {
-            try { 
-            string path = string.Concat(PATH, file);
-            return Assembly.GetExecutingAssembly().GetManifestResourceStream(path)
-                ?? throw new Exception(path + " not find");
+            try {
+                string path = string.Concat(PATH, file);
+                return Assembly.GetExecutingAssembly().GetManifestResourceStream(path)
+                    ?? throw new Exception(path + " not find");
             } catch (Exception ex) {
                 Log.Exception(ex);
                 throw ex;
