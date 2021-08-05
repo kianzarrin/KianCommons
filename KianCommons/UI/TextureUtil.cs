@@ -68,27 +68,12 @@ namespace KianCommons.UI {
             return uitextureAtlas;
         }
 
-        public static void AddTexturesInAtlas(UITextureAtlas atlas, Texture2D[] newTextures, bool locked = false) {
+        public static void AddTexturesInAtlas(UITextureAtlas atlas, Texture2D[] newTextures) {
             Texture2D[] textures = new Texture2D[atlas.count + newTextures.Length];
 
             for (int i = 0; i < atlas.count; i++) {
                 Texture2D texture2D = atlas.sprites[i].texture;
-
-                if (locked) {
-                    // Locked textures workaround
-                    RenderTexture renderTexture = RenderTexture.GetTemporary(texture2D.width, texture2D.height, 0);
-                    Graphics.Blit(texture2D, renderTexture);
-
-                    RenderTexture active = RenderTexture.active;
-                    texture2D = new Texture2D(renderTexture.width, renderTexture.height);
-                    RenderTexture.active = renderTexture;
-                    texture2D.ReadPixels(new Rect(0f, 0f, (float)renderTexture.width, (float)renderTexture.height), 0, 0);
-                    texture2D.Apply();
-                    RenderTexture.active = active;
-
-                    RenderTexture.ReleaseTemporary(renderTexture);
-                }
-
+                texture2D = texture2D.TryMakeReadable();
                 textures[i] = texture2D;
                 textures[i].name = atlas.sprites[i].name;
             }
@@ -105,8 +90,8 @@ namespace KianCommons.UI {
                 atlas.sprites.Add(new UITextureAtlas.SpriteInfo {
                     texture = textures[i],
                     name = textures[i].name,
-                    border = (spriteInfo != null) ? spriteInfo.border : new RectOffset(),
-                    region = regions[i]
+                    border = spriteInfo?.border ?? new RectOffset(),
+                    region = regions[i],
                 });
             }
 
