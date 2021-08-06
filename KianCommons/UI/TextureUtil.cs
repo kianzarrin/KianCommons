@@ -48,10 +48,10 @@ namespace KianCommons.UI {
 
         public static UITextureAtlas CreateTextureAtlas(Texture2D texture2D, string atlasName, string[] spriteNames) {
             UITextureAtlas uitextureAtlas = ScriptableObject.CreateInstance<UITextureAtlas>();
-            Assert(uitextureAtlas != null, "uitextureAtlas");
+            Assert(uitextureAtlas, "uitextureAtlas");
             Material material = Object.Instantiate<Material>(UIView.GetAView().defaultAtlas.material);
-            Assert(material != null, "material");
-            material.mainTexture = texture2D;
+            Assert(material, "material");
+            material.mainTexture = texture2D.GetReadableCopy();
             uitextureAtlas.material = material;
             uitextureAtlas.name = atlasName;
 
@@ -68,7 +68,34 @@ namespace KianCommons.UI {
             return uitextureAtlas;
         }
 
-        public static void AddTexturesInAtlas(UITextureAtlas atlas, Texture2D[] newTextures) {
+        /// <summary>
+        /// Create a new atlas.
+        /// </summary>
+        public static UITextureAtlas CreateTextureAtlas(string atlasName, Texture2D []textures) {
+            const int maxSize = 2048;
+            Texture2D texture2D = new Texture2D(maxSize, maxSize, TextureFormat.ARGB32, false);
+            Rect[] regions = texture2D.PackTextures(textures, 2, maxSize);
+            Material material = Object.Instantiate<Material>(UIView.GetAView().defaultAtlas.material);
+            material.mainTexture = texture2D;
+
+            UITextureAtlas textureAtlas = ScriptableObject.CreateInstance<UITextureAtlas>();
+            textureAtlas.material = material;
+            textureAtlas.name = atlasName;
+
+            for (int i = 0; i < textures.Length; i++) {
+                UITextureAtlas.SpriteInfo item = new UITextureAtlas.SpriteInfo {
+                    name = textures[i].name,
+                    texture = textures[i],
+                    region = regions[i],
+                };
+
+                textureAtlas.AddSprite(item);
+            }
+
+            return textureAtlas;
+        }
+
+        public static void AddTexturesToAtlas(UITextureAtlas atlas, Texture2D[] newTextures) {
             Texture2D[] textures = new Texture2D[atlas.count + newTextures.Length];
 
             for (int i = 0; i < atlas.count; i++) {

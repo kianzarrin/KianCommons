@@ -8,8 +8,7 @@ namespace KianCommons.UI {
         /// reteurns a copy of the texture with the differenc that: mipmap=false, linear=false, readable=true;
         /// </summary>
         public static Texture2D GetReadableCopy(this Texture2D tex, bool linear = false) {
-            Assertion.Assert(tex != null, "tex!=null");
-            Assertion.Assert(tex is Texture2D, $"tex is Texture2D");
+            Assertion.Assert(tex, "tex!=null");
             Texture2D ret = tex.MakeReadable(linear);
             ret.name = tex.name;
             ret.anisoLevel = tex.anisoLevel;
