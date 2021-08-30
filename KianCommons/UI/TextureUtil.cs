@@ -8,6 +8,8 @@ namespace KianCommons.UI {
     using Object = UnityEngine.Object;
     using Plugins;
     using System.Linq;
+    using ColossalFramework.Importers;
+
     internal static class TextureUtil {
         #region atlas
         static UITextureAtlas inGame_;
@@ -47,13 +49,13 @@ namespace KianCommons.UI {
 
 
         public static UITextureAtlas CreateTextureAtlas(Texture2D texture2D, string atlasName, string[] spriteNames) {
-            UITextureAtlas uitextureAtlas = ScriptableObject.CreateInstance<UITextureAtlas>();
-            Assert(uitextureAtlas, "uitextureAtlas");
+            UITextureAtlas atlas = ScriptableObject.CreateInstance<UITextureAtlas>();
+            Assert(atlas, "uitextureAtlas");
             Material material = Object.Instantiate<Material>(UIView.GetAView().defaultAtlas.material);
             Assert(material, "material");
-            material.mainTexture = texture2D.GetReadableCopy();
-            uitextureAtlas.material = material;
-            uitextureAtlas.name = atlasName;
+            material.mainTexture = texture2D.TryMakeReadable();
+            atlas.material = material;
+            atlas.name = atlasName;
 
             int n = spriteNames.Length;
             for (int i = 0; i < n; i++) {
@@ -63,9 +65,9 @@ namespace KianCommons.UI {
                     texture = texture2D,
                     region = new Rect(i * num, 0f, num, 1f)
                 };
-                uitextureAtlas.AddSprite(spriteInfo);
+                atlas.AddSprite(spriteInfo);
             }
-            return uitextureAtlas;
+            return atlas;
         }
 
         /// <summary>
@@ -176,14 +178,15 @@ namespace KianCommons.UI {
         }
 
         public static Texture2D GetTextureFromStream(Stream stream) {
-            Texture2D texture2D = new Texture2D(1, 1, TextureFormat.ARGB32, false);
+            var ret = new Image(stream.ReadAllBytes()).CreateTexture();
+            ret.wrapMode = TextureWrapMode.Clamp; // for cursor.
+            return ret;
+        }
+
+        static byte[] ReadAllBytes(this Stream stream) {
             byte[] array = new byte[stream.Length];
             stream.Read(array, 0, array.Length);
-            texture2D.filterMode = FilterMode.Bilinear;
-            texture2D.LoadImage(array);
-            texture2D.wrapMode = TextureWrapMode.Clamp; // for cursor.
-            texture2D.Apply();
-            return texture2D;
+            return array;
         }
 
         #endregion
