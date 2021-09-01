@@ -178,9 +178,11 @@ namespace KianCommons.UI {
         }
 
         public static Texture2D GetTextureFromStream(Stream stream) {
-            var ret = new Image(stream.ReadAllBytes()).CreateTexture();
-            ret.wrapMode = TextureWrapMode.Clamp; // for cursor.
-            return ret;
+            Texture2D texture2D = new Texture2D(1, 1, TextureFormat.ARGB32, mipmap: false);
+            texture2D.LoadImage(stream.ReadAllBytes());
+            texture2D.wrapMode = TextureWrapMode.Clamp; // for cursor.
+            texture2D.Apply(false, false);
+            return texture2D;
         }
 
         static byte[] ReadAllBytes(this Stream stream) {
