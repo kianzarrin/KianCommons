@@ -36,13 +36,15 @@ namespace KianCommons.Patches {
 
         /// <typeparam name="TDelegate">delegate type</typeparam>
         /// <returns>Type[] represeting arguments of the delegate.</returns>
-        internal static Type[] GetParameterTypes<TDelegate>()
-            where TDelegate : Delegate =>
-            typeof(TDelegate)
-            .GetMethod("Invoke")
-            .GetParameters()
-            .Select(p => p.ParameterType)
-            .ToArray();
+        internal static Type[] GetParameterTypes<TDelegate>(bool instance = false)
+            where TDelegate : Delegate {
+            var ret = typeof(TDelegate)
+                .GetMethod("Invoke")
+                .GetParameters()
+                .Select(p => p.ParameterType);
+            if (instance)ret = ret.Skip(1); // skip instance
+            return ret.ToArray();
+        }
 
         /// <summary>
         /// Gets directly declared method based on a delegate that has
@@ -50,8 +52,8 @@ namespace KianCommons.Patches {
         /// </summary>
         /// <param name="type">the class/type where the method is delcared</param>
         internal static MethodInfo DeclaredMethod<TDelegate>
-            (Type type, bool throwOnError = true) where TDelegate : Delegate =>
-            DeclaredMethod<TDelegate>(type, typeof(TDelegate).Name, throwOnError);
+            (Type type, bool throwOnError = true, bool instance = false) where TDelegate : Delegate =>
+            DeclaredMethod<TDelegate>(type, typeof(TDelegate).Name, throwOnError:throwOnError, instance:instance);
 
         /// <summary>
         /// Gets directly declared method based on a delegate that has
@@ -60,13 +62,13 @@ namespace KianCommons.Patches {
         /// <param name="type">the class/type where the method is delcared</param>
         /// <param name="name">the name of the method</param>
         internal static MethodInfo DeclaredMethod<TDelegate>
-            (Type type, string name, bool throwOnError = false)
+            (Type type, string name, bool throwOnError = false, bool instance = false)
             where TDelegate : Delegate {
             return type.GetMethod(
                 name,
                 binding: ReflectionHelpers.ALL_Declared,
-                types:GetParameterTypes<TDelegate>(),
-                throwOnError:true);
+                types:GetParameterTypes<TDelegate>(instance),
+                throwOnError: throwOnError);
         }
 
         /// <summary>
