@@ -5,13 +5,21 @@ using UnityEngine;
 namespace KianCommons.UI {
     internal static class UIExtensions {
         public static void FitToScreen(this UIComponent target) {
-            Log.Called($"target={target} absolutePosition={target.absolutePosition}" );
+            var pos0 = target.absolutePosition;
+            Log.Called($"target={target} absolutePosition={pos0}" );
             Log.Debug(System.Environment.StackTrace, false);
             Vector2 resolution = target.GetUIView().GetScreenResolution();
-            target.absolutePosition = new Vector2(
-                Mathf.Clamp(target.absolutePosition.x, 0, resolution.x - target.width),
-                Mathf.Clamp(target.absolutePosition.y, 0, resolution.y - target.height));
+            var w = target.width;
+            var h = target.height;
+            var pos1 = new Vector3(
+                Mathf.Clamp(pos0.x, 0, resolution.x - w),
+                Mathf.Clamp(pos0.y, 0, resolution.y - h));
+            Log.Debug($"resolution.x - w = {resolution.x} - {w} = {resolution.x - w}\n" +
+                $"Clamp(pos0.x, 0, resolution.x - w) = Clamp({pos0.x}, 0, {resolution.x - w}) = {Mathf.Clamp(pos0.x, 0, resolution.x - w)}");
+            Log.Debug($"pos1= {pos1}");
+            target.absolutePosition = pos1;
             Log.Info($"target.absolutePosition={target.absolutePosition}, resolution={resolution}");
+            target.MakePixelPerfect();
         }
 
         public static T AddUIComponent<T>(this UIView view) where T : UIComponent {

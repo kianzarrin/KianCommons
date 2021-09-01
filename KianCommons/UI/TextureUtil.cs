@@ -7,13 +7,16 @@ namespace KianCommons.UI {
     using static KianCommons.Assertion;
     using Object = UnityEngine.Object;
     using Plugins;
-    internal static class TextureUtil {
+    using System.Linq;
+    using ColossalFramework.Importers;
 
+    internal static class TextureUtil {
+        #region atlas
         static UITextureAtlas inGame_;
         static UITextureAtlas inMapEditor_;
         public static UITextureAtlas Ingame {
             get {
-                if(!inGame_)
+                if (!inGame_)
                     inGame_ = GetAtlas("Ingame");
                 return inGame_;
             }
@@ -37,7 +40,7 @@ namespace KianCommons.UI {
 
         public static UITextureAtlas CreateTextureAtlas(string textureFile, string atlasName, string[] spriteNames) {
             Texture2D texture2D;
-            if(!EmbededResources)
+            if (!EmbededResources)
                 texture2D = GetTextureFromFile(textureFile);
             else
                 texture2D = GetTextureFromAssemblyManifest(textureFile);
@@ -46,13 +49,13 @@ namespace KianCommons.UI {
 
 
         public static UITextureAtlas CreateTextureAtlas(Texture2D texture2D, string atlasName, string[] spriteNames) {
-            UITextureAtlas uitextureAtlas = ScriptableObject.CreateInstance<UITextureAtlas>();
-            Assert(uitextureAtlas != null, "uitextureAtlas");
+            UITextureAtlas atlas = ScriptableObject.CreateInstance<UITextureAtlas>();
+            Assert(atlas, "uitextureAtlas");
             Material material = Object.Instantiate<Material>(UIView.GetAView().defaultAtlas.material);
-            Assert(material != null, "material");
-            material.mainTexture = texture2D;
-            uitextureAtlas.material = material;
-            uitextureAtlas.name = atlasName;
+            Assert(material, "material");
+            material.mainTexture = texture2D.TryMakeReadable();
+            atlas.material = material;
+            atlas.name = atlasName;
 
             int n = spriteNames.Length;
             for (int i = 0; i < n; i++) {
@@ -62,32 +65,44 @@ namespace KianCommons.UI {
                     texture = texture2D,
                     region = new Rect(i * num, 0f, num, 1f)
                 };
-                uitextureAtlas.AddSprite(spriteInfo);
+                atlas.AddSprite(spriteInfo);
             }
-            return uitextureAtlas;
+            return atlas;
         }
 
-        public static void AddTexturesInAtlas(UITextureAtlas atlas, Texture2D[] newTextures, bool locked = false) {
+        /// <summary>
+        /// Create a new atlas.
+        /// </summary>
+        public static UITextureAtlas CreateTextureAtlas(string atlasName, Texture2D []textures) {
+            const int maxSize = 2048;
+            Texture2D texture2D = new Texture2D(maxSize, maxSize, TextureFormat.ARGB32, false);
+            Rect[] regions = texture2D.PackTextures(textures, 2, maxSize);
+            Material material = Object.Instantiate<Material>(UIView.GetAView().defaultAtlas.material);
+            material.mainTexture = texture2D;
+
+            UITextureAtlas textureAtlas = ScriptableObject.CreateInstance<UITextureAtlas>();
+            textureAtlas.material = material;
+            textureAtlas.name = atlasName;
+
+            for (int i = 0; i < textures.Length; i++) {
+                UITextureAtlas.SpriteInfo item = new UITextureAtlas.SpriteInfo {
+                    name = textures[i].name,
+                    texture = textures[i],
+                    region = regions[i],
+                };
+
+                textureAtlas.AddSprite(item);
+            }
+
+            return textureAtlas;
+        }
+
+        public static void AddTexturesToAtlas(UITextureAtlas atlas, Texture2D[] newTextures) {
             Texture2D[] textures = new Texture2D[atlas.count + newTextures.Length];
 
             for (int i = 0; i < atlas.count; i++) {
                 Texture2D texture2D = atlas.sprites[i].texture;
-
-                if (locked) {
-                    // Locked textures workaround
-                    RenderTexture renderTexture = RenderTexture.GetTemporary(texture2D.width, texture2D.height, 0);
-                    Graphics.Blit(texture2D, renderTexture);
-
-                    RenderTexture active = RenderTexture.active;
-                    texture2D = new Texture2D(renderTexture.width, renderTexture.height);
-                    RenderTexture.active = renderTexture;
-                    texture2D.ReadPixels(new Rect(0f, 0f, (float)renderTexture.width, (float)renderTexture.height), 0, 0);
-                    texture2D.Apply();
-                    RenderTexture.active = active;
-
-                    RenderTexture.ReleaseTemporary(renderTexture);
-                }
-
+                texture2D = texture2D.TryMakeReadable();
                 textures[i] = texture2D;
                 textures[i].name = atlas.sprites[i].name;
             }
@@ -104,8 +119,8 @@ namespace KianCommons.UI {
                 atlas.sprites.Add(new UITextureAtlas.SpriteInfo {
                     texture = textures[i],
                     name = textures[i].name,
-                    border = (spriteInfo != null) ? spriteInfo.border : new RectOffset(),
-                    region = regions[i]
+                    border = spriteInfo?.border ?? new RectOffset(),
+                    region = regions[i],
                 });
             }
 
@@ -120,6 +135,13 @@ namespace KianCommons.UI {
             }
             return UIView.GetAView().defaultAtlas;
         }
+        #endregion
+
+        public static UITextureAtlas GetAtlasOrNull(string name) {
+            UITextureAtlas[] atlases = Resources.FindObjectsOfTypeAll(typeof(UITextureAtlas)) as UITextureAtlas[];
+            return atlases.FirstOrDefault(atlas => atlas.name == name);
+        }
+
 
         #region loading textures
 
@@ -128,7 +150,7 @@ namespace KianCommons.UI {
             try {
                 string path = Path.Combine(FILE_PATH, file);
                 return File.OpenRead(path) ?? throw new Exception(path + "not find");
-            } catch (Exception ex){
+            } catch (Exception ex) {
                 Log.Exception(ex);
                 throw ex;
             }
@@ -140,10 +162,10 @@ namespace KianCommons.UI {
         }
 
         public static Stream GetManifestResourceStream(string file) {
-            try { 
-            string path = string.Concat(PATH, file);
-            return Assembly.GetExecutingAssembly().GetManifestResourceStream(path)
-                ?? throw new Exception(path + " not find");
+            try {
+                string path = string.Concat(PATH, file);
+                return Assembly.GetExecutingAssembly().GetManifestResourceStream(path)
+                    ?? throw new Exception(path + " not find");
             } catch (Exception ex) {
                 Log.Exception(ex);
                 throw ex;
@@ -156,14 +178,17 @@ namespace KianCommons.UI {
         }
 
         public static Texture2D GetTextureFromStream(Stream stream) {
-            Texture2D texture2D = new Texture2D(1, 1, TextureFormat.ARGB32, false);
+            Texture2D texture2D = new Texture2D(1, 1, TextureFormat.ARGB32, mipmap: false);
+            texture2D.LoadImage(stream.ReadAllBytes());
+            texture2D.wrapMode = TextureWrapMode.Clamp; // for cursor.
+            texture2D.Apply(false, false);
+            return texture2D;
+        }
+
+        static byte[] ReadAllBytes(this Stream stream) {
             byte[] array = new byte[stream.Length];
             stream.Read(array, 0, array.Length);
-            texture2D.filterMode = FilterMode.Bilinear;
-            texture2D.LoadImage(array);
-            texture2D.wrapMode = TextureWrapMode.Clamp; // for cursor.
-            texture2D.Apply();
-            return texture2D;
+            return array;
         }
 
         #endregion

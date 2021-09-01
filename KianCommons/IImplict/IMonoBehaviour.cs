@@ -19,4 +19,11 @@ namespace KianCommons.IImplict {
     internal interface IStartingObject {
         void Start();
     }
+
+    internal interface IEnablablingObject {
+        void OnEnable();
+    }
+    internal interface IDisablablingObject {
+        void OnDisable();
+    }
 }
