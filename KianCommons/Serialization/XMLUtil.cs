@@ -11,13 +11,22 @@ using System.Linq;
 namespace KianCommons.Serialization {
     internal static class XMLSerializerUtil {
         static XmlSerializer Serilizer<T>() => new XmlSerializer(typeof(T));
-        static void Serialize<T>(TextWriter writer, T value) => Serilizer<T>().Serialize(writer, value);
+        static XmlSerializerNamespaces NoNamespaces {
+            get {
+                var ret = new XmlSerializerNamespaces();
+                ret.Add("", "");
+                return ret;
+            }
+        }
+
+        static void Serialize<T>(TextWriter writer, T value) => Serilizer<T>().Serialize(writer, value, NoNamespaces);
         static T Deserialize<T>(TextReader reader) => (T)Serilizer<T>().Deserialize(reader);
+
 
         public static string Serialize<T>(T value) {
             try {
                 using (TextWriter writer = new StringWriter()) {
-                    Serialize<T>(writer, value);
+                    Serialize(writer, value);
                     return writer.ToString();
                 }
             } catch (Exception ex) {
