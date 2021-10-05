@@ -5,22 +5,35 @@ namespace KianCommons.Serialization {
     using System;
     using System.IO;
     using System.Linq;
-    using ColossalFramework;
 
     public abstract class XMLData<C> where C : class, new() {
         private static C instance_;
-        public static C Instance => instance_ ??= Load();
+        public static C Instance => instance_ ??= (Load() ?? new C());
 
         public static C Load() {
-            string configPath = GetPath();
-            Log.Called("path:" + configPath);
-            return XMLSerializerUtil.Deserialize<C>(configPath);
+            try {
+                string configPath = GetPath();
+                Log.Called($"load path: '{configPath}'");
+                if (!File.Exists(configPath)) {
+                    Log.Info("path does not exist");
+                    return null;
+                } else {
+                    string data = File.ReadAllText(configPath);
+                    return XMLSerializerUtil.Deserialize<C>(data);
+                }
+            } catch (Exception ex) {
+                ex.Log();
+                return null;
+            }
         }
 
         public void Save() {
-            string configPath = GetPath(); 
-            Log.Called("path:" + configPath);
-            XMLSerializerUtil.Serialize(this as C);
+            try {
+                string configPath = GetPath();
+                Log.Called("path:" + configPath);
+                var data = XMLSerializerUtil.Serialize(this as C);
+                File.WriteAllText(configPath, data);
+            } catch (Exception ex) { ex.Log(); }
         }
 
         private static string GetPath() => Path.Combine(DataLocation.executableDirectory, GetConfigPath());
