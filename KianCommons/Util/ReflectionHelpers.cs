@@ -450,6 +450,5 @@ namespace KianCommons {
             propertyInfo.SetValue(tmp, value, index);
             obj = (TStruct)tmp;
         }
-
     }
 }

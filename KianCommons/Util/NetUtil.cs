@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using UnityEngine;
-
+using Object = UnityEngine.Object;
 namespace KianCommons {
     internal class NetServiceException : Exception {
         public NetServiceException(string m) : base(m) { }
@@ -19,8 +19,8 @@ namespace KianCommons {
         public const float SAFETY_NET = 0.02f;
 
         public static NetManager netMan = NetManager.instance;
-        public static NetTool netTool => Singleton<NetTool>.instance;
-        public static SimulationManager simMan => Singleton<SimulationManager>.instance;
+        public static NetTool netTool => SingletonStrong<NetTool>.Instance;
+        public static SimulationManager simMan => SimulationManager.instance;
         public static TerrainManager terrainMan => TerrainManager.instance;
 
         public const float MPU = 8f; // meter per unit
