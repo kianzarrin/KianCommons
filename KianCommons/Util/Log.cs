@@ -402,7 +402,8 @@ namespace KianCommons {
         /// TYPE inlinefunctionname(...) => expression
         /// TYPE inlinefunctionname(...) => expression.LogRet("messege");
         /// </summary>
-        internal static T LogRet<T>(this T a, string m) {
+        internal static T LogRet<T>(this T a, string m = null) {
+            m ??= ReflectionHelpers.CurrentMethod(2);
             KianCommons.Log.Debug(m + " -> " + a);
             return a;
         }
