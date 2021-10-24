@@ -79,6 +79,8 @@ namespace KianCommons {
                 return instanceID.ToSTR();
             if (obj is KeyValuePair<InstanceID, InstanceID> map)
                 return map.ToSTR();
+            if(obj is IDictionary dict)
+                return dict.ToSTR();
             if (obj is IEnumerable list)
                 return list.ToSTR();
             return obj.ToString();
@@ -106,6 +108,15 @@ namespace KianCommons {
         /// </summary>
         internal static string ToSTR(this KeyValuePair<InstanceID, InstanceID> map)
             => $"[{map.Key.ToSTR()}:{map.Value.ToSTR()}]";
+
+        internal static string ToSTR(this IDictionary dict) {
+            List<string> terms = new List<string>(); 
+            foreach(var key in dict.Keys) {
+                var value = dict[key];
+                terms.Add($"({key.ToSTR()} : {value.ToSTR()})");
+            }
+            return $"{{{terms.Join(", ")} }}";
+        }
 
         /// <summary>
         /// returns all items as string
