@@ -156,5 +156,10 @@ namespace KianCommons {
             }
             return ret;
         }
+
+        internal static TValue GetorDefault<TKey, TValue>(this Dictionary<TKey, TValue> dict, TKey key) {
+            return dict.TryGetValue(key, out TValue value) ? value : default(TValue);
+        }
+
     }
 }
