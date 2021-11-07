@@ -3,6 +3,9 @@ namespace KianCommons.StockCode {
     public partial struct NetSegment2 {
         // NetNode
         // Token: 0x060034C1 RID: 13505 RVA: 0x0023A834 File Offset: 0x00238C34
+        const uint SEGMENT_HOLDER = MAX_BUILDING_COUNT;
+
+
         private void RenderInstance(RenderManager.CameraInfo cameraInfo, ushort nodeID, NetInfo info, int iter, NetNode.Flags flags, ref uint instanceIndex, ref RenderManager.Instance data) {
             if (data.m_dirty) {
                 data.m_dirty = false;

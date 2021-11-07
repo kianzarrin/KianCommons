@@ -4,6 +4,7 @@ using ColossalFramework;
 using ColossalFramework.Math;
 using UnityEngine;
 using KianCommons;
+using System;
 
 namespace KianCommons.StockCode {
     public partial struct NetNode2 {
@@ -14,6 +15,8 @@ namespace KianCommons.StockCode {
         public float m_heightOffset;
         public Bounds m_bounds;
         Vector3 m_position;
+        const int INVALID_RENDER_INDEX = ushort.MaxValue;
+        const uint NODE_HOLDER = MAX_BUILDING_COUNT + MAX_SEGMENT_COUNT;
 
         public void PopulateGroupData(ushort nodeID, int groupX, int groupZ, int layer, ref int vertexIndex, ref int triangleIndex, Vector3 groupPosition, RenderGroup.MeshData data, ref Vector3 min, ref Vector3 max, ref float maxRenderDistance, ref float maxInstanceDistance, ref bool requireSurfaceMaps) {
             NetInfo info = this.Info;
@@ -786,6 +789,58 @@ namespace KianCommons.StockCode {
             return result;
         }
 
+        private int CalculateRendererCount(NetInfo info) {
+            if((this.m_flags & NetNode.Flags.Junction) != NetNode.Flags.None) {
+                int ret = (int)this.m_connectCount;
+                if(info.m_requireSegmentRenderers) {
+                    ret += this.CountSegments();
+                }
+                return ret;
+            }
+            return 1;
+        }
+
+        public void RenderInstance(RenderManager.CameraInfo cameraInfo, ushort nodeID, int layerMask) {
+            if(this.m_flags == NetNode.Flags.None) {
+                return;
+            }
+            NetInfo info = this.Info;
+            if(!cameraInfo.Intersect(this.m_bounds)) {
+                return;
+            }
+            if(this.m_problems != Notification.Problem.None && (layerMask & 1 << Singleton<NotificationManager>.instance.m_notificationLayer) != 0 && (this.m_flags & NetNode.Flags.Temporary) == NetNode.Flags.None) {
+                Vector3 position = this.m_position;
+                position.y += Mathf.Max(5f, info.m_maxHeight);
+                Notification.RenderInstance(cameraInfo, this.m_problems, position, 1f);
+            }
+            if((layerMask & info.m_netLayers) == 0) {
+                return;
+            }
+            if((this.m_flags & (NetNode.Flags.End | NetNode.Flags.Bend | NetNode.Flags.Junction)) == NetNode.Flags.None) {
+                return;
+            }
+            if((this.m_flags & NetNode.Flags.Bend) != NetNode.Flags.None) {
+                if(info.m_segments == null || info.m_segments.Length == 0) {
+                    return;
+                }
+            } else if(info.m_nodes == null || info.m_nodes.Length == 0) {
+                return;
+            }
+            uint count = (uint)this.CalculateRendererCount(info);
+            RenderManager renderManger = Singleton<RenderManager>.instance;
+            if(renderManger.RequireInstance(NODE_HOLDER + nodeID, count, out uint renderIndex)) {
+                int iter = 0;
+                while(renderIndex != INVALID_RENDER_INDEX) {
+                    this.RenderInstance(cameraInfo, nodeID, info, iter, this.m_flags, ref renderIndex, ref renderManger.m_instances[renderIndex]);
+                    if(++iter > 36) {
+                        CODebugBase<LogChannel>.Error(LogChannel.Core, "Invalid list detected!\n" + Environment.StackTrace);
+                        break;
+                    }
+                }
+            }
+            info.m_netAI.RenderNode(nodeID, ref this, cameraInfo);
+        }
+
         private void RenderInstance(RenderManager.CameraInfo cameraInfo, ushort nodeID, NetInfo info, int iter, NetNode.Flags flags, ref uint instanceIndex, ref RenderManager.Instance data) {
             if (data.m_dirty) {
                 data.m_dirty = false;
@@ -1197,7 +1252,7 @@ namespace KianCommons.StockCode {
                     }
                     int backwardVehicleLaneCount; // lane count from head to tail 
                     int forwardVehicleLaneCount; // lane count from tail to head 
-                    bool segmentInvert = segmentID.ToSegment.m_flags.IsFlagSet(NetSegment.Flags.Invert);
+                    bool segmentInvert = segmentID.ToSegment().m_flags.IsFlagSet(NetSegment.Flags.Invert);
                     if (bStartNode == segmentInvert) // head node
                     {
                         backwardVehicleLaneCount = infoSegment.m_backwardVehicleLaneCount;
@@ -1403,7 +1458,7 @@ namespace KianCommons.StockCode {
                         bool bWide = dot < 0;
                         // 180 -> det=0 dot=-1
                         if (!bRight) {
-                            if (dot > dot_A) // most accute
+                            if (dot > dot_A) // most acute
                             {
                                 dot_A = dot;
                                 segmentID_A = segmentID2;
@@ -1415,7 +1470,7 @@ namespace KianCommons.StockCode {
                                 segmentID_B = segmentID2;
                             }
                         } else {
-                            if (dot > dot_B) // most accute
+                            if (dot > dot_B) // most acute
                             {
                                 dot_B = dot;
                                 segmentID_B = segmentID2;
