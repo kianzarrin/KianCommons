@@ -54,7 +54,7 @@ namespace KianCommons.Serialization {
         }
 
         /// <summary>
-        /// warning, structs should make use of the return value.
+        /// warning: structs should make use of the return value.
         /// </summary>
         public static object SetObjectFields(SerializationInfo info, object instance)  {
             foreach (SerializationEntry item in info) {
