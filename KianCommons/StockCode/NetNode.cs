@@ -18,6 +18,63 @@ namespace KianCommons.StockCode {
         const int INVALID_RENDER_INDEX = ushort.MaxValue;
         const uint NODE_HOLDER = MAX_BUILDING_COUNT + MAX_SEGMENT_COUNT;
 
+        public static void RenderLod(RenderManager.CameraInfo cameraInfo, NetInfo.LodValue lod) {
+            NetManager instance = Singleton<NetManager>.instance;
+            MaterialPropertyBlock materialBlock = instance.m_materialBlock;
+            materialBlock.Clear();
+            Mesh mesh;
+            int upperLoadCount;
+            if(lod.m_lodCount <= 1) {
+                mesh = lod.m_key.m_mesh.m_mesh1;
+                upperLoadCount = 1;
+            } else if(lod.m_lodCount <= 4) {
+                mesh = lod.m_key.m_mesh.m_mesh4;
+                upperLoadCount = 4;
+            } else {
+                mesh = lod.m_key.m_mesh.m_mesh8;
+                upperLoadCount = 8;
+            }
+            for(int i = lod.m_lodCount; i < upperLoadCount; i++) {
+                lod.m_leftMatrices[i] = default(Matrix4x4);
+                lod.m_leftMatricesB[i] = default(Matrix4x4);
+                lod.m_rightMatrices[i] = default(Matrix4x4);
+                lod.m_rightMatricesB[i] = default(Matrix4x4);
+                lod.m_meshScales[i] = default;
+                lod.m_centerPositions[i] = default;
+                lod.m_sideScales[i] = default;
+                lod.m_objectIndices[i] = default;
+                lod.m_meshLocations[i] = cameraInfo.m_forward * -100000f;
+            }
+            materialBlock.SetMatrixArray(instance.ID_LeftMatrices, lod.m_leftMatrices);
+            materialBlock.SetMatrixArray(instance.ID_LeftMatricesB, lod.m_leftMatricesB);
+            materialBlock.SetMatrixArray(instance.ID_RightMatrices, lod.m_rightMatrices);
+            materialBlock.SetMatrixArray(instance.ID_RightMatricesB, lod.m_rightMatricesB);
+            materialBlock.SetVectorArray(instance.ID_MeshScales, lod.m_meshScales);
+            materialBlock.SetVectorArray(instance.ID_CenterPositions, lod.m_centerPositions);
+            materialBlock.SetVectorArray(instance.ID_SideScales, lod.m_sideScales);
+            materialBlock.SetVectorArray(instance.ID_ObjectIndices, lod.m_objectIndices);
+            materialBlock.SetVectorArray(instance.ID_MeshLocations, lod.m_meshLocations);
+            if(lod.m_surfaceTexA != null) {
+                materialBlock.SetTexture(instance.ID_SurfaceTexA, lod.m_surfaceTexA);
+                materialBlock.SetTexture(instance.ID_SurfaceTexB, lod.m_surfaceTexB);
+                materialBlock.SetVector(instance.ID_SurfaceMapping, lod.m_surfaceMapping);
+                lod.m_surfaceTexA = null;
+                lod.m_surfaceTexB = null;
+            }
+            if(mesh != null) {
+                Bounds bounds = default(Bounds);
+                bounds.SetMinMax(lod.m_lodMin - new Vector3(100f, 100f, 100f), lod.m_lodMax + new Vector3(100f, 100f, 100f));
+                mesh.bounds = bounds;
+                lod.m_lodMin = new Vector3(100000f, 100000f, 100000f);
+                lod.m_lodMax = new Vector3(-100000f, -100000f, -100000f);
+                instance.m_drawCallData.m_lodCalls++;
+                instance.m_drawCallData.m_batchedCalls += lod.m_lodCount - 1;
+                Graphics.DrawMesh(mesh, Matrix4x4.identity, lod.m_material, lod.m_key.m_layer, null, 0, materialBlock);
+            }
+            lod.m_lodCount = 0;
+        }
+
+
         public void PopulateGroupData(ushort nodeID, int groupX, int groupZ, int layer, ref int vertexIndex, ref int triangleIndex, Vector3 groupPosition, RenderGroup.MeshData data, ref Vector3 min, ref Vector3 max, ref float maxRenderDistance, ref float maxInstanceDistance, ref bool requireSurfaceMaps) {
             NetInfo info = this.Info;
             if (this.m_problems != Notification.Problem.None && layer == Singleton<NotificationManager>.instance.m_notificationLayer && (this.m_flags & NetNode.Flags.Temporary) == NetNode.Flags.None) {
