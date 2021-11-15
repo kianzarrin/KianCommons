@@ -141,7 +141,7 @@ namespace KianCommons {
 
         #region Math
 
-        /// Note: inverted flag or LHT does not influce the beizer.
+        /// Note: inverted flag or LHT does not influence the bezier.
         internal static Bezier3 CalculateSegmentBezier3(this ref NetSegment seg, bool bStartNode = true) {
             ref NetNode startNode = ref seg.m_startNode.ToNode();
             ref NetNode endNode = ref seg.m_endNode.ToNode();
@@ -162,7 +162,7 @@ namespace KianCommons {
         }
 
         /// <param name="startNode"> if true the bezier is inverted so that it will be facing start node</param>
-        /// Note: inverted flag or LHT does not influce the beizer.
+        /// Note: inverted flag or LHT does not influence the bezier.
         internal static Bezier2 CalculateSegmentBezier2(ushort segmentId, bool startNode) {
             Bezier3 bezier3 = segmentId.ToSegment().CalculateSegmentBezier3(startNode);
             Bezier2 bezier2 = bezier3.ToCSBezier2();
@@ -281,7 +281,7 @@ namespace KianCommons {
         /// checks if vehicles move backward or bypass backward (considers LHT)
         /// </summary>
         /// <returns>true if vehicles move backward,
-        /// false if vehilces going ward, bi-directional, or non-directional</returns>
+        /// false if vehicles going ward, bi-directional, or non-directional</returns>
         internal static bool IsGoingBackward(this NetInfo.Direction direction) =>
             (direction & NetInfo.Direction.Both) == NetInfo.Direction.Backward ||
             (direction & NetInfo.Direction.AvoidBoth) == NetInfo.Direction.AvoidForward;
@@ -294,7 +294,7 @@ namespace KianCommons {
         /// checks if vehicles move backward or bypass backward (considers LHT)
         /// </summary>
         /// <returns>true if vehicles move backward,
-        /// false if vehilces going ward, bi-directional, or non-directional</returns>
+        /// false if vehicles going ward, bi-directional, or non-directional</returns>
         internal static bool IsGoingBackward(this NetInfo.Lane laneInfo, bool invertDirection = false) =>
             laneInfo.m_finalDirection.Invert(invertDirection).IsGoingBackward();
 
@@ -675,7 +675,7 @@ namespace KianCommons {
             bool backward = laneInfo_.IsGoingBackward();
             bool invert = segmentID.ToSegment().IsInvert();
 
-            // simple case: forward, not-invert : fase != false -> false
+            // simple case: forward, not-invert : false != false -> false
             StartNode = backward != invert; //xnor
         }
 
@@ -735,8 +735,7 @@ namespace KianCommons {
             } else {
                 laneID_ = laneID_.ToLane().m_nextLane;
             }
-            laneIndex_++;
-            return laneID_ != 0 && laneIndex_ < laneCount_;
+            return laneID_ != 0 && laneIndex_++ < laneCount_;
         }
 
         public LaneIDIterator GetEnumerator() => this; 
