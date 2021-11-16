@@ -5,6 +5,85 @@ namespace KianCommons.StockCode.x {
     using UnityEngine;
 
     public class NetManager : SimulationManagerBase<NetManager, NetProperties>, ISimulationManager, IRenderableManager, ITerrainManager {
+        public override bool CalculateGroupData(int groupX, int groupZ, int layer, ref int vertexCount, ref int triangleCount, ref int objectCount, ref RenderGroup.VertexArrays vertexArrays) {
+            bool result = false;
+            const int resolutionRatio = NODEGRID_RESOLUTION / RenderManager.GROUP_RESOLUTION; // = 270/45 = 6
+            int net_x0 = groupX * resolutionRatio;
+            int net_z0 = groupZ * resolutionRatio;
+            int net_x1 = (groupX + 1) * resolutionRatio - 1;
+            int net_z1 = (groupZ + 1) * resolutionRatio - 1;
+            for(int net_z = net_z0; net_z <= net_z1; net_z++) {
+                for(int net_x = net_x0; net_x <= net_x1; net_x++) {
+                    ushort nodeID = m_nodeGrid[net_z * NODEGRID_RESOLUTION + net_x];
+                    int watchdog = 0;
+                    while(nodeID != 0) {
+                        if(nodeID.ToNode().CalculateGroupData(nodeID, layer, ref vertexCount, ref triangleCount, ref objectCount, ref vertexArrays)) {
+                            result = true;
+                        }
+                        nodeID = nodeID.ToNode().m_nextGridNode;
+                        if(++watchdog >= 32768) {
+                            CODebugBase<LogChannel>.Error(LogChannel.Core, "Invalid list detected!\n" + Environment.StackTrace);
+                            break;
+                        }
+                    }
+                }
+            }
+            for(int net_z = net_z0; net_z <= net_z1; net_z++) {
+                for(int net_x = net_x0; net_x <= net_x1; net_x++) {
+                    ushort segmentID = m_segmentGrid[net_z * 270 + net_x];
+                    int watchdog = 0;
+                    while(segmentID != 0) {
+                        if(segmentID.ToSegment().CalculateGroupData(segmentID, layer, ref vertexCount, ref triangleCount, ref objectCount, ref vertexArrays)) {
+                            result = true;
+                        }
+                        segmentID = segmentID.ToSegment().m_nextGridSegment;
+                        if(++watchdog >= 36864) {
+                            CODebugBase<LogChannel>.Error(LogChannel.Core, "Invalid list detected!\n" + Environment.StackTrace);
+                            break;
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+
+        public override void PopulateGroupData(int groupX, int groupZ, int layer, ref int vertexIndex, ref int triangleIndex, Vector3 groupPosition, RenderGroup.MeshData data, ref Vector3 min, ref Vector3 max, ref float maxRenderDistance, ref float maxInstanceDistance, ref bool requireSurfaceMaps) {
+            const int resolutionRatio = NODEGRID_RESOLUTION / RenderManager.GROUP_RESOLUTION; // = 270/45 = 6
+            int net_x0 = groupX * resolutionRatio;
+            int net_z0 = groupZ * resolutionRatio;
+            int net_x1 = (groupX + 1) * resolutionRatio - 1;
+            int net_z1 = (groupZ + 1) * resolutionRatio - 1;
+            for(int net_z = net_z0; net_z <= net_z1; net_z++) {
+                for(int net_x = net_x0; net_x <= net_x1; net_x++) {
+                    ushort nodeID = m_nodeGrid[net_z * NODEGRID_RESOLUTION + net_x];
+                    int watchdog = 0;
+                    while(nodeID != 0) {
+                        nodeID.ToNode().PopulateGroupData(nodeID, groupX, groupZ, layer, ref vertexIndex, ref triangleIndex, groupPosition, data, ref min, ref max, ref maxRenderDistance, ref maxInstanceDistance, ref requireSurfaceMaps);
+                        nodeID = nodeID.ToNode().m_nextGridNode;
+                        if(++watchdog >= 32768) {
+                            CODebugBase<LogChannel>.Error(LogChannel.Core, "Invalid list detected!\n" + Environment.StackTrace);
+                            break;
+                        }
+                    }
+                }
+            }
+            for(int net_z = net_z0; net_z <= net_z1; net_z++) {
+                for(int net_x = net_x0; net_x <= net_x1; net_x++) {
+                    ushort segmentID = m_segmentGrid[net_z * 270 + net_x];
+                    int watchdog = 0;
+                    while(segmentID != 0) {
+                        segmentID.ToSegment().PopulateGroupData(segmentID, groupX, groupZ, layer, ref vertexIndex, ref triangleIndex, groupPosition, data, ref min, ref max, ref maxRenderDistance, ref maxInstanceDistance, ref requireSurfaceMaps);
+                        segmentID = segmentID.ToSegment().m_nextGridSegment;
+                        if(++watchdog >= 36864) {
+                            CODebugBase<LogChannel>.Error(LogChannel.Core, "Invalid list detected!\n" + Environment.StackTrace);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+
         protected override void EndRenderingImpl(RenderManager.CameraInfo cameraInfo) {
             FastList<RenderGroup> renderedGroups = Singleton<RenderManager>.instance.m_renderedGroups;
             this.m_nameInstanceBuffer.Clear();

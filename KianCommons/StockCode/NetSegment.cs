@@ -1,5 +1,6 @@
 namespace KianCommons.StockCode {
     using ColossalFramework;
+    using ColossalFramework.Math;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -87,6 +88,289 @@ namespace KianCommons.StockCode {
 
         private static HashSet<ushort> m_tempCheckedSet2 = new HashSet<ushort>();
 
+        // NetSegment
+        public static bool CalculateArrowGroupData(ref int vertexCount, ref int triangleCount, ref int objectCount, ref RenderGroup.VertexArrays vertexArrays) {
+            vertexCount += 4;
+            triangleCount += 6;
+            objectCount++;
+            vertexArrays |= RenderGroup.VertexArrays.Vertices | RenderGroup.VertexArrays.Normals | RenderGroup.VertexArrays.Uvs;
+            return true;
+        }
+        public static void PopulateArrowGroupData(Vector3 pos, Vector3 dir, ref int vertexIndex, ref int triangleIndex, Vector3 groupPosition, RenderGroup.MeshData data, ref Vector3 min, ref Vector3 max, ref float maxRenderDistance, ref float maxInstanceDistance) {
+            float len142 = VectorUtils.LengthXZ(dir) * 1.42f;
+            Vector3 dir2 = new Vector3(len142, Mathf.Abs(dir.y), len142);
+            min = Vector3.Min(min, pos - dir2);
+            max = Vector3.Max(max, pos + dir2);
+            maxRenderDistance = Mathf.Max(maxRenderDistance, 20000f);
+            Vector3 diff = pos - groupPosition;
+            Vector3 normalRight = new Vector3(dir.z, 0f, - dir.x);
+            data.m_vertices[vertexIndex] = diff - dir - normalRight; ;
+            data.m_normals[vertexIndex] = pos;
+            data.m_uvs[vertexIndex] = new Vector2(0, 0);
+
+            vertexIndex++;
+            data.m_vertices[vertexIndex] = diff - dir + normalRight;
+            data.m_normals[vertexIndex] = pos;
+            data.m_uvs[vertexIndex] = new Vector2(1f, 0f);
+
+            vertexIndex++;
+            data.m_vertices[vertexIndex] = diff + dir + normalRight;
+            data.m_normals[vertexIndex] = pos;
+            data.m_uvs[vertexIndex] = new Vector2(1f, 1f);
+
+            vertexIndex++;
+            data.m_vertices[vertexIndex] = diff + dir - normalRight;
+            data.m_normals[vertexIndex] = pos;
+            data.m_uvs[vertexIndex] = new Vector2(0f, 1f);
+
+            vertexIndex++;
+            data.m_triangles[triangleIndex++] = vertexIndex - 4;
+            data.m_triangles[triangleIndex++] = vertexIndex - 1;
+            data.m_triangles[triangleIndex++] = vertexIndex - 3;
+            data.m_triangles[triangleIndex++] = vertexIndex - 3;
+            data.m_triangles[triangleIndex++] = vertexIndex - 1;
+            data.m_triangles[triangleIndex++] = vertexIndex - 2;
+        }
+
+        public bool CalculateGroupData(ushort segmentID, int layer, ref int vertexCount, ref int triangleCount, ref int objectCount, ref RenderGroup.VertexArrays vertexArrays) {
+            bool result = false;
+            bool hasProps = false;
+            NetInfo info = Info;
+            if(m_problems != Notification.Problem.None && layer == Singleton<NotificationManager>.instance.m_notificationLayer && Notification.CalculateGroupData(ref vertexCount, ref triangleCount, ref objectCount, ref vertexArrays)) {
+                result = true;
+            }
+            if(info.m_hasForwardVehicleLanes != info.m_hasBackwardVehicleLanes && layer == Singleton<NetManager>.instance.m_arrowLayer && CalculateArrowGroupData(ref vertexCount, ref triangleCount, ref objectCount, ref vertexArrays)) {
+                result = true;
+            }
+            if(info.m_lanes != null) {
+                bool invert;
+                NetNode.Flags flags;
+                NetNode.Flags flags2;
+                if((m_flags & Flags.Invert) != 0) {
+                    invert = true;
+                    m_endNode.ToNode().Info.m_netAI.GetNodeFlags(m_endNode, ref m_endNode.ToNode(), segmentID, ref this, out flags);
+                    m_startNode.ToNode().Info.m_netAI.GetNodeFlags(m_startNode, ref m_startNode.ToNode(), segmentID, ref this, out flags2);
+                } else {
+                    invert = false;
+                    m_startNode.ToNode().Info.m_netAI.GetNodeFlags(m_startNode, ref m_startNode.ToNode(), segmentID, ref this, out flags);
+                    m_endNode.ToNode().Info.m_netAI.GetNodeFlags(m_endNode, ref m_endNode.ToNode(), segmentID, ref this, out flags2);
+                }
+                bool destroyed = (m_flags & Flags.Collapsed) != 0;
+                uint laneID = m_lanes;
+                for(int i = 0; i < info.m_lanes.Length; i++) {
+                    if(laneID == 0) {
+                        break;
+                    }
+                    if(laneID.ToLane().CalculateGroupData(laneID, info.m_lanes[i], destroyed, flags, flags2, invert, layer, ref vertexCount, ref triangleCount, ref objectCount, ref vertexArrays, ref hasProps)) {
+                        result = true;
+                    }
+                    laneID = laneID.ToLane().m_nextLane;
+                }
+            }
+            if((info.m_netLayers & (1 << layer)) != 0) {
+                bool hasSegments = !info.m_segments.IsNullorEmpty();
+                if(hasSegments || hasProps) {
+                    result = true;
+                    if(hasSegments) {
+                        for(int i = 0; i < info.m_segments.Length; i++) {
+                            NetInfo.Segment segmentInfo = info.m_segments[i];
+                            if(segmentInfo.m_layer == layer && segmentInfo.CheckFlags(m_flags, out _) && segmentInfo.m_combinedLod != null) {
+                                CalculateGroupData(segmentInfo, ref vertexCount, ref triangleCount, ref objectCount, ref vertexArrays);
+                            }
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+        public static void CalculateGroupData(NetInfo.Segment segmentInfo, ref int vertexCount, ref int triangleCount, ref int objectCount, ref RenderGroup.VertexArrays vertexArrays) {
+            RenderGroup.MeshData meshData = segmentInfo.m_combinedLod.m_key.m_mesh.m_data;
+            vertexCount += meshData.m_vertices.Length;
+            triangleCount += meshData.m_triangles.Length;
+            objectCount++;
+            vertexArrays |= meshData.VertexArrayMask() | RenderGroup.VertexArrays.Colors | RenderGroup.VertexArrays.Uvs2 | RenderGroup.VertexArrays.Uvs4;
+        }
+
+        public void PopulateGroupData(ushort segmentID, int groupX, int groupZ, int layer, ref int vertexIndex, ref int triangleIndex, Vector3 groupPosition, RenderGroup.MeshData data, ref Vector3 min, ref Vector3 max, ref float maxRenderDistance, ref float maxInstanceDistance, ref bool requireSurfaceMaps) {
+            bool hasProps = false;
+            NetInfo info = Info;
+            NetManager instance = Singleton<NetManager>.instance;
+            if(m_problems != Notification.Problem.None && layer == Singleton<NotificationManager>.instance.m_notificationLayer) {
+                Vector3 middlePosition = m_middlePosition;
+                middlePosition.y += info.m_maxHeight;
+                Notification.PopulateGroupData(m_problems, middlePosition, 1f, groupX, groupZ, ref vertexIndex, ref triangleIndex, groupPosition, data, ref min, ref max, ref maxRenderDistance, ref maxInstanceDistance);
+            }
+            if(info.m_hasForwardVehicleLanes != info.m_hasBackwardVehicleLanes && layer == Singleton<NetManager>.instance.m_arrowLayer) {
+                Bezier3 bezier = default(Bezier3);
+                bezier.a = Singleton<NetManager>.instance.m_nodes.m_buffer[m_startNode].m_position;
+                bezier.d = Singleton<NetManager>.instance.m_nodes.m_buffer[m_endNode].m_position;
+                CalculateMiddlePoints(bezier.a, m_startDirection, bezier.d, m_endDirection, smoothStart: true, smoothEnd: true, out bezier.b, out bezier.c);
+                Vector3 pos = bezier.Position(0.5f);
+                pos.y += info.m_netAI.GetSnapElevation();
+                Vector3 vector = VectorUtils.NormalizeXZ(bezier.Tangent(0.5f)) * (4f + info.m_halfWidth * 0.5f);
+                if((m_flags & Flags.Invert) != 0 == info.m_hasForwardVehicleLanes) {
+                    vector = -vector;
+                }
+                PopulateArrowGroupData(pos, vector, ref vertexIndex, ref triangleIndex, groupPosition, data, ref min, ref max, ref maxRenderDistance, ref maxInstanceDistance);
+            }
+            if(info.m_lanes != null) {
+                bool invert;
+                NetNode.Flags flags;
+                NetNode.Flags flags2;
+                if((m_flags & Flags.Invert) != 0) {
+                    invert = true;
+                    instance.m_nodes.m_buffer[m_endNode].Info.m_netAI.GetNodeFlags(m_endNode, ref instance.m_nodes.m_buffer[m_endNode], segmentID, ref this, out flags);
+                    instance.m_nodes.m_buffer[m_startNode].Info.m_netAI.GetNodeFlags(m_startNode, ref instance.m_nodes.m_buffer[m_startNode], segmentID, ref this, out flags2);
+                } else {
+                    invert = false;
+                    instance.m_nodes.m_buffer[m_startNode].Info.m_netAI.GetNodeFlags(m_startNode, ref instance.m_nodes.m_buffer[m_startNode], segmentID, ref this, out flags);
+                    instance.m_nodes.m_buffer[m_endNode].Info.m_netAI.GetNodeFlags(m_endNode, ref instance.m_nodes.m_buffer[m_endNode], segmentID, ref this, out flags2);
+                }
+                bool terrainHeight = info.m_segments == null || info.m_segments.Length == 0;
+                float startAngle = (float)(int)m_cornerAngleStart * ((float)Math.PI / 128f);
+                float endAngle = (float)(int)m_cornerAngleEnd * ((float)Math.PI / 128f);
+                bool destroyed = (m_flags & Flags.Collapsed) != 0;
+                uint num = m_lanes;
+                for(int i = 0; i < info.m_lanes.Length; i++) {
+                    if(num == 0) {
+                        break;
+                    }
+                    instance.m_lanes.m_buffer[num].PopulateGroupData(segmentID, num, info.m_lanes[i], destroyed, flags, flags2, startAngle, endAngle, invert, terrainHeight, layer, ref vertexIndex, ref triangleIndex, groupPosition, data, ref min, ref max, ref maxRenderDistance, ref maxInstanceDistance, ref hasProps);
+                    num = instance.m_lanes.m_buffer[num].m_nextLane;
+                }
+            }
+            if((info.m_netLayers & (1 << layer)) == 0) {
+                return;
+            }
+            bool flag = info.m_segments != null && info.m_segments.Length != 0;
+            if(!flag && !hasProps) {
+                return;
+            }
+            min = Vector3.Min(min, m_bounds.min);
+            max = Vector3.Max(max, m_bounds.max);
+            maxRenderDistance = Mathf.Max(maxRenderDistance, 30000f);
+            maxInstanceDistance = Mathf.Max(maxInstanceDistance, 1000f);
+            if(!flag) {
+                return;
+            }
+            float vScale = info.m_netAI.GetVScale();
+            CalculateCorner(segmentID, heightOffset: true, start: true, leftSide: true, out var cornerPosSL, out var cornerDirectionSL, out var smoothStart);
+            CalculateCorner(segmentID, heightOffset: true, start: false, leftSide: true, out var cornerPosEL, out var cornerDirectionEL, out var smoothEnd);
+            CalculateCorner(segmentID, heightOffset: true, start: true, leftSide: false, out var cornerPosSR, out var cornerDirectionSR, out smoothStart);
+            CalculateCorner(segmentID, heightOffset: true, start: false, leftSide: false, out var cornerPosER, out var cornerDirectionER, out smoothEnd);
+            CalculateMiddlePoints(cornerPosSL, cornerDirectionSL, cornerPosER, cornerDirectionER, smoothStart, smoothEnd, out var b1, out var c1);
+            CalculateMiddlePoints(cornerPosSR, cornerDirectionSR, cornerPosEL, cornerDirectionEL, smoothStart, smoothEnd, out var b2, out var c2);
+            Vector3 position = instance.m_nodes.m_buffer[m_startNode].m_position;
+            Vector3 position2 = instance.m_nodes.m_buffer[m_endNode].m_position;
+            Vector4 meshScale = new Vector4(0.5f / info.m_halfWidth, 1f / info.m_segmentLength, 1f, 1f);
+            Vector4 colorLocationStart = RenderManager.GetColorLocation((uint)(49152 + segmentID));
+            Vector4 colorlocationEnd = colorLocationStart;
+            if(NetNode.BlendJunction(m_startNode)) {
+                colorLocationStart = RenderManager.GetColorLocation((uint)(86016 + m_startNode));
+            }
+            if(NetNode.BlendJunction(m_endNode)) {
+                colorlocationEnd = RenderManager.GetColorLocation((uint)(86016 + m_endNode));
+            }
+            Vector4 objectIndex0 = new Vector4(colorLocationStart.x, colorLocationStart.y, colorlocationEnd.x, colorlocationEnd.y);
+            for(int j = 0; j < info.m_segments.Length; j++) {
+                NetInfo.Segment segment = info.m_segments[j];
+                bool turnAround = false;
+                if(segment.m_layer == layer && segment.CheckFlags(m_flags, out turnAround) && segment.m_combinedLod != null) {
+                    Vector4 objectIndex = objectIndex0;
+                    if(segment.m_requireWindSpeed) {
+                        objectIndex.w = Singleton<WeatherManager>.instance.GetWindSpeed((position + position2) * 0.5f);
+                    } else if(turnAround) {
+                        objectIndex = new Vector4(objectIndex.z, objectIndex.w, objectIndex.x, objectIndex.y);
+                    }
+                    Matrix4x4 leftMatrix;
+                    Matrix4x4 rightMatrix;
+                    if(turnAround) {
+                        leftMatrix = CalculateControlMatrix(cornerPosEL, c2, b2, cornerPosSR, cornerPosER, c1, b1, cornerPosSL, groupPosition, vScale);
+                        rightMatrix = CalculateControlMatrix(cornerPosER, c1, b1, cornerPosSL, cornerPosEL, c2, b2, cornerPosSR, groupPosition, vScale);
+                    } else {
+                        leftMatrix = CalculateControlMatrix(cornerPosSL, b1, c1, cornerPosER, cornerPosSR, b2, c2, cornerPosEL, groupPosition, vScale);
+                        rightMatrix = CalculateControlMatrix(cornerPosSR, b2, c2, cornerPosEL, cornerPosSL, b1, c1, cornerPosER, groupPosition, vScale);
+                    }
+                    PopulateGroupData(info, segment, leftMatrix, rightMatrix, meshScale, objectIndex, ref vertexIndex, ref triangleIndex, groupPosition, data, ref requireSurfaceMaps);
+                }
+            }
+        }
+
+        public static void PopulateGroupData(NetInfo info, NetInfo.Segment segmentInfo, Matrix4x4 leftMatrix, Matrix4x4 rightMatrix, Vector4 meshScale, Vector4 objectIndex,
+            ref int vertexIndex, ref int triangleIndex, Vector3 groupPosition, RenderGroup.MeshData meshData, ref bool requireSurfaceMaps) {
+            if(segmentInfo.m_requireSurfaceMaps) {
+                requireSurfaceMaps = true;
+            }
+            RenderGroup.MeshData meshData2 = segmentInfo.m_combinedLod.m_key.m_mesh.m_data;
+            int[] triangles = meshData2.m_triangles;
+            int num = triangles.Length;
+            for(int i = 0; i < num; i++) {
+                meshData.m_triangles[triangleIndex++] = triangles[i] + vertexIndex;
+            }
+            RenderGroup.VertexArrays vertexArrays = meshData2.VertexArrayMask();
+            Vector3[] vertices = meshData2.m_vertices;
+            Vector3[] normals = meshData2.m_normals;
+            Vector4[] tangents = meshData2.m_tangents;
+            Vector2[] uvs = meshData2.m_uvs;
+            Vector2[] uvs2 = meshData2.m_uvs3;
+            Color32[] colors = meshData2.m_colors;
+            int num2 = vertices.Length;
+            Vector2 vector = new Vector2(objectIndex.x, objectIndex.y);
+            Vector2 vector2 = new Vector2(objectIndex.z, objectIndex.w);
+            for(int i = 0; i < num2; i++) {
+                Vector3 vertex = vertices[i];
+                vertex.x = vertex.x * meshScale.x + 0.5f;
+                vertex.z = vertex.z * meshScale.y + 0.5f;
+                Vector4 vector4 = new Vector4(vertex.z, 1f - vertex.z, 3f * vertex.z, 0f - vertex.z);
+                Vector4 vector5 = new Vector4(vector4.y * vector4.y * vector4.y, vector4.z * vector4.y * vector4.y, vector4.z * vector4.x * vector4.y, vector4.x * vector4.x * vector4.x);
+                Vector4 vector6 = new Vector4(vector4.y * (-1f - vector4.w) * 3f, vector4.y * (1f - vector4.z) * 3f, vector4.x * (2f - vector4.z) * 3f, vector4.x * (0f - vector4.w) * 3f);
+                Vector4 vector7 = leftMatrix * vector5;
+                Vector4 vector8 = vector7 + (rightMatrix * vector5 - vector7) * vertex.x;
+                Vector4 vector9 = leftMatrix * vector6;
+                Vector3 vector10 = Vector3.Normalize(vector9 + (rightMatrix * vector6 - vector9) * vertex.x);
+                Vector3 vector11 = Vector3.Normalize(new Vector3(vector10.z, 0f, 0f - vector10.x));
+                Matrix4x4 matrix4x = default(Matrix4x4);
+                matrix4x.SetColumn(0, vector11);
+                matrix4x.SetColumn(1, Vector3.Cross(vector10, vector11));
+                matrix4x.SetColumn(2, vector10);
+                if(segmentInfo.m_requireHeightMap) {
+                    vector8.y = Singleton<TerrainManager>.instance.SampleDetailHeight((Vector3)vector8 + groupPosition);
+                }
+                meshData.m_vertices[vertexIndex] = new Vector3(vector8.x, vector8.y + vertex.y, vector8.z);
+                if((vertexArrays & RenderGroup.VertexArrays.Normals) != 0) {
+                    meshData.m_normals[vertexIndex] = matrix4x.MultiplyVector(normals[i]);
+                } else {
+                    meshData.m_normals[vertexIndex] = new Vector3(0f, 1f, 0f);
+                }
+                if((vertexArrays & RenderGroup.VertexArrays.Tangents) != 0) {
+                    Vector4 vector12 = tangents[i];
+                    Vector3 vector13 = matrix4x.MultiplyVector(vector12);
+                    vector12.x = vector13.x;
+                    vector12.y = vector13.y;
+                    vector12.z = vector13.z;
+                    meshData.m_tangents[vertexIndex] = vector12;
+                } else {
+                    meshData.m_tangents[vertexIndex] = new Vector4(1f, 0f, 0f, 1f);
+                }
+                Color32 color = (((vertexArrays & RenderGroup.VertexArrays.Colors) == 0) ? new Color32(byte.MaxValue, byte.MaxValue, byte.MaxValue, byte.MaxValue) : colors[i]);
+                if((vertexArrays & RenderGroup.VertexArrays.Uvs) != 0) {
+                    Vector2 vector14 = uvs[i];
+                    vector14.y = Mathf.Lerp(vector14.y, vector8.w, (float)(int)color.g * 0.003921569f);
+                    meshData.m_uvs[vertexIndex] = vector14;
+                } else {
+                    Vector2 vector15 = default(Vector2);
+                    vector15.y = Mathf.Lerp(vector15.y, vector8.w, (float)(int)color.g * 0.003921569f);
+                    meshData.m_uvs[vertexIndex] = vector15;
+                }
+                meshData.m_colors[vertexIndex] = info.m_netAI.GetGroupVertexColor(segmentInfo, i);
+                meshData.m_uvs2[vertexIndex] = vector;
+                meshData.m_uvs4[vertexIndex] = vector2;
+                if((vertexArrays & RenderGroup.VertexArrays.Uvs3) != 0) {
+                    meshData.m_uvs3[vertexIndex] = uvs2[i];
+                }
+                vertexIndex++;
+            }
+        }
         public static void RenderLod(RenderManager.CameraInfo cameraInfo, NetInfo.LodValue lod) {
             NetManager instance = Singleton<NetManager>.instance;
             MaterialPropertyBlock materialBlock = instance.m_materialBlock;
