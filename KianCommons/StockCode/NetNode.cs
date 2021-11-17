@@ -16,7 +16,7 @@ namespace KianCommons.StockCode {
         public Bounds m_bounds;
         Vector3 m_position;
         const int INVALID_RENDER_INDEX = ushort.MaxValue;
-        const uint NODE_HOLDER = MAX_BUILDING_COUNT + MAX_SEGMENT_COUNT;
+        const uint NODE_HOLDER = BuildingManager.MAX_BUILDING_COUNT + NetManager.MAX_SEGMENT_COUNT;
 
         public static void RenderLod(RenderManager.CameraInfo cameraInfo, NetInfo.LodValue lod) {
             NetManager instance = Singleton<NetManager>.instance;
@@ -1479,9 +1479,64 @@ namespace KianCommons.StockCode {
             return false;
         }
 
+        private void RefreshJunctionData(ref NetNode This, ushort nodeID, NetInfo info, uint instanceIndex) {
+            NetManager instance = Singleton<NetManager>.instance;
+            Vector3 position = m_position;
+            for(int i = 0; i < 8; i++) {
+                ushort segmentID1 = GetSegment(i);
+                if(segmentID1 == 0) 
+                    continue;
+                NetInfo netInfo1 = segmentID1.ToSegment().Info;
+                ItemClass connectionClass = netInfo1.GetConnectionClass();
+                Vector3 dir1 = segmentID1.ToSegment().GetDirection(nodeID);
+                float maxDotProduct = -1f;
+                for(int j = 0; j < 8; j++) {
+                    ushort segmentID2 = GetSegment(j);
+                    if(segmentID2 == 0 || segmentID2 == segmentID1) {
+                        continue;
+                    }
+                    NetInfo netInfo2 = segmentID2.ToSegment().Info;
+                    ItemClass connectionClass2 = netInfo2.GetConnectionClass();
+                    if(connectionClass.m_service != connectionClass2.m_service && (netInfo1.m_nodeConnectGroups & netInfo2.m_connectGroup) == 0 && (netInfo2.m_nodeConnectGroups & netInfo1.m_connectGroup) == 0) {
+                        continue;
+                    }
+                    Vector3 vector2 = segmentID2.ToSegment().GetDirection(nodeID);
+                    float dotProduct = dir1.x * vector2.x + dir1.z * vector2.z;
+                    if(connectionClass.m_service == connectionClass2.m_service) {
+                        maxDotProduct = Mathf.Max(maxDotProduct, dotProduct);
+                    }
+                    bool connects1 = netInfo1.m_requireDirectRenderers && (netInfo1.m_nodeConnectGroups == NetInfo.ConnectGroup.None || (netInfo1.m_nodeConnectGroups & netInfo2.m_connectGroup) != 0);
+                    bool connects2 = netInfo2.m_requireDirectRenderers && (netInfo2.m_nodeConnectGroups == NetInfo.ConnectGroup.None || (netInfo2.m_nodeConnectGroups & netInfo1.m_connectGroup) != 0);
+                    if(j > i && (connects1 || connects2) && dotProduct < 0.01f - Mathf.Min(netInfo1.m_maxTurnAngleCos, netInfo2.m_maxTurnAngleCos) && instanceIndex != INVALID_RENDER_INDEX) {
+                        float prio1 = !connects1 ? -1E+08f : netInfo1.m_netAI.GetNodeInfoPriority(segmentID1, ref segmentID1.ToSegment());
+                        float prio2 = !connects2 ? -1E+08f : netInfo2.m_netAI.GetNodeInfoPriority(segmentID2, ref segmentID2.ToSegment());
+                        if(prio1 >= prio2) {
+                            RefreshJunctionData(nodeID, i, j, netInfo1, netInfo2, segmentID1, segmentID2, ref instanceIndex, ref RenderManager.instance.m_instances[instanceIndex]);
+                        } else {
+                            RefreshJunctionData(nodeID, j, i, netInfo2, netInfo1, segmentID2, segmentID1, ref instanceIndex, ref RenderManager.instance.m_instances[instanceIndex]);
+                        }
+                    }
+                }
+                if(netInfo1.m_requireSegmentRenderers) {
+                    position += dir1 * Mathf.Max(2f + maxDotProduct * 2f, netInfo1.m_minCornerOffset * 0.4f);
+                }
+            }
+            position.y = m_position.y + (float)(int)m_heightOffset * 0.015625f;
+            if(!info.m_requireSegmentRenderers) {
+                return;
+            }
+            for(int k = 0; k < 8; k++) {
+                ushort segment3 = GetSegment(k);
+                if(segment3 != 0 && instanceIndex != 65535) {
+                    RefreshJunctionData(ref This, nodeID, k, segment3, position, ref instanceIndex, ref RenderManager.instance.m_instances[instanceIndex]);
+                }
+            }
+        }
+
+
         /// not-DC node
         /// <param name="centerPos">position between left corner and right corner of segmentID (or something like that).</param>
-        private static void RefreshJunctionData(ref NetNode This, ushort nodeID, int segmentIndex, ushort SegmentID, Vector3 centerPos, ref uint instanceIndex, ref RenderManager.Instance data) {
+        private static void RefreshJunctionData(this ref NetNode This, ushort nodeID, int segmentIndex, ushort SegmentID, Vector3 centerPos, ref uint instanceIndex, ref RenderManager.Instance data) {
             Vector3 cornerPos_right = Vector3.zero, cornerDir_right = Vector3.zero, cornerPos_left = Vector3.zero, cornerDir_left = Vector3.zero,
                 cornerPosA_right = Vector3.zero, cornerDirA_right = Vector3.zero, cornerPosA_left = Vector3.zero, cornerDirA_left = Vector3.zero,
                 cornerPosB_right = Vector3.zero, cornerDirB_right = Vector3.zero, cornerPosB_left = Vector3.zero, cornerDirB_left = Vector3.zero;
@@ -1643,17 +1698,18 @@ namespace KianCommons.StockCode {
             instanceIndex = (uint)data.m_nextInstance;
         }
 
+        // DC
         private void RefreshJunctionData(ushort nodeID, int segmentIndex, int segmentIndex2, NetInfo info, NetInfo info2, ushort segmentID, ushort segmentID2, ref uint instanceIndex, ref RenderManager.Instance data) {
             data.m_position = this.m_position;
             data.m_rotation = Quaternion.identity;
             data.m_initialized = true;
             float vscale = info.m_netAI.GetVScale();
             bool startNode = segmentID.ToSegment().IsStartNode(nodeID);
-            segmentID.ToSegment().CalculateCorner(segmentID, true, startNode, false, out var CornerPosL, out var CornerDirL, out _);
-            segmentID.ToSegment().CalculateCorner(segmentID, true, startNode, true, out var CornerPosR, out var CornerDirR, out _);
+            segmentID.ToSegment().CalculateCorner(segmentID, true, start: startNode, leftSide: false, out var CornerPosL, out var CornerDirL, out _);
+            segmentID.ToSegment().CalculateCorner(segmentID, true, start: startNode, leftSide: true, out var CornerPosR, out var CornerDirR, out _);
             bool startNode2 = segmentID2.ToSegment().IsStartNode(nodeID);
-            segmentID2.ToSegment().CalculateCorner(segmentID2, true, startNode2, true, out var CornerPos2L, out var CornerDir2L, out _);
-            segmentID2.ToSegment().CalculateCorner(segmentID2, true, startNode2, false, out var CornerPos2R, out var CornerDir2R, out _);
+            segmentID2.ToSegment().CalculateCorner(segmentID2, true, start: startNode2, leftSide:true, out var CornerPos2L, out var CornerDir2L, out _);
+            segmentID2.ToSegment().CalculateCorner(segmentID2, true, start: startNode2, leftSide: false, out var CornerPos2R, out var CornerDir2R, out _);
             Vector3 b = (CornerPos2R - CornerPos2L) * (info.m_halfWidth / info2.m_halfWidth * 0.5f - 0.5f);
             CornerPos2L -= b;
             CornerPos2R += b;
@@ -1663,23 +1719,22 @@ namespace KianCommons.StockCode {
             data.m_extraData.m_dataMatrix2 = NetSegment.CalculateControlMatrix(CornerPosR, bpointR, cpointR, CornerPos2R, CornerPosL, bpointL, cpointL, CornerPos2L, this.m_position, vscale);
             data.m_dataVector0 = new Vector4(0.5f / info.m_halfWidth, 1f / info.m_segmentLength, 1f, 1f);
             Vector4 colorLocation;
-            Vector4 vector7;
+            Vector4 colorLocation2;
             if (NetNode.BlendJunction(nodeID)) {
-                colorLocation = RenderManager.GetColorLocation(86016u + (uint)nodeID);
-                vector7 = colorLocation;
+                colorLocation2 = colorLocation = RenderManager.GetColorLocation(NODE_HOLDER + nodeID);
             } else {
-                colorLocation = RenderManager.GetColorLocation((uint)(49152 + segmentID));
-                vector7 = RenderManager.GetColorLocation((uint)(49152 + segmentID2));
+                colorLocation = RenderManager.GetColorLocation(SEGMENT_HOLDER + segmentID);
+                colorLocation2 = RenderManager.GetColorLocation(SEGMENT_HOLDER + segmentID2);
             }
-            data.m_dataVector3 = new Vector4(colorLocation.x, colorLocation.y, vector7.x, vector7.y);
+            data.m_dataVector3 = new Vector4(colorLocation.x, colorLocation.y, colorLocation2.x, colorLocation2.y);
             data.m_dataInt0 = (8 | segmentIndex | segmentIndex2 << 4);
             data.m_dataColor0 = info.m_color;
             data.m_dataColor0.a = 0f;
             data.m_dataFloat0 = Singleton<WeatherManager>.instance.GetWindSpeed(data.m_position);
             if (info.m_requireSurfaceMaps) {
-                Singleton<TerrainManager>.instance.GetSurfaceMapping(data.m_position, out data.m_dataTexture0, out data.m_dataTexture1, out data.m_dataVector1);
+                TerrainManager.instance.GetSurfaceMapping(data.m_position, out data.m_dataTexture0, out data.m_dataTexture1, out data.m_dataVector1);
             }
-            instanceIndex = (uint)data.m_nextInstance;
+            instanceIndex = data.m_nextInstance;
         }
 
         private void RefreshEndData(ushort nodeID, NetInfo info, uint instanceIndex, ref RenderManager.Instance data) {

@@ -493,21 +493,21 @@ namespace KianCommons.StockCode {
                     if(!segment.CheckFlags(m_flags, out var turnAround)) {
                         continue;
                     }
-                    Vector4 dataVector3 = data.m_dataVector3;
-                    Vector4 dataVector0 = data.m_dataVector0;
+                    Vector4 objectIndex = data.m_dataVector3;
+                    Vector4 meshScale = data.m_dataVector0;
                     if(segment.m_requireWindSpeed) {
-                        dataVector3.w = data.m_dataFloat0;
+                        objectIndex.w = data.m_dataFloat0;
                     }
                     if(turnAround) {
-                        dataVector0.x = 0f - dataVector0.x;
-                        dataVector0.y = 0f - dataVector0.y;
+                        meshScale.x = 0f - meshScale.x;
+                        meshScale.y = 0f - meshScale.y;
                     }
                     if(cameraInfo.CheckRenderDistance(data.m_position, segment.m_lodRenderDistance)) {
                         instance.m_materialBlock.Clear();
                         instance.m_materialBlock.SetMatrix(instance.ID_LeftMatrix, data.m_dataMatrix0);
                         instance.m_materialBlock.SetMatrix(instance.ID_RightMatrix, data.m_dataMatrix1);
-                        instance.m_materialBlock.SetVector(instance.ID_MeshScale, dataVector0);
-                        instance.m_materialBlock.SetVector(instance.ID_ObjectIndex, dataVector3);
+                        instance.m_materialBlock.SetVector(instance.ID_MeshScale, meshScale);
+                        instance.m_materialBlock.SetVector(instance.ID_ObjectIndex, objectIndex);
                         instance.m_materialBlock.SetColor(instance.ID_Color, data.m_dataColor0);
                         if(segment.m_requireSurfaceMaps && data.m_dataTexture0 != null) {
                             instance.m_materialBlock.SetTexture(instance.ID_SurfaceTexA, data.m_dataTexture0);
@@ -547,8 +547,8 @@ namespace KianCommons.StockCode {
                     reference = data.m_dataMatrix0;
                     ref Matrix4x4 reference2 = ref combinedLod.m_rightMatrices[combinedLod.m_lodCount];
                     reference2 = data.m_dataMatrix1;
-                    combinedLod.m_meshScales[combinedLod.m_lodCount] = dataVector0;
-                    combinedLod.m_objectIndices[combinedLod.m_lodCount] = dataVector3;
+                    combinedLod.m_meshScales[combinedLod.m_lodCount] = meshScale;
+                    combinedLod.m_objectIndices[combinedLod.m_lodCount] = objectIndex;
                     ref Vector4 reference3 = ref combinedLod.m_meshLocations[combinedLod.m_lodCount];
                     reference3 = data.m_position;
                     combinedLod.m_lodMin = Vector3.Min(combinedLod.m_lodMin, data.m_position);
