@@ -372,8 +372,8 @@ namespace KianCommons.StockCode {
             }
         }
         public static void RenderLod(RenderManager.CameraInfo cameraInfo, NetInfo.LodValue lod) {
-            NetManager instance = Singleton<NetManager>.instance;
-            MaterialPropertyBlock materialBlock = instance.m_materialBlock;
+            NetManager netMan = Singleton<NetManager>.instance;
+            MaterialPropertyBlock materialBlock = netMan.m_materialBlock;
             materialBlock.Clear();
             Mesh mesh;
             int upperLoadCount;
@@ -394,22 +394,22 @@ namespace KianCommons.StockCode {
                 lod.m_objectIndices[i] = default;
                 lod.m_meshLocations[i] = cameraInfo.m_forward * -100000f;
             }
-            materialBlock.SetMatrixArray(instance.ID_LeftMatrices, lod.m_leftMatrices);
-            materialBlock.SetMatrixArray(instance.ID_RightMatrices, lod.m_rightMatrices);
-            materialBlock.SetVectorArray(instance.ID_MeshScales, lod.m_meshScales);
-            materialBlock.SetVectorArray(instance.ID_ObjectIndices, lod.m_objectIndices);
-            materialBlock.SetVectorArray(instance.ID_MeshLocations, lod.m_meshLocations);
+            materialBlock.SetMatrixArray(netMan.ID_LeftMatrices, lod.m_leftMatrices);
+            materialBlock.SetMatrixArray(netMan.ID_RightMatrices, lod.m_rightMatrices);
+            materialBlock.SetVectorArray(netMan.ID_MeshScales, lod.m_meshScales);
+            materialBlock.SetVectorArray(netMan.ID_ObjectIndices, lod.m_objectIndices);
+            materialBlock.SetVectorArray(netMan.ID_MeshLocations, lod.m_meshLocations);
             if(lod.m_surfaceTexA != null) {
-                materialBlock.SetTexture(instance.ID_SurfaceTexA, lod.m_surfaceTexA);
-                materialBlock.SetTexture(instance.ID_SurfaceTexB, lod.m_surfaceTexB);
-                materialBlock.SetVector(instance.ID_SurfaceMapping, lod.m_surfaceMapping);
+                materialBlock.SetTexture(netMan.ID_SurfaceTexA, lod.m_surfaceTexA);
+                materialBlock.SetTexture(netMan.ID_SurfaceTexB, lod.m_surfaceTexB);
+                materialBlock.SetVector(netMan.ID_SurfaceMapping, lod.m_surfaceMapping);
                 lod.m_surfaceTexA = null;
                 lod.m_surfaceTexB = null;
             }
             if(lod.m_heightMap != null) {
-                materialBlock.SetTexture(instance.ID_HeightMap, lod.m_heightMap);
-                materialBlock.SetVector(instance.ID_HeightMapping, lod.m_heightMapping);
-                materialBlock.SetVector(instance.ID_SurfaceMapping, lod.m_surfaceMapping);
+                materialBlock.SetTexture(netMan.ID_HeightMap, lod.m_heightMap);
+                materialBlock.SetVector(netMan.ID_HeightMapping, lod.m_heightMapping);
+                materialBlock.SetVector(netMan.ID_SurfaceMapping, lod.m_surfaceMapping);
                 lod.m_heightMap = null;
             }
             if(mesh != null) {
@@ -418,8 +418,8 @@ namespace KianCommons.StockCode {
                 mesh.bounds = bounds;
                 lod.m_lodMin = new Vector3(100000f, 100000f, 100000f);
                 lod.m_lodMax = new Vector3(-100000f, -100000f, -100000f);
-                instance.m_drawCallData.m_lodCalls++;
-                instance.m_drawCallData.m_batchedCalls += lod.m_lodCount - 1;
+                netMan.m_drawCallData.m_lodCalls++;
+                netMan.m_drawCallData.m_batchedCalls += lod.m_lodCount - 1;
                 Graphics.DrawMesh(mesh, Matrix4x4.identity, lod.m_material, lod.m_key.m_layer, null, 0, materialBlock);
             }
             lod.m_lodCount = 0;
