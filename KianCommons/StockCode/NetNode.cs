@@ -85,41 +85,41 @@ namespace KianCommons.StockCode {
             bool flag = false;
             if ((this.m_flags & NetNode.Flags.Junction) != NetNode.Flags.None) {
                 NetManager instance = Singleton<NetManager>.instance;
-                Vector3 a = this.m_position;
+                Vector3 pos = this.m_position;
                 for (int i1 = 0; i1 < 8; i1++) {
                     ushort segmentID1 = this.GetSegment(i1);
                     if (segmentID1 != 0) {
                         NetInfo info1 = instance.m_segments.m_buffer[(int)segmentID1].Info;
                         ItemClass connectionClass = info1.GetConnectionClass();
-                        Vector3 a2 = (nodeID != instance.m_segments.m_buffer[(int)segmentID1].m_startNode) ? instance.m_segments.m_buffer[(int)segmentID1].m_endDirection : instance.m_segments.m_buffer[(int)segmentID1].m_startDirection;
-                        float num = -1f;
+                        Vector3 dir1 = segmentID1.ToSegment().GetDirection(nodeID);
+                        float maxDot = -1f;
                         for (int i2 = 0; i2 < 8; i2++) {
                             ushort segmentID2 = this.GetSegment(i2);
                             if (segmentID2 != 0 && segmentID2 != segmentID1) {
                                 NetInfo info2 = instance.m_segments.m_buffer[(int)segmentID2].Info;
                                 ItemClass connectionClass2 = info2.GetConnectionClass();
                                 if (((info.m_netLayers | info1.m_netLayers | info2.m_netLayers) & 1 << layer) != 0 && (connectionClass.m_service == connectionClass2.m_service || (info1.m_nodeConnectGroups & info2.m_connectGroup) != NetInfo.ConnectGroup.None || (info2.m_nodeConnectGroups & info1.m_connectGroup) != NetInfo.ConnectGroup.None)) {
-                                    Vector3 vector = (nodeID != instance.m_segments.m_buffer[(int)segmentID2].m_startNode) ? instance.m_segments.m_buffer[(int)segmentID2].m_endDirection : instance.m_segments.m_buffer[(int)segmentID2].m_startDirection;
-                                    float num2 = a2.x * vector.x + a2.z * vector.z;
-                                    num = Mathf.Max(num, num2);
-                                    bool flag2 = info1.m_requireDirectRenderers && (info1.m_nodeConnectGroups == NetInfo.ConnectGroup.None || (info1.m_nodeConnectGroups & info2.m_connectGroup) != NetInfo.ConnectGroup.None);
-                                    bool flag3 = info2.m_requireDirectRenderers && (info2.m_nodeConnectGroups == NetInfo.ConnectGroup.None || (info2.m_nodeConnectGroups & info1.m_connectGroup) != NetInfo.ConnectGroup.None);
-                                    if (i2 > i1 && (flag2 || flag3)) {
-                                        float num3 = 0.01f - Mathf.Min(info1.m_maxTurnAngleCos, info2.m_maxTurnAngleCos);
-                                        if (num2 < num3) {
-                                            float num4;
-                                            if (flag2) {
-                                                num4 = info1.m_netAI.GetNodeInfoPriority(segmentID1, ref instance.m_segments.m_buffer[(int)segmentID1]);
+                                    Vector3 dir2 = segmentID2.ToSegment().GetDirection(nodeID);
+                                    float dot = dir1.x * dir2.x + dir1.z * dir2.z;
+                                    maxDot = Mathf.Max(maxDot, dot);
+                                    bool connects1 = info1.m_requireDirectRenderers && (info1.m_nodeConnectGroups == NetInfo.ConnectGroup.None || (info1.m_nodeConnectGroups & info2.m_connectGroup) != NetInfo.ConnectGroup.None);
+                                    bool connects2 = info2.m_requireDirectRenderers && (info2.m_nodeConnectGroups == NetInfo.ConnectGroup.None || (info2.m_nodeConnectGroups & info1.m_connectGroup) != NetInfo.ConnectGroup.None);
+                                    if (i2 > i1 && (connects1 || connects2)) {
+                                        float maxTurnAngleCos = Mathf.Min(info1.m_maxTurnAngleCos, info2.m_maxTurnAngleCos);
+                                        if (dot < 0.01f - maxTurnAngleCos) {
+                                            float prio1;
+                                            if (connects1) {
+                                                prio1 = info1.m_netAI.GetNodeInfoPriority(segmentID1, ref instance.m_segments.m_buffer[(int)segmentID1]);
                                             } else {
-                                                num4 = -1E+08f;
+                                                prio1 = -1E+08f;
                                             }
-                                            float num5;
-                                            if (flag3) {
-                                                num5 = info2.m_netAI.GetNodeInfoPriority(segmentID2, ref instance.m_segments.m_buffer[(int)segmentID2]);
+                                            float prio2;
+                                            if (connects2) {
+                                                prio2 = info2.m_netAI.GetNodeInfoPriority(segmentID2, ref instance.m_segments.m_buffer[(int)segmentID2]);
                                             } else {
-                                                num5 = -1E+08f;
+                                                prio2 = -1E+08f;
                                             }
-                                            if (num4 >= num5) {
+                                            if (prio1 >= prio2) {
                                                 if (info1.m_nodes != null && info1.m_nodes.Length != 0) {
                                                     flag = true;
                                                     float vscale = info1.m_netAI.GetVScale();
@@ -271,10 +271,10 @@ namespace KianCommons.StockCode {
                                 }
                             }
                         }
-                        a += a2 * (2f + num * 2f);
+                        pos += dir1 * (2f + maxDot * 2f);
                     }
                 }
-                a.y = this.m_position.y + (float)this.m_heightOffset * 0.015625f;
+                pos.y = this.m_position.y + (float)this.m_heightOffset * 0.015625f;
                 if ((info.m_netLayers & 1 << layer) != 0 && info.m_requireSegmentRenderers) {
                     for (int m = 0; m < 8; m++) {
                         ushort segment3 = this.GetSegment(m);
@@ -297,7 +297,7 @@ namespace KianCommons.StockCode {
                                 Vector3 zero20 = Vector3.zero;
                                 NetSegment netSegment = instance.m_segments.m_buffer[(int)segment3];
                                 ItemClass connectionClass3 = info3.GetConnectionClass();
-                                Vector3 vector22 = (nodeID != netSegment.m_startNode) ? netSegment.m_endDirection : netSegment.m_startDirection;
+                                Vector3 dir = netSegment.GetDirection(nodeID);
                                 float num6 = -4f;
                                 float num7 = -4f;
                                 ushort num8 = 0;
@@ -309,9 +309,9 @@ namespace KianCommons.StockCode {
                                         ItemClass connectionClass4 = info4.GetConnectionClass();
                                         if (connectionClass3.m_service == connectionClass4.m_service) {
                                             NetSegment netSegment2 = instance.m_segments.m_buffer[(int)segment4];
-                                            Vector3 vector23 = (nodeID != netSegment2.m_startNode) ? netSegment2.m_endDirection : netSegment2.m_startDirection;
-                                            float num10 = vector22.x * vector23.x + vector22.z * vector23.z;
-                                            if (vector23.z * vector22.x - vector23.x * vector22.z < 0f) {
+                                            Vector3 dir2 = netSegment2.GetDirection(nodeID);
+                                            float num10 = dir.x * dir2.x + dir.z * dir2.z;
+                                            if (dir2.z * dir.x - dir2.x * dir.z < 0f) {
                                                 if (num10 > num6) {
                                                     num6 = num10;
                                                     num8 = segment4;
@@ -388,12 +388,12 @@ namespace KianCommons.StockCode {
                                     leftMatrixB = NetSegment.CalculateControlMatrix(zero13, vector28, vector29, zero17, zero13, vector28, vector29, zero17, groupPosition, vscale3);
                                     rightMatrixB = NetSegment.CalculateControlMatrix(zero14, vector30, vector31, zero18, zero14, vector30, vector31, zero18, groupPosition, vscale3);
                                     meshScale3 = new Vector4(0.5f / info3.m_halfWidth, 1f / info3.m_segmentLength, 0.5f - info3.m_pavementWidth / info3.m_halfWidth * 0.5f, info3.m_pavementWidth / info3.m_halfWidth * 0.5f);
-                                    centerPos = a - groupPosition;
+                                    centerPos = pos - groupPosition;
                                     centerPos.w = (leftMatrix3.m33 + rightMatrix3.m33 + leftMatrixB.m33 + rightMatrixB.m33) * 0.25f;
                                     sideScale = new Vector4(num11, y, num13, w);
                                 } else {
-                                    a.x = (zero13.x + zero14.x) * 0.5f;
-                                    a.z = (zero13.z + zero14.z) * 0.5f;
+                                    pos.x = (zero13.x + zero14.x) * 0.5f;
+                                    pos.z = (zero13.z + zero14.z) * 0.5f;
                                     vector20 = zero14;
                                     vector21 = zero13;
                                     a3 = zero16;
@@ -416,7 +416,7 @@ namespace KianCommons.StockCode {
                                     leftMatrixB.SetRow(3, leftMatrixB.GetRow(3) + new Vector4(0.2f, 0.2f, 0.2f, 0.2f));
                                     rightMatrixB.SetRow(3, rightMatrixB.GetRow(3) + new Vector4(0.2f, 0.2f, 0.2f, 0.2f));
                                     meshScale3 = new Vector4(0.5f / info3.m_halfWidth, 1f / info3.m_segmentLength, 0.5f - info3.m_pavementWidth / info3.m_halfWidth * 0.5f, info3.m_pavementWidth / info3.m_halfWidth * 0.5f);
-                                    centerPos = a - groupPosition;
+                                    centerPos = pos - groupPosition;
                                     centerPos.w = (leftMatrix3.m33 + rightMatrix3.m33 + leftMatrixB.m33 + rightMatrixB.m33) * 0.25f;
                                     sideScale = new Vector4(info3.m_pavementWidth / info3.m_halfWidth * 0.5f, 1f, info3.m_pavementWidth / info3.m_halfWidth * 0.5f, 1f);
                                 }
@@ -668,35 +668,35 @@ namespace KianCommons.StockCode {
                     if (segmentID1 != 0) {
                         NetInfo info1 = instance.m_segments.m_buffer[(int)segmentID1].Info;
                         ItemClass connectionClass = info1.GetConnectionClass();
-                        Vector3 a2 = (nodeID != instance.m_segments.m_buffer[(int)segmentID1].m_startNode) ? instance.m_segments.m_buffer[(int)segmentID1].m_endDirection : instance.m_segments.m_buffer[(int)segmentID1].m_startDirection;
-                        float num = -1f;
+                        Vector3 dir1 = segmentID1.ToSegment().GetDirection(nodeID);
+                        float maxDot = -1f;
                         for (int i2 = 0; i2 < 8; i2++) {
                             ushort segmentID2 = this.GetSegment(i2);
                             if (segmentID2 != 0 && segmentID2 != segmentID1) {
                                 NetInfo info2 = instance.m_segments.m_buffer[(int)segmentID2].Info;
                                 ItemClass connectionClass2 = info2.GetConnectionClass();
                                 if (((info.m_netLayers | info1.m_netLayers | info2.m_netLayers) & 1 << layer) != 0 && (connectionClass.m_service == connectionClass2.m_service || (info1.m_nodeConnectGroups & info2.m_connectGroup) != NetInfo.ConnectGroup.None || (info2.m_nodeConnectGroups & info1.m_connectGroup) != NetInfo.ConnectGroup.None)) {
-                                    Vector3 vector = (nodeID != instance.m_segments.m_buffer[(int)segmentID2].m_startNode) ? instance.m_segments.m_buffer[(int)segmentID2].m_endDirection : instance.m_segments.m_buffer[(int)segmentID2].m_startDirection;
-                                    float num2 = a2.x * vector.x + a2.z * vector.z;
-                                    num = Mathf.Max(num, num2);
-                                    bool flag = info1.m_requireDirectRenderers && (info1.m_nodeConnectGroups == NetInfo.ConnectGroup.None || (info1.m_nodeConnectGroups & info2.m_connectGroup) != NetInfo.ConnectGroup.None);
-                                    bool flag2 = info2.m_requireDirectRenderers && (info2.m_nodeConnectGroups == NetInfo.ConnectGroup.None || (info2.m_nodeConnectGroups & info1.m_connectGroup) != NetInfo.ConnectGroup.None);
-                                    if (i2 > i1 && (flag || flag2)) {
-                                        float num3 = 0.01f - Mathf.Min(info1.m_maxTurnAngleCos, info2.m_maxTurnAngleCos);
-                                        if (num2 < num3) {
-                                            float num4;
-                                            if (flag) {
-                                                num4 = info1.m_netAI.GetNodeInfoPriority(segmentID1, ref instance.m_segments.m_buffer[(int)segmentID1]);
+                                    Vector3 dir2 = segmentID2.ToSegment().GetDirection(nodeID);
+                                    float dot = dir1.x * dir2.x + dir1.z * dir2.z;
+                                    maxDot = Mathf.Max(maxDot, dot);
+                                    bool connects1 = info1.m_requireDirectRenderers && (info1.m_nodeConnectGroups == NetInfo.ConnectGroup.None || (info1.m_nodeConnectGroups & info2.m_connectGroup) != NetInfo.ConnectGroup.None);
+                                    bool connects2 = info2.m_requireDirectRenderers && (info2.m_nodeConnectGroups == NetInfo.ConnectGroup.None || (info2.m_nodeConnectGroups & info1.m_connectGroup) != NetInfo.ConnectGroup.None);
+                                    if (i2 > i1 && (connects1 || connects2)) {
+                                        float maxTurnAngleCos = Mathf.Min(info1.m_maxTurnAngleCos, info2.m_maxTurnAngleCos);
+                                        if (dot < 0.01f - maxTurnAngleCos) {
+                                            float prio1;
+                                            if (connects1) {
+                                                prio1 = info1.m_netAI.GetNodeInfoPriority(segmentID1, ref instance.m_segments.m_buffer[(int)segmentID1]);
                                             } else {
-                                                num4 = -1E+08f;
+                                                prio1 = -1E+08f;
                                             }
-                                            float num5;
-                                            if (flag2) {
-                                                num5 = info2.m_netAI.GetNodeInfoPriority(segmentID2, ref instance.m_segments.m_buffer[(int)segmentID2]);
+                                            float prio2;
+                                            if (connects2) {
+                                                prio2 = info2.m_netAI.GetNodeInfoPriority(segmentID2, ref instance.m_segments.m_buffer[(int)segmentID2]);
                                             } else {
-                                                num5 = -1E+08f;
+                                                prio2 = -1E+08f;
                                             }
-                                            if (num4 >= num5) {
+                                            if (prio1 >= prio2) {
                                                 if (info1.m_nodes != null && info1.m_nodes.Length != 0) {
                                                     result = true;
                                                     for (int k = 0; k < info1.m_nodes.Length; k++) {
@@ -756,7 +756,7 @@ namespace KianCommons.StockCode {
                                 }
                             }
                         }
-                        a += a2 * (2f + num * 2f);
+                        a += dir1 * (2f + maxDot * 2f);
                     }
                 }
                 a.y = this.m_position.y + (float)this.m_heightOffset * 0.015625f;
@@ -1322,11 +1322,11 @@ namespace KianCommons.StockCode {
                     for (int k = j + 1; k < 8; k++) {
                         ushort segmentID2 = This.GetSegment(k);
                         if (segmentID2 != 0) {
-                            NetInfo infoSegment2 = netMan.m_segments.m_buffer[segmentID2].Info;
+                            NetInfo infoSegment2 = segmentID2.ToSegment().Info;
                             ItemClass connectionClass2 = infoSegment2.GetConnectionClass();
                             if (connectionClass2.m_service == connectionClass.m_service || (infoSegment2.m_nodeConnectGroups & infoSegment.m_connectGroup) != NetInfo.ConnectGroup.None || (infoSegment.m_nodeConnectGroups & infoSegment2.m_connectGroup) != NetInfo.ConnectGroup.None) {
-                                bool bStartNode2 = nodeID == netMan.m_segments.m_buffer[segmentID2].m_startNode;
-                                Vector3 dir2 = (!bStartNode2) ? netMan.m_segments.m_buffer[segmentID2].m_endDirection : netMan.m_segments.m_buffer[segmentID2].m_startDirection;
+                                bool bStartNode2 = nodeID == segmentID2.ToSegment().m_startNode;
+                                Vector3 dir2 = segmentID2.ToSegment().GetDirection(nodeID);
                                 float dot2 = currentDir.x * dir2.x + currentDir.z * dir2.z;
                                 float turnThreshold = 0.01f - Mathf.Min(infoSegment.m_maxTurnAngleCos, infoSegment2.m_maxTurnAngleCos);
                                 if (dot2 < turnThreshold) {
@@ -1550,7 +1550,8 @@ namespace KianCommons.StockCode {
             float vscale = info.m_netAI.GetVScale();
             ItemClass connectionClass = info.GetConnectionClass();
             bool bStartNode = nodeID == segment.m_startNode;
-            Vector3 dir = !bStartNode ? segment.m_endDirection : segment.m_startDirection;
+            Vector3 dir = segment.GetDirection(nodeID);
+
             float dot_A = -4f;
             float dot_B = -4f;
             ushort segmentID_A = 0;
@@ -1563,7 +1564,7 @@ namespace KianCommons.StockCode {
                     if (connectionClass.m_service == connectionClass2.m_service) {
                         NetSegment segment2 = segmentID2.ToSegment();
                         bool bStartNode2 = nodeID != segment2.m_startNode;
-                        Vector3 dir2 = !bStartNode2 ? segment2.m_endDirection : segment2.m_startDirection;
+                        Vector3 dir2 = segment2.GetDirection(nodeID);
                         float dot = dir.x * dir2.x + dir.z * dir2.z;
                         float determinent = dir2.z * dir.x - dir2.x * dir.z;
                         bool bRight = determinent > 0;
