@@ -307,7 +307,7 @@ namespace KianCommons {
 
         internal static object InvokeMethod(object instance, string method, params object[] args) {
             var type = instance.GetType();
-            return GetMethod(type, method, true)?.Invoke(instance, null);
+            return GetMethod(type, method, true)?.Invoke(instance, args);
         }
 
         internal static object InvokeSetter(object instance, string propertyName, object value) {
