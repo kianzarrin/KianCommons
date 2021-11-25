@@ -474,6 +474,11 @@ namespace KianCommons.Patches {
             return loc == loc0;
         }
 
+        /// <summary>
+        /// loads a field of the given type or its address (ldfld/ldflda and their variants).
+        /// </summary>
+        /// <param name="type">type of variable being loaded</param>
+        /// <param name="method">method containing the local variable</param>
         public static bool IsLdLoc(this CodeInstruction code, Type type, MethodBase method) {
             if (!code.IsLdloc())
                 return false;
@@ -491,6 +496,11 @@ namespace KianCommons.Patches {
             
         }
 
+        /// <summary>
+        /// ldloca[.s] for a certain variable type
+        /// </summary>
+        /// <param name="type">type of variable being loaded</param>
+        /// <param name="method">method containing the local variable</param>
         public static bool IsLdLocA(this CodeInstruction code, Type type, out int loc) {
             bool isldloca =
                 code.opcode == OpCodes.Ldloca ||
