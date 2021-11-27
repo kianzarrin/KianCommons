@@ -1630,10 +1630,10 @@ namespace KianCommons.StockCode {
                     widthRatioB = 2f * info.m_halfWidth / (info.m_halfWidth + infoB.m_halfWidth);
                 }
 
-                NetSegment.CalculateMiddlePoints(cornerPos_right, -cornerDir_right, cornerPosA_right, -cornerDirA_right, true, true, out var bpointA_right, out var cpointA_right);
-                NetSegment.CalculateMiddlePoints(cornerPos_left, -cornerDir_left, cornerPosA_left, -cornerDirA_left, true, true, out var bpoint_Aleft, out var cpoint_Aleft);
-                NetSegment.CalculateMiddlePoints(cornerPos_right, -cornerDir_right, cornerPosB_right, -cornerDirB_right, true, true, out var bpoint_Bright, out var cpoint_Bright);
-                NetSegment.CalculateMiddlePoints(cornerPos_left, -cornerDir_left, cornerPosB_left, -cornerDirB_left, true, true, out var bpoint_Bleft, out var cpoint_Bleft);
+                NetSegment.CalculateMiddlePoints(cornerPos_right, -cornerDir_right, cornerPosA_right, -cornerDirA_right, true, true, out var bpointA_right, out var cpointA_right); // a right
+                NetSegment.CalculateMiddlePoints(cornerPos_left, -cornerDir_left, cornerPosA_left, -cornerDirA_left, true, true, out var bpoint_Aleft, out var cpoint_Aleft); // a left
+                NetSegment.CalculateMiddlePoints(cornerPos_right, -cornerDir_right, cornerPosB_right, -cornerDirB_right, true, true, out var bpoint_Bright, out var cpoint_Bright); // b right
+                NetSegment.CalculateMiddlePoints(cornerPos_left, -cornerDir_left, cornerPosB_left, -cornerDirB_left, true, true, out var bpoint_Bleft, out var cpoint_Bleft); // b left
 
                 data.m_dataMatrix0 = NetSegment.CalculateControlMatrix(cornerPos_right, bpointA_right, cpointA_right, cornerPosA_right, cornerPos_right, bpointA_right, cpointA_right, cornerPosA_right, This.m_position, vscale); // left matrix
                 data.m_extraData.m_dataMatrix2 = NetSegment.CalculateControlMatrix(cornerPos_left, bpoint_Aleft, cpoint_Aleft, cornerPosA_left, cornerPos_left, bpoint_Aleft, cpoint_Aleft, cornerPosA_left, This.m_position, vscale);// right matrix
