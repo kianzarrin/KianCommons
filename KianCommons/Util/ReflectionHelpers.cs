@@ -96,7 +96,7 @@ namespace KianCommons {
         }
 
         /// <summary>
-        /// call this in OnDestroy() to clear all refrences.
+        /// call this in OnDestroy() to clear all references.
         /// </summary>
         internal static void SetAllDeclaredFieldsToNull(this UIComponent c) =>
             SetAllDeclaredFieldsToNull(c as object);

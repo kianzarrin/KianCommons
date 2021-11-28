@@ -13,7 +13,7 @@ namespace KianCommons.Plugins {
 
     internal static class DelegateUtil {
         /// <typeparam name="TDelegate">delegate type</typeparam>
-        /// <returns>Type[] represeting arguments of the delegate.</returns>
+        /// <returns>Type[] representing arguments of the delegate.</returns>
         internal static Type[] GetParameterTypes<TDelegate>()
             where TDelegate : Delegate =>
             typeof(TDelegate)
@@ -26,7 +26,7 @@ namespace KianCommons.Plugins {
         /// Gets directly declared method based on a delegate that has
         /// the same name as the target method
         /// </summary>
-        /// <param name="type">the class/type where the method is delcared</param>
+        /// <param name="type">the class/type where the method is declared</param>
         /// <param name="name">the name of the method</param>
         internal static MethodInfo GetMethod<TDelegate>(this Type type, string name) where TDelegate : Delegate {
             var ret = type.GetMethod(
@@ -239,11 +239,11 @@ namespace KianCommons.Plugins {
                 }
 
                 if (match) {
-                    Log.Info("Found plugin:" + current.GetModName());
+                    Log.Info("Found plug-in:" + current.GetModName());
                     return current;
                 }
             }
-            Log.Info($"plugin not found: keyword={searchName} options={searchOptions}");
+            Log.Info($"plug-in not found: keyword={searchName} options={searchOptions}");
             return null;
         }
 

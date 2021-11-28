@@ -71,11 +71,11 @@ namespace KianCommons.UI {
             relativePosition = RELATIVE_POSITION;
             size = new Vector2(SIZE, SIZE); 
             Show();
-            Log.Info("UIToolButton created sucessfully.");
+            Log.Info("UIToolButton created successfully.");
             Unfocus();
             Invalidate();
             //if (parent.name == "RoadsOptionPanel(RoadOptions)") {
-            //    Destroy(Instace); // destroy old instance after cloning
+            //    Destroy(Instance); // destroy old instance after cloning
             //}
             Instace = this;
         }
