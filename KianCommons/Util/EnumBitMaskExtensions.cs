@@ -95,7 +95,7 @@ namespace KianCommons {
         //}
 
         /// <summary>
-        /// can convirt any enum based on signed/unsigned integer to long
+        /// can convert any enum based on signed/unsigned integer to long
         /// </summary>
         public static ulong ToUInt64(this IConvertible value) {
             Type type = value.GetType();
@@ -110,7 +110,7 @@ namespace KianCommons {
         }
 
         /// <summary>
-        /// can convirt any enum based on signed/unsigned integer to long
+        /// can convert any enum based on signed/unsigned integer to long
         /// </summary>
         public static long ToInt64(this IConvertible value) {
             Type type = value.GetType();

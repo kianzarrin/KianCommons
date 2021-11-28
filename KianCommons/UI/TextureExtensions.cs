@@ -5,7 +5,7 @@ namespace KianCommons.UI {
 
     internal static class TextureExtensions {
         /// <summary>
-        /// reteurns a copy of the texture with the differenc that: mipmap=false, linear=false, readable=true;
+        /// returns a copy of the texture with the difference that: mipmap=false, linear=false, readable=true;
         /// </summary>
         public static Texture2D GetReadableCopy(this Texture2D tex, bool linear = false) {
             Assertion.Assert(tex, "tex!=null");

@@ -5,7 +5,7 @@ namespace KianCommons.Math {
     [Obsolete("Use Vector2D or Vector3D instead")]
     internal static class VectorUtil {
         /// <summary>
-        /// return value is between 0 to pi. v1 and v2 are interchangable.
+        /// return value is between 0 to pi. v1 and v2 are interchangeable.
         /// </summary>
         public static float UnsignedAngleRad(Vector2 v1, Vector2 v2) {
             //cos(a) = v1.v2 /(|v1||v2|)
@@ -45,9 +45,9 @@ namespace KianCommons.Math {
         }
 
         /// <summary>
-        /// return value is between -pi to pi. v1 and v2 are not interchangable.
+        /// return value is between -pi to pi. v1 and v2 are not interchangeable.
         /// the angle goes CCW from v1 to v2.
-        /// eg v1=0,1 v2=1,0 => angle=pi/2
+        /// e.g. v1=0,1 v2=1,0 => angle=pi/2
         /// Note: to convert CCW to CW EITHER swap v1 and v2 OR take the negative of the result.
         /// </summary>
         public static float SignedAngleRadCCW(Vector2 v1, Vector2 v2) {
@@ -77,14 +77,14 @@ namespace KianCommons.Math {
         #region Vector3
         /// <summary>
         /// rotates horizontally (XZ) by 90 Clock Wise and sets height to zero.
-        /// the resutl is normalized
+        /// the result is normalized
         ///</summary>
         public static Vector3 NormalCW(this Vector3 v) => new Vector3(+v.z, 0, -v.x).normalized;
 
 
         /// <summary>
         /// rotates horizontally (XZ) by 90 Counter Clock Wise and sets height to zero.
-        /// the resutl is normalized
+        /// the result is normalized
         /// </summary>
         public static Vector3 NormalCCW(this Vector3 v) => new Vector3(-v.z, 0, +v.x).normalized;
 
@@ -105,7 +105,7 @@ namespace KianCommons.Math {
         /// assuming all angles are unique non-zero
         /// </summary>
         /// <param name="source">angle to compare with</param>
-        /// <param name="target">angle being comapred</param>
+        /// <param name="target">angle being compared</param>
         public static bool CompareAngles_CCW_Right(float source, float target) {
             if (source == 0) return false; //prevent infinite recursion
             if (source > 0)
