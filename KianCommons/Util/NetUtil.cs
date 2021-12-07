@@ -15,7 +15,7 @@ namespace KianCommons {
         public NetServiceException(string m, Exception e) : base(m, e) { }
     }
 
-    internal static class NetUtil {
+    public static class NetUtil {
         public const float SAFETY_NET = 0.02f;
 
         public static NetManager netMan = NetManager.instance;
@@ -28,18 +28,18 @@ namespace KianCommons {
         private static NetNode[] nodeBuffer_ = netMan.m_nodes.m_buffer;
         private static NetSegment[] segmentBuffer_ = netMan.m_segments.m_buffer;
         private static NetLane[] laneBuffer_ = netMan.m_lanes.m_buffer;
-        internal static ref NetNode ToNode(this ushort id) => ref nodeBuffer_[id];
-        internal static ref NetSegment ToSegment(this ushort id) => ref segmentBuffer_[id];
-        internal static ref NetLane ToLane(this uint id) => ref laneBuffer_[id];
+        public static ref NetNode ToNode(this ushort id) => ref nodeBuffer_[id];
+        public static ref NetSegment ToSegment(this ushort id) => ref segmentBuffer_[id];
+        public static ref NetLane ToLane(this uint id) => ref laneBuffer_[id];
         internal static NetLane.Flags Flags(this ref NetLane lane) => (NetLane.Flags)lane.m_flags;
-        internal static NetInfo.Lane GetLaneInfo(uint laneId) =>
+        public static NetInfo.Lane GetLaneInfo(uint laneId) =>
             laneId.ToLane().m_segment.ToSegment().Info.m_lanes[GetLaneIndex(laneId)];
 
         /// <summary>
         /// returns lane data of the given lane ID.
         /// throws exception if unsuccessful.
         /// </summary>
-        internal static LaneData GetLaneData(uint laneId) {
+        public static LaneData GetLaneData(uint laneId) {
             Assertion.Assert(laneId != 0, "laneId!=0");
             var flags = laneId.ToLane().Flags();
             bool valid = (flags & NetLane.Flags.Created | NetLane.Flags.Deleted) != NetLane.Flags.Created;
@@ -80,7 +80,7 @@ namespace KianCommons {
             return ret;
         }
 
-        internal static int CountPedestrianLanes(this NetInfo info) =>
+        public static int CountPedestrianLanes(this NetInfo info) =>
             info.m_lanes.Count(lane => lane.m_laneType == NetInfo.LaneType.Pedestrian);
 
         static bool CheckID(this ref NetNode node1, ushort nodeId2) {
@@ -95,13 +95,13 @@ namespace KianCommons {
                    (segment1.m_endNode == segment2.m_endNode);
         }
 
-        internal static ushort GetID(this ref NetNode node) {
+        public static ushort GetID(this ref NetNode node) {
             ref NetSegment seg = ref node.GetFirstSegment().ToSegment();
             bool startNode = node.CheckID(seg.m_startNode);
             return startNode ? seg.m_startNode : seg.m_endNode;
         }
 
-        internal static ushort GetID(this ref NetSegment segment) {
+        public static ushort GetID(this ref NetSegment segment) {
             ref var node = ref segment.m_startNode.ToNode();
             for (int i = 0; i < 8; ++i) {
                 ushort segmentId = node.GetSegment(i);
@@ -282,11 +282,11 @@ namespace KianCommons {
         /// </summary>
         /// <returns>true if vehicles move backward,
         /// false if vehicles going ward, bi-directional, or non-directional</returns>
-        internal static bool IsGoingBackward(this NetInfo.Direction direction) =>
+        public static bool IsGoingBackward(this NetInfo.Direction direction) =>
             (direction & NetInfo.Direction.Both) == NetInfo.Direction.Backward ||
             (direction & NetInfo.Direction.AvoidBoth) == NetInfo.Direction.AvoidForward;
 
-        internal static bool IsGoingForward(this NetInfo.Direction direction) =>
+        public static bool IsGoingForward(this NetInfo.Direction direction) =>
             (direction & NetInfo.Direction.Both) == NetInfo.Direction.Forward ||
             (direction & NetInfo.Direction.AvoidBoth) == NetInfo.Direction.AvoidBackward;
 
@@ -295,10 +295,10 @@ namespace KianCommons {
         /// </summary>
         /// <returns>true if vehicles move backward,
         /// false if vehicles going ward, bi-directional, or non-directional</returns>
-        internal static bool IsGoingBackward(this NetInfo.Lane laneInfo, bool invertDirection = false) =>
+        public static bool IsGoingBackward(this NetInfo.Lane laneInfo, bool invertDirection = false) =>
             laneInfo.m_finalDirection.Invert(invertDirection).IsGoingBackward();
 
-        internal static bool IsGoingForward(this NetInfo.Lane laneInfo, bool invertDirection = false) =>
+        public static bool IsGoingForward(this NetInfo.Lane laneInfo, bool invertDirection = false) =>
             laneInfo.m_finalDirection.Invert(invertDirection).IsGoingForward();
 
         public static bool IsStartNode(ushort segmentId, ushort nodeId) =>
