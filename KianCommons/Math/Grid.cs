@@ -1,4 +1,5 @@
 namespace KianCommons.Math {
+    using System.Collections.Generic;
     using UnityEngine;
 
     public struct Grid {
@@ -68,6 +69,18 @@ namespace KianCommons.Math {
 
         public override string ToString() {
             return $"GridVector<{Index}>({X}, {Z} | cellsize={Grid.CellSize}, resolution={Grid.Resolution})";
+        }
+
+        public IEnumerable<GridVector2> ScanArea(int size = 1) {
+            for (int deltax = -size; deltax <= size; ++deltax) {
+                for (int deltaz = -size; deltaz <= size; ++deltaz) {
+                    IntVector2 delta = new IntVector2(deltax, deltaz);
+                    var ret = this + delta;
+                    if(ret.Index>=0 && ret.Index < Grid.Resolution) {
+                        yield return ret;
+                    }
+                }
+            }
         }
     }
 }
