@@ -103,7 +103,7 @@ namespace KianCommons.UI.Helpers {
             containing_panel.name = "ContainerOf_UICheckboxDropDownExt";
             containing_panel.size = SIZE;
             return containing_panel.AddUIComponent<UICheckboxDropDownExt>();
-            // TODO set width to width of triger button
+            // TODO set width to width of trigger button
         }
     } // end class
 } // end namespace
