@@ -11,6 +11,11 @@ namespace KianCommons {
         internal static List<T> Clone1<T>(this IEnumerable<T> orig) where T : ICloneable =>
             orig.Select(item => (T)item.Clone()).ToList();
 
+        internal static Dictionary<TKey, TValue> ShallowClone<TKey, TValue>(this IDictionary<TKey, TValue> dict) {
+            if (dict == null) return null;
+            return new Dictionary<TKey, TValue>(dict);
+        }
+
         /// <summary>
         /// fast way of determining if collection is null or empty
         /// </summary>
