@@ -23,6 +23,7 @@ namespace KianCommons {
                     "**********************************************\n";
 
         internal static void AssertCitiesHarmonyInstalled() {
+            Log.Info("using " + typeof(Harmony).Assembly.GetName().FullName);
             // if (!HarmonyHelper.IsHarmonyInstalled) {
             //     throw new Exception(errorMessage_);
             // }
