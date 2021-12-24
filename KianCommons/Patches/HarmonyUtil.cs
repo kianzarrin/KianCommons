@@ -1,5 +1,5 @@
 namespace KianCommons {
-    using CitiesHarmony.API;
+    //using CitiesHarmony.API;
     using HarmonyLib;
     using System.Reflection;
     using System;
@@ -23,9 +23,9 @@ namespace KianCommons {
                     "**********************************************\n";
 
         internal static void AssertCitiesHarmonyInstalled() {
-            if (!HarmonyHelper.IsHarmonyInstalled) {
-                throw new Exception(errorMessage_);
-            }
+            // if (!HarmonyHelper.IsHarmonyInstalled) {
+            //     throw new Exception(errorMessage_);
+            // }
         }
 
         internal static void InstallHarmony(string harmonyID) {
