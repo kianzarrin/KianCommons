@@ -98,7 +98,7 @@ namespace KianCommons.Plugins {
         }
 
         public static PluginInfo GetCSUR() => GetPlugin("CSUR ToolBox", 1959342332ul);
-        public static PluginInfo GetAdaptiveRoads() => GetPlugin("AdaptiveRoads");
+        public static PluginInfo GetAdaptiveRoads() => GetPlugin("AdaptiveNetworks");
         public static PluginInfo GetHideCrossings() => GetPlugin("HideCrosswalks", searchOptions: AssemblyEquals);
         public static PluginInfo GetHideUnconnectedTracks() => GetPlugin("HideUnconnectedTracks", searchOptions: AssemblyEquals);
         public static PluginInfo GetDirectConnectRoads() => GetPlugin("DirectConnectRoads", searchOptions: AssemblyEquals);
