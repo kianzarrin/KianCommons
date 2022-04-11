@@ -1,5 +1,3 @@
-// Token: 0x02000467 RID: 1127
-
 using ColossalFramework;
 using ColossalFramework.Math;
 using UnityEngine;
