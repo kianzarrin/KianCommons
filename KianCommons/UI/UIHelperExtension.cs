@@ -12,7 +12,7 @@ namespace KianCommons.UI {
     public static class UIHelperExtension {
         public static UICheckBox AddUpdatingCheckbox(
             this UIHelperBase helper, string label, Action<bool> SetValue, Func<bool> GetValue) {
-            Log.Info($"option {label} is " + GetValue);
+            Log.Info($"option {label} is " + GetValue());
             var cb = helper.AddCheckbox(label, GetValue(), delegate (bool value) {
                 try {
                     SetValue(value);

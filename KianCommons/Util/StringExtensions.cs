@@ -1,4 +1,5 @@
 namespace KianCommons {
+    using ColossalFramework.Packaging;
     using System;
     using System.Collections;
     using System.Collections.Generic;
@@ -123,6 +124,7 @@ namespace KianCommons {
         /// returns all items as string
         /// </summary>
         internal static string ToSTR(this IEnumerable list) {
+            if (list is Package p) return p.ToString(); // don't print all assets
             if (list == null) return "<null>";
             string ret = "{ ";
             foreach (object item in list) {
