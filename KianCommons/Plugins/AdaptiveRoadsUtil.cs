@@ -28,6 +28,7 @@ namespace KianCommons.Plugins {
                     nodeVehicleTypes_ = CreateDelegate<NodeVehicleTypes>();
                     nodeLaneTypes_ = CreateDelegate<NodeLaneTypes>();
                     hideBrokenMedians_ = CreateDelegate<HideBrokenMedians>();
+                    getSharpCorners_ = CreateDelegate<GetSharpCorners>();
                 }
             } else {
                 Log.Info("AR not found.");
@@ -99,6 +100,14 @@ namespace KianCommons.Plugins {
             if (hideBrokenMedians_ == null)
                 return true;
             return hideBrokenMedians_(node);
+        }
+
+        delegate bool GetSharpCorners(NetInfo info);
+        static GetSharpCorners getSharpCorners_;
+        public static bool GetARSharpCorners(this NetInfo info) {
+            if (getSharpCorners_ == null)
+                return false;
+            return getSharpCorners_(info);
         }
 
 #pragma warning restore HAA0101, HAA0601
