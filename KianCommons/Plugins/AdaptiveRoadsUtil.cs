@@ -84,8 +84,8 @@ namespace KianCommons.Plugins {
         }
 
         public static void OverrideARSharpner(bool value = true) {
-            if (IsActive) return;
-            Invoke("OverrideSharpner", value);
+            if (IsActive) 
+                Invoke("OverrideSharpner", value);
         }
 
         delegate VehicleInfo.VehicleType NodeVehicleTypes(NetInfo.Node node);
