@@ -43,12 +43,18 @@ namespace KianCommons.Plugins {
 
         public static Assembly asm { get; private set; }
         public static Type API { get; private set; }
-        static MethodInfo GetMethod(string name) =>
-            API.GetMethod(name) ?? throw new Exception(name + " not found");
+        static MethodInfo GetMethod(string name) {
+            var ret = API.GetMethod(name);
+            if( ret == null) {
+                Log.Warning($"AdaptiveRoadsUtil: method {name} not found!");
+            }
+            return ret;
+        }
         static object Invoke(string methodName, params object[] args) =>
-            GetMethod(methodName).Invoke(null, args);
+            GetMethod(methodName)?.Invoke(null, args);
 
-        static TDelegate CreateDelegate<TDelegate>() where TDelegate : Delegate => DelegateUtil.CreateDelegate<TDelegate>(API);
+        static TDelegate CreateDelegate<TDelegate>() where TDelegate : Delegate =>
+            DelegateUtil.CreateDelegate<TDelegate>(API);
 
 #pragma warning disable HAA0601, HAA0101
         public static bool IsAdaptive(this NetInfo info) {
@@ -75,6 +81,11 @@ namespace KianCommons.Plugins {
         public static object GetARLaneFlags(uint laneId) {
             if (!IsActive) return null;
             return Invoke("GetARLaneFlags", laneId);
+        }
+
+        public static void OverrideARSharpner(bool value = true) {
+            if (IsActive) return;
+            Invoke("OverrideSharpner", value);
         }
 
         delegate VehicleInfo.VehicleType NodeVehicleTypes(NetInfo.Node node);
@@ -109,7 +120,6 @@ namespace KianCommons.Plugins {
                 return false;
             return getSharpCorners_(info);
         }
-
 #pragma warning restore HAA0101, HAA0601
     }
 }
