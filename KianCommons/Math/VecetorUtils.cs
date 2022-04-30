@@ -37,6 +37,8 @@ namespace KianCommons.Math {
         public static float Determinent(Vector2 v1, Vector2 v2) =>
             v1.x * v2.y - v1.y * v2.x; // x1*y2 - y1*x2  
 
+        public static float DetXZ(Vector3 v1, Vector3 v2) => v1.x * v2.z - v1.z * v2.x ;
+        
         public static Vector2 Vector2ByAgnleRad(float magnitude, float angle) {
             return new Vector2(
                 x: magnitude * Mathf.Cos(angle),

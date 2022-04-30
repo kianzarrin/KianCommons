@@ -1,6 +1,7 @@
 namespace KianCommons.StockCode {
     using ColossalFramework;
     using ColossalFramework.Math;
+    using KianCommons.Math;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -87,6 +88,8 @@ namespace KianCommons.StockCode {
         private static HashSet<ushort> m_tempCheckedSet = new HashSet<ushort>();
 
         private static HashSet<ushort> m_tempCheckedSet2 = new HashSet<ushort>();
+
+        public NetInfo Info { get; }
 
         // NetSegment
         public static bool CalculateArrowGroupData(ref int vertexCount, ref int triangleCount, ref int objectCount, ref RenderGroup.VertexArrays vertexArrays) {
@@ -604,11 +607,404 @@ namespace KianCommons.StockCode {
                 num2 = instance.m_lanes.m_buffer[num2].m_nextLane;
             }
         }
+
         public void CalculateCorner(ushort segmentID, bool heightOffset, bool start, bool leftSide, out Vector3 cornerPos, out Vector3 cornerDirection, out bool smooth) {
-            throw new NotImplementedException();
+            NetInfo info = this.Info;
+            NetManager instance = Singleton<NetManager>.instance;
+            ushort startNodeID = (!start) ? this.m_endNode : this.m_startNode;
+            ushort num2 = (!start) ? this.m_startNode : this.m_endNode;
+            Vector3 position = instance.m_nodes.m_buffer[(int)startNodeID].m_position;
+            Vector3 position2 = instance.m_nodes.m_buffer[(int)num2].m_position;
+            Vector3 startDir = (!start) ? this.m_endDirection : this.m_startDirection;
+            Vector3 endDir = (!start) ? this.m_startDirection : this.m_endDirection;
+            NetSegment.CalculateCorner(info,
+                position, position2,
+                startDir, endDir,
+                null, Vector3.zero, Vector3.zero, Vector3.zero,
+                null, Vector3.zero, Vector3.zero, Vector3.zero,
+                segmentID, startNodeID,
+                heightOffset, leftSide, out cornerPos, out cornerDirection, out smooth);
         }
 
+        public static void CalculateCorner(NetInfo info,
+            Vector3 startPos, Vector3 endPos,
+            Vector3 startDir, Vector3 endDir,
+            NetInfo extraInfo1, Vector3 extraEndPos1, Vector3 extraStartDir1, Vector3 extraEndDir1,
+            NetInfo extraInfo2, Vector3 extraEndPos2, Vector3 extraStartDir2, Vector3 extraEndDir2,
+            ushort ignoreSegmentID, ushort startNodeID,
+            bool heightOffset, bool leftSide,
+            out Vector3 cornerPos, out Vector3 cornerDirection, out bool smooth) {
+            Bezier3 sideBezier = default;
+            Bezier3 sideBezier2 = default;
+            NetNode.Flags flags = NetNode.Flags.End;
+            ushort buildingId = 0;
+            if (startNodeID != 0) {
+                flags = startNodeID.ToNode().m_flags;
+                buildingId = startNodeID.ToNode().m_building;
+            }
+            cornerDirection = startDir;
+            float sideScale = leftSide ? info.m_halfWidth : -info.m_halfWidth;
+            smooth = flags.IsFlagSet(NetNode.Flags.Middle);
+            #region render only
+            if (extraInfo1 != null) {
+                if ((flags & NetNode.Flags.End) != NetNode.Flags.None && info.IsCombatible(extraInfo1) && extraInfo2 == null) {
+                    if (VectorUtils.DotXZ(startDir, extraStartDir1) < -0.999f) {
+                        flags &= ~NetNode.Flags.End;
+                        flags |= NetNode.Flags.Middle;
+                    } else {
+                        flags &= ~NetNode.Flags.End;
+                        flags |= NetNode.Flags.Bend;
+                    }
+                } else {
+                    flags &= ~(NetNode.Flags.Middle | NetNode.Flags.Bend);
+                    flags |= NetNode.Flags.Junction;
+                }
+            }
+            if (flags.IsFlagSet(NetNode.Flags.Middle)) {
+                int startIndex = extraInfo1 != null ? -1 : 0;
+                int n = startNodeID != 0 ? 8 : 0;
+                for(int segmentIndex = startIndex; segmentIndex < n; ++segmentIndex) { 
+                    Vector3 otherDir;
+                    if (segmentIndex == -1) {
+                        otherDir = extraStartDir1;
+                    } else {
+                        ushort segmentID = startNodeID.ToNode().GetSegment(segmentIndex);
+                        if (segmentID == 0 || segmentID == ignoreSegmentID) {
+                            continue;
+                        }
+                        otherDir = segmentID.ToSegment().GetDirection(startNodeID);
+                    }
+                    cornerDirection = VectorUtils.NormalizeXZ(cornerDirection - otherDir);
+                    break;
+                }
+            }
+            #endregion render only
 
+            Vector3 rightSideDir = Vector3.Cross(cornerDirection, Vector3.up).normalized;
+            if (info.m_twistSegmentEnds) {
+                if (buildingId != 0) {
+                    float angle = buildingId.ToBuilding().m_angle;
+                    Vector3 buildingDir = new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle));
+
+                    if(Vector3.Dot(rightSideDir, buildingDir) >= 0) {
+                        rightSideDir = buildingDir;
+                    } else {
+                        rightSideDir = -buildingDir;
+                    }
+                } else if (flags.IsFlagSet(NetNode.Flags.Junction) && startNodeID != 0) {
+                    Vector3 sideDir2 = default;
+                    int nSegments = 0;
+                    for (int segmentIndex = 0; segmentIndex < 8; segmentIndex++) {
+                        ushort segmentID = startNodeID.ToNode().GetSegment(segmentIndex);
+                        if (segmentID != 0 && segmentID != ignoreSegmentID &&
+                            segmentID.ToSegment().m_flags.IsFlagSet(Flags.Untouchable)) {
+                            Vector3 dir = segmentID.ToSegment().GetDirection(startNodeID);
+                            sideDir2 = new Vector3(sideDir2.z, 0f, 0f - sideDir2.x);
+                            nSegments++;
+                        }
+                    }
+                    if (nSegments == 1) {
+                        if (Vector3.Dot(rightSideDir, sideDir2) >= 0) {
+                            rightSideDir = sideDir2;
+                        } else {
+                            rightSideDir = -sideDir2;
+                        }
+                    }
+                }
+            }
+            sideBezier.a = startPos + rightSideDir * sideScale;
+            sideBezier2.a = startPos - rightSideDir * sideScale;
+            cornerPos = sideBezier.a;
+            if (flags.IsFlagSet(NetNode.Flags.Junction) && info.m_clipSegmentEnds ||
+                flags.IsFlagSet(NetNode.Flags.Bend | NetNode.Flags.Outside)) {
+                rightSideDir = Vector3.Cross(endDir, Vector3.up).normalized;
+                sideBezier.d = endPos - rightSideDir * sideScale;
+                sideBezier2.d = endPos + rightSideDir * sideScale;
+                CalculateMiddlePoints(sideBezier.a, cornerDirection, sideBezier.d, endDir, smoothStart: false, smoothEnd: false, out sideBezier.b, out sideBezier.c);
+                CalculateMiddlePoints(sideBezier2.a, cornerDirection, sideBezier2.d, endDir, smoothStart: false, smoothEnd: false, out sideBezier2.b, out sideBezier2.c);
+                Bezier2 sideBezierXZ = Bezier2.XZ(sideBezier);
+                Bezier2 sideBezier2XZ = Bezier2.XZ(sideBezier2);
+                float t1 = -1f;
+                float t2 = -1f;
+                bool sameSide = false;
+                int iExtraInfos;
+                if(extraInfo1 != null) {
+                    if(extraInfo2 != null) {
+                        iExtraInfos = -2;
+                    } else {
+                        iExtraInfos = -1;
+                    }
+                } else {
+                    iExtraInfos = 0;
+                }
+                int n = (startNodeID != 0) ? 8 : 0;
+                float qw = info.m_halfWidth * 0.5f; // quarter width.
+                int nMatchingSegments = 0;
+                for (int segmentIndex = iExtraInfos; segmentIndex < n; segmentIndex++) {
+                    NetInfo otherInfo;
+                    Vector3 otherDir;
+                    switch (segmentIndex) {
+                        case -2: {
+                                otherInfo = extraInfo2;
+                                otherDir = extraStartDir2;
+                                if (extraEndPos2 == endPos && extraEndDir2 == endDir) {
+                                    continue;
+                                }
+                                break;
+                            }
+                        case -1: {
+                                otherInfo = extraInfo1;
+                                otherDir = extraStartDir1;
+                                if (extraEndPos1 == endPos && extraEndDir1 == endDir) {
+                                    continue;
+                                }
+                                break;
+                            }
+                        default: {
+                                ushort segmentId = startNodeID.ToNode().GetSegment(segmentIndex);
+                                if (segmentId == 0 || segmentId == ignoreSegmentID) {
+                                    continue;
+                                }
+                                otherInfo = segmentId.ToSegment().Info;
+                                otherDir = segmentId.ToSegment().GetDirection(startNodeID);
+                                break;
+                            }
+                    }
+                    if ((object)otherInfo == null || info.m_clipSegmentEnds != otherInfo.m_clipSegmentEnds) {
+                        continue;
+                    }
+                    if (otherInfo.m_netAI.GetSnapElevation() > info.m_netAI.GetSnapElevation()) {
+                        float turnThreshold = 0.01f - Mathf.Min(info.m_maxTurnAngleCos, otherInfo.m_maxTurnAngleCos);
+                        float dot = VectorUtils.DotXZ(otherDir, startDir);
+                        var sharedVehicles = info.m_vehicleTypes & otherInfo.m_vehicleTypes;
+                        bool connects = sharedVehicles != 0 && dot < turnThreshold;
+                        if (!connects) {
+                            continue;
+                        }
+                    }
+                    qw = Mathf.Max(qw, otherInfo.m_halfWidth * 0.5f);
+                    nMatchingSegments++;
+                }
+                if (nMatchingSegments >= 1 || flags.IsFlagSet(NetNode.Flags.Outside)) {
+                    for (int segmentIndex = iExtraInfos; segmentIndex < n; segmentIndex++) {
+                        NetInfo otherNetInfo;
+                        Vector3 otherEndPos;
+                        Vector3 otherStartDir;
+                        Vector3 otherEndDir;
+                        switch (segmentIndex) {
+                            case -2:
+                                otherNetInfo = extraInfo2;
+                                otherEndPos = extraEndPos2;
+                                otherStartDir = extraStartDir2;
+                                otherEndDir = extraEndDir2;
+                                if (otherEndPos == endPos && otherEndDir == endDir) {
+                                    continue;
+                                }
+                                break;
+                            case -1:
+                                otherNetInfo = extraInfo1;
+                                otherEndPos = extraEndPos1;
+                                otherStartDir = extraStartDir1;
+                                otherEndDir = extraEndDir1;
+                                if (otherEndPos == endPos && otherEndDir == endDir) {
+                                    continue;
+                                }
+                                break;
+                            default: {
+                                    ushort otherSegmentID = startNodeID.ToNode().GetSegment(segmentIndex);
+                                    if (otherSegmentID == 0 || otherSegmentID == ignoreSegmentID) {
+                                        continue;
+                                    }
+                                    ushort otherStartNodeID = otherSegmentID.ToSegment().m_startNode;
+                                    ushort otherEndNodeID = otherSegmentID.ToSegment().m_endNode;
+                                    otherStartDir = otherSegmentID.ToSegment().m_startDirection;
+                                    otherEndDir = otherSegmentID.ToSegment().m_endDirection;
+                                    if (startNodeID != otherStartNodeID) {
+                                        Helpers.Swap(ref otherStartNodeID, ref otherEndNodeID);
+                                        Helpers.Swap(ref otherStartDir, ref otherEndDir);
+                                    }
+                                    otherNetInfo = otherSegmentID.ToSegment().Info;
+                                    otherEndPos = otherEndNodeID.ToNode().m_position;
+                                    break;
+                                }
+                        }
+                        if (otherNetInfo == null || info.m_clipSegmentEnds != otherNetInfo.m_clipSegmentEnds) {
+                            continue;
+                        }
+                        if (otherNetInfo.m_netAI.GetSnapElevation() > info.m_netAI.GetSnapElevation()) {
+                            float turnThreshold = 0.01f - Mathf.Min(info.m_maxTurnAngleCos, otherNetInfo.m_maxTurnAngleCos);
+                            float dot = VectorUtils.DotXZ(otherStartDir, startDir);
+                            var sharedVehicles = info.m_vehicleTypes & otherNetInfo.m_vehicleTypes;
+                            bool connects = sharedVehicles != 0 && dot < turnThreshold;
+                            if (!connects) {
+                                continue;
+                            }
+                        }
+                        if (VectorUtil.DetXZ(cornerDirection, otherStartDir) > 0f == leftSide) {
+                            // same side
+                            Bezier3 otherSideBezier = default;
+                            float otherSideScale = Mathf.Max(qw, otherNetInfo.m_halfWidth);
+                            if (!leftSide) {
+                                otherSideScale = -otherSideScale;
+                            }
+                            {
+                                Vector3 normal = Vector3.Cross(otherStartDir, Vector3.up).normalized;//right side
+                                otherSideBezier.a = startPos - normal * otherSideScale;
+                            }
+                            {
+                                Vector3 normal = Vector3.Cross(otherEndDir, Vector3.up).normalized;//right side
+                                otherSideBezier.d = otherEndPos + normal * otherSideScale;
+                            }
+                            CalculateMiddlePoints(otherSideBezier.a, otherStartDir, otherSideBezier.d, otherEndDir, smoothStart: false, smoothEnd: false, out otherSideBezier.b, out otherSideBezier.c);
+                            Bezier2 otherSideBezierXZ = Bezier2.XZ(otherSideBezier);
+                            if (sideBezierXZ.Intersect(otherSideBezierXZ, out var t0, out _, 6)) {
+                                t1 = Mathf.Max(t1, t0);
+                            } else if (sideBezierXZ.Intersect(otherSideBezierXZ.a, otherSideBezierXZ.a - VectorUtils.XZ(otherStartDir) * 16f, out t0, out _, 6)) {
+                                t1 = Mathf.Max(t1, t0);
+                            } else if (otherSideBezierXZ.Intersect(sideBezierXZ.d + (sideBezierXZ.d - sideBezier2XZ.d) * 0.01f, sideBezier2XZ.d, out t0, out _, 6)) {
+                                t1 = Mathf.Max(t1, 1f);
+                            }
+                            if (cornerDirection.x * otherStartDir.x + cornerDirection.z * otherStartDir.z >= -0.75f) {
+                                sameSide = true;
+                            }
+                            continue;
+                        } else {
+                            // other side
+                            Bezier3 otherSideBezier = default;
+                            float dot = VectorUtils.DotXZ(cornerDirection, otherStartDir);
+                            if (dot >= 0f) {
+                                // if acute then otherStartDir.xz -= cornerDirection.xz * dot * 2
+                                otherStartDir.x -= cornerDirection.x * dot * 2;
+                                otherStartDir.z -= cornerDirection.z * dot * 2;
+                            }
+                            float otherSideScale = Mathf.Max(qw, otherNetInfo.m_halfWidth);
+                            if (!leftSide) {
+                                otherSideScale = -otherSideScale;
+                            }
+                            {
+                                Vector3 normal = Vector3.Cross(otherStartDir, Vector3.up).normalized; //right side
+                                otherSideBezier.a = startPos + normal * otherSideScale;
+                            }
+                            {
+                                Vector3 normal = Vector3.Cross(otherEndDir, Vector3.up).normalized;//right side
+                                otherSideBezier.d = otherEndPos - normal * otherSideScale;
+                            }
+                            CalculateMiddlePoints(otherSideBezier.a, otherStartDir, otherSideBezier.d, otherEndDir, smoothStart: false, smoothEnd: false, out otherSideBezier.b, out otherSideBezier.c);
+                            Bezier2 otherSideBezierXZ = Bezier2.XZ(otherSideBezier);
+                            if (sideBezierXZ.Intersect(otherSideBezierXZ, out var t0, out _, 6)) {
+                                t2 = Mathf.Max(t2, t0);
+                            } else if (sideBezierXZ.Intersect(otherSideBezierXZ.a, otherSideBezierXZ.a - VectorUtils.XZ(otherStartDir) * 16f, out t0, out _, 6)) {
+                                t2 = Mathf.Max(t2, t0);
+                            } else if (otherSideBezierXZ.Intersect(sideBezierXZ.d, sideBezier2XZ.d + (sideBezier2XZ.d - sideBezierXZ.d) * 0.01f, out t0, out _, 6)) {
+                                t2 = Mathf.Max(t2, 1f);
+                            }
+                        }
+                    }
+                    if (flags.IsFlagSet(NetNode.Flags.Junction)) {
+                        if (!sameSide) {
+                            t1 = Mathf.Max(t1, t2);
+                        }
+                    } else if (flags.IsFlagSet(NetNode.Flags.Bend) && !sameSide) {
+                        t1 = Mathf.Max(t1, t2);
+                    }
+                    if (flags.IsFlagSet(NetNode.Flags.Outside)) {
+                        // intersect with map corners.
+                        const float mapSize = 8640f;
+                        Vector2 leftdown = new Vector2(0f - mapSize, 0f - mapSize);
+                        Vector2 leftup = new Vector2(0f - mapSize, mapSize);
+                        Vector2 rightup = new Vector2(mapSize, mapSize);
+                        Vector2 rightdown = new Vector2(mapSize, 0f - mapSize);
+                        if (sideBezierXZ.Intersect(leftdown, leftup, out var t_temp, out var _, 6)) {
+                            t1 = Mathf.Max(t1, t_temp);
+                        }
+                        if (sideBezierXZ.Intersect(leftup, rightup, out t_temp, out _, 6)) {
+                            t1 = Mathf.Max(t1, t_temp);
+                        }
+                        if (sideBezierXZ.Intersect(rightup, rightdown, out t_temp, out _, 6)) {
+                            t1 = Mathf.Max(t1, t_temp);
+                        }
+                        if (sideBezierXZ.Intersect(rightdown, leftdown, out t_temp, out _, 6)) {
+                            t1 = Mathf.Max(t1, t_temp);
+                        }
+                        t1 = Mathf.Clamp01(t1);
+                    } else {
+                        if (t1 < 0f) {
+                            t1 = ((!(info.m_halfWidth < 4f)) ? sideBezierXZ.Travel(0f, 8f) : 0f);
+                        }
+                        float offset = info.m_minCornerOffset;
+                        if (flags.IsFlagSet(NetNode.Flags.AsymForward | NetNode.Flags.AsymBackward)) {
+                            offset = Mathf.Max(offset, 8f);
+                        }
+                        {
+                            t1 = Mathf.Clamp01(t1);
+                            float lent1 = VectorUtils.LengthXZ(sideBezier.Position(t1) - sideBezier.a);
+                            float distance1 = Mathf.Max(offset - lent1, 2f);
+                            t1 = sideBezierXZ.Travel(t1, distance1);
+                        }
+                        if (info.m_straightSegmentEnds) {
+                            if (t2 < 0f) {
+                                if(info.m_halfWidth < 4f) {
+                                    t2 = 0;
+                                } else {
+                                    t2 = sideBezierXZ.Travel(0f, 8f);
+                                }
+                            }
+                            t2 = Mathf.Clamp01(t2);
+                            float lent2 = VectorUtils.LengthXZ(sideBezier2.Position(t2) - sideBezier2.a);
+                            float distance2 = Mathf.Max(info.m_minCornerOffset - lent2, 2f);
+                            t1 = Mathf.Max(t1, sideBezierXZ.Travel(t2,distance2));
+                        }
+                    }
+                    float y = cornerDirection.y;
+                    cornerDirection = sideBezier.Tangent(t1);
+                    cornerDirection.y = 0f;
+                    cornerDirection.Normalize();
+                    if (!info.m_flatJunctions) {
+                        cornerDirection.y = y;
+                    }
+                    cornerPos = sideBezier.Position(t1);
+                    cornerPos.y = startPos.y;
+                }
+            } else if (flags.IsFlagSet(NetNode.Flags.Junction) && info.m_minCornerOffset >= 0.01f) {
+                rightSideDir = Vector3.Cross(endDir, Vector3.up).normalized;
+                sideBezier.d = endPos - rightSideDir * sideScale;
+                sideBezier2.d = endPos + rightSideDir * sideScale;
+                CalculateMiddlePoints(sideBezier.a, cornerDirection, sideBezier.d, endDir, smoothStart: false, smoothEnd: false, out sideBezier.b, out sideBezier.c);
+                CalculateMiddlePoints(sideBezier2.a, cornerDirection, sideBezier2.d, endDir, smoothStart: false, smoothEnd: false, out sideBezier2.b, out sideBezier2.c);
+                Bezier2 sideBezierXZ = Bezier2.XZ(sideBezier);
+                Bezier2 sideBezier2XZ = Bezier2.XZ(sideBezier2);
+                float t;
+                if (info.m_halfWidth < 4f) {
+                    t = 0;
+                } else {
+                    t = sideBezierXZ.Travel(0f, 8f);
+                }
+                float lent = VectorUtils.LengthXZ(sideBezier.Position(t) - sideBezier.a);
+                t = sideBezierXZ.Travel(t, Mathf.Max(info.m_minCornerOffset - lent, 2f));
+                if (info.m_straightSegmentEnds) {
+                    float t2;
+                    if (info.m_halfWidth < 4f) {
+                        t2 = 0;
+                    } else {
+                        t2 = sideBezier2XZ.Travel(0f, 8f);
+                    }
+                    float lent2 = VectorUtils.LengthXZ(sideBezier2.Position(t2) - sideBezier2.a);
+                    t = Mathf.Max(t, sideBezier2XZ.Travel(t2, Mathf.Max(info.m_minCornerOffset - lent2, 2f)));
+                }
+                float y = cornerDirection.y;
+                cornerDirection = sideBezier.Tangent(t);
+                cornerDirection.y = 0f;
+                cornerDirection.Normalize();
+                if (!info.m_flatJunctions) {
+                    cornerDirection.y = y;
+                }
+                cornerPos = sideBezier.Position(t);
+                cornerPos.y = startPos.y;
+            }
+            if (heightOffset && startNodeID != 0) {
+                cornerPos.y += startNodeID.ToNode().m_heightOffset * 0.015625f /* some constant used in terrain manager.*/; 
+            }
+        }
     }
 
 }
