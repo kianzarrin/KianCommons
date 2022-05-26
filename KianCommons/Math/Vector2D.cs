@@ -50,7 +50,7 @@ namespace KianCommons.Math {
         public Vector2D NewMagnitude(float magnitude) => magnitude * this.normalized;
 
         /// <summary>
-        /// return value is between 0 to pi. v1 and v2 are interchangable.
+        /// return value is between 0 to pi. v1 and v2 are interchangeable.
         /// </summary>
         public static float UnsignedAngleRad(Vector2D v1, Vector2D v2) {
             //cos(a) = v1.v2 /(|v1||v2|)         
@@ -74,9 +74,9 @@ namespace KianCommons.Math {
         public float SignedAngleRadCCW() => Mathf.Atan2(x, z);
 
         /// <summary>
-        /// return value is between -pi to pi. v1 and v2 are not interchangable.
+        /// return value is between -pi to pi. v1 and v2 are not interchangeable.
         /// the angle goes CCW from v1 to v2.
-        /// eg v1=0,1 v2=1,0 => angle=pi/2
+        /// e.g. v1=0,1 v2=1,0 => angle=pi/2
         /// Note: to convert CCW to CW EITHER swap v1 and v2 OR take the negative of the result.
         /// </summary>
         public static float SignedAngleRadCCW(Vector2D v1, Vector2D v2) {

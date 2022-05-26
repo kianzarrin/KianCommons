@@ -10,7 +10,7 @@ namespace KianCommons {
 
         /// <summary>
         /// returns true if asset has vehicle type
-        /// returns false if asset does not have vehicle type or the given vehilce type is 0.
+        /// returns false if asset does not have vehicle type or the given vehicle type is 0.
         /// </summary>
         public static bool HasLane(ushort segmentID, VehicleInfo.VehicleType vehicleType) =>
              (segmentID.ToSegment().Info.m_vehicleTypes & vehicleType) != 0;
@@ -32,7 +32,7 @@ namespace KianCommons {
             return info.m_vehicleTypes.IsFlagSet(vehicleType); // vehicleType == 0 is checked here.
         }
 
-        // TODO add wide narrow center single for tram and trolly
+        // TODO add wide narrow center single for tram and trolley
         public const NetInfo.ConnectGroup DOUBLE =
             NetInfo.ConnectGroup.DoubleMetro | NetInfo.ConnectGroup.DoubleMonorail | NetInfo.ConnectGroup.DoubleTrain |
             NetInfo.ConnectGroup.NarrowTram | NetInfo.ConnectGroup.WideTram |

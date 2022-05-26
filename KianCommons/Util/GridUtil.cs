@@ -57,14 +57,13 @@ namespace KianCommons {
         public override string ToString() {
             return $"GridVector<{Index}>({x}, {y})";
         }
-
     }
 
     internal static class GridUtil {
         public const float GRID_SIZE = NetManager.NODEGRID_CELL_SIZE;
         public const int GRID_LENGTH = NetManager.NODEGRID_RESOLUTION;
         public static int ConvertGrid(float a) =>
-            Mathf.Clamp((int)(a / GRID_SIZE + (GRID_LENGTH / 2)), 0, GRID_LENGTH - 1); //270/2=135 279-1=269
+            Mathf.Clamp((int)(a / GRID_SIZE + (GRID_LENGTH / 2)), 0, GRID_LENGTH - 1); //270/2=135 270-1=269
         public static float ConvertStartPoint(int xy) =>
             (xy - GRID_LENGTH / 2f) * GRID_SIZE;
 

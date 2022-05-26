@@ -23,10 +23,10 @@ namespace KianCommons.Math {
         }
 
         /// <summary>
-        /// Travels some distance on beizer and calculates the point and tangent at that distance.
+        /// Travels some distance on bezier and calculates the point and tangent at that distance.
         /// </summary>
-        /// <param name="distance">distance to travel on the arc in meteres</param>
-        /// <param name="tangent">normalized tangent on the curve toward the end of the beizer.</param>
+        /// <param name="distance">distance to travel on the arc in meters</param>
+        /// <param name="tangent">normalized tangent on the curve toward the end of the bezier.</param>
         /// <returns>point on the curve at the given distance.</returns>
         public static Vector3 Travel2(this Bezier3 beizer, float distance, out Vector3 tangent) {
             float t = beizer.Travel(0, distance);
@@ -35,10 +35,10 @@ namespace KianCommons.Math {
         }
 
         /// <summary>
-        /// Travels some distance on beizer and calculates the point and tangent at that distance.
+        /// Travels some distance on bezier and calculates the point and tangent at that distance.
         /// </summary>
-        /// <param name="distance">distance to travel on the arc in meteres</param>
-        /// <param name="tangent">normalized tangent on the curve toward the end of the beizer.</param>
+        /// <param name="distance">distance to travel on the arc in meters</param>
+        /// <param name="tangent">normalized tangent on the curve toward the end of the bezier.</param>
         /// <returns>point on the curve at the given distance.</returns>
         public static Vector2 Travel2(this Bezier2 beizer, float distance, out Vector2 tangent) {
             if (beizer.IsStraight()) {
@@ -58,7 +58,7 @@ namespace KianCommons.Math {
 
         public static bool IsStraight(this Bezier2 beizer) {
             return false;
-            // cannot work optimise small beziers for some unknown reasosn. commenting out this until the problem is fixed.
+            // cannot work optimise small beziers for some unknown reason. commenting out this until the problem is fixed.
             //var startDir = (beizer.a - beizer.b).normalized;
             //var endDir = (beizer.c - beizer.d).normalized; // c actually gets past d.
             //return EqualAprox((startDir + endDir).sqrMagnitude, 0f, Epsilon * Epsilon);

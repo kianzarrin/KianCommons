@@ -28,6 +28,7 @@ namespace KianCommons.Plugins {
                     nodeVehicleTypes_ = CreateDelegate<NodeVehicleTypes>();
                     nodeLaneTypes_ = CreateDelegate<NodeLaneTypes>();
                     hideBrokenMedians_ = CreateDelegate<HideBrokenMedians>();
+                    getSharpCorners_ = CreateDelegate<GetSharpCorners>();
                 }
             } else {
                 Log.Info("AR not found.");
@@ -42,12 +43,18 @@ namespace KianCommons.Plugins {
 
         public static Assembly asm { get; private set; }
         public static Type API { get; private set; }
-        static MethodInfo GetMethod(string name) =>
-            API.GetMethod(name) ?? throw new Exception(name + " not found");
+        static MethodInfo GetMethod(string name) {
+            var ret = API.GetMethod(name);
+            if( ret == null) {
+                Log.Warning($"AdaptiveRoadsUtil: method {name} not found!");
+            }
+            return ret;
+        }
         static object Invoke(string methodName, params object[] args) =>
-            GetMethod(methodName).Invoke(null, args);
+            GetMethod(methodName)?.Invoke(null, args);
 
-        static TDelegate CreateDelegate<TDelegate>() where TDelegate : Delegate => DelegateUtil.CreateDelegate<TDelegate>(API);
+        static TDelegate CreateDelegate<TDelegate>() where TDelegate : Delegate =>
+            DelegateUtil.CreateDelegate<TDelegate>(API);
 
 #pragma warning disable HAA0601, HAA0101
         public static bool IsAdaptive(this NetInfo info) {
@@ -76,6 +83,11 @@ namespace KianCommons.Plugins {
             return Invoke("GetARLaneFlags", laneId);
         }
 
+        public static void OverrideARSharpner(bool value = true) {
+            if (IsActive) 
+                Invoke("OverrideSharpner", value);
+        }
+
         delegate VehicleInfo.VehicleType NodeVehicleTypes(NetInfo.Node node);
         static NodeVehicleTypes nodeVehicleTypes_;
 
@@ -101,6 +113,13 @@ namespace KianCommons.Plugins {
             return hideBrokenMedians_(node);
         }
 
+        delegate bool GetSharpCorners(NetInfo info);
+        static GetSharpCorners getSharpCorners_;
+        public static bool GetARSharpCorners(this NetInfo info) {
+            if (getSharpCorners_ == null)
+                return false;
+            return getSharpCorners_(info);
+        }
 #pragma warning restore HAA0101, HAA0601
     }
 }

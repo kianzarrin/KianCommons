@@ -10,6 +10,19 @@ using UnityEngine;
 
 namespace KianCommons.UI {
     public static class UIHelperExtension {
+        public static UICheckBox AddUpdatingCheckbox(
+            this UIHelperBase helper, string label, Action<bool> SetValue, Func<bool> GetValue) {
+            Log.Info($"option {label} is " + GetValue());
+            var cb = helper.AddCheckbox(label, GetValue(), delegate (bool value) {
+                try {
+                    SetValue(value);
+                    Log.Info($"option '{label}' is set to " + value);
+                } catch (Exception ex) { ex.Log(); }
+            }) as UICheckBox;
+            cb.eventVisibilityChanged += (c, val) => (c as UICheckBox).isChecked = GetValue();
+            return cb;
+
+        }
 
         public static UICheckBox AddSavedToggle(this UIHelperBase helper, string label, SavedBool savedBool, Action<bool> OnToggled) {
             Log.Info($"option {label} is " + savedBool.value);

@@ -78,7 +78,7 @@ namespace KianCommons {
 
 
         /// <summary>
-        /// assertion shall take place in a function that does not refrence Harmony.
+        /// assertion shall take place in a function that does not reference Harmony.
         /// </summary>
         /// <param name="harmonyID"></param>
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -89,7 +89,7 @@ namespace KianCommons {
         }
 
         /// <summary>
-        /// assertion shall take place in a function that does not refrence Harmony.
+        /// assertion shall take place in a function that does not reference Harmony.
         /// Only install classes with this attribute
         /// </summary>
         /// <param name="harmonyID"></param>
@@ -138,7 +138,7 @@ namespace KianCommons {
         }
 
         /// <summary>
-        /// assertion shall take place in a function that does not refrence Harmony.
+        /// assertion shall take place in a function that does not reference Harmony.
         /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
         static void UnpatchAll(string harmonyID) {

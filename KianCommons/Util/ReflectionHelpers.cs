@@ -96,7 +96,7 @@ namespace KianCommons {
         }
 
         /// <summary>
-        /// call this in OnDestroy() to clear all refrences.
+        /// call this in OnDestroy() to clear all references.
         /// </summary>
         internal static void SetAllDeclaredFieldsToNull(this UIComponent c) =>
             SetAllDeclaredFieldsToNull(c as object);
@@ -269,6 +269,10 @@ namespace KianCommons {
             return GetMethod(typeof(T), method, true)?.Invoke(null, null);
         }
 
+        internal static object InvokeMethod<T>(string method, params object[] args) {
+            return GetMethod(typeof(T), method, true)?.Invoke(null, args);
+        }
+
         /// <summary>
         /// Invokes static method of any access type.
         /// like: type.method()
@@ -299,6 +303,11 @@ namespace KianCommons {
         internal static object InvokeMethod(object instance, string method) {
             var type = instance.GetType();
             return GetMethod(type, method, true)?.Invoke(instance, null);
+        }
+
+        internal static object InvokeMethod(object instance, string method, params object[] args) {
+            var type = instance.GetType();
+            return GetMethod(type, method, true)?.Invoke(instance, args);
         }
 
         internal static object InvokeSetter(object instance, string propertyName, object value) {

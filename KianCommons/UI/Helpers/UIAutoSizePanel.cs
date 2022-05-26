@@ -6,7 +6,7 @@ namespace KianCommons.UI {
         public override void Awake() {
             base.Awake();
 
-            // default values can be overriden.
+            // default values can be overridden.
             autoLayout = true;
             autoSize = true;
             autoLayoutDirection = LayoutDirection.Vertical;
@@ -150,7 +150,7 @@ namespace KianCommons.UI {
                 height = heightAcc;
                 if (AutoSize2)
                     width = padding.horizontal + maxWidth;
-                //Log.Debug($"updating {name} hieght to " + height);
+                //Log.Debug($"updating {name} height to " + height);
             }
         }
     }

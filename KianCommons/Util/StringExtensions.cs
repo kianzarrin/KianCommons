@@ -1,4 +1,5 @@
 namespace KianCommons {
+    using ColossalFramework.Packaging;
     using System;
     using System.Collections;
     using System.Collections.Generic;
@@ -110,6 +111,7 @@ namespace KianCommons {
             => $"[{map.Key.ToSTR()}:{map.Value.ToSTR()}]";
 
         internal static string ToSTR(this IDictionary dict) {
+            if (dict is null) return "<null>";
             List<string> terms = new List<string>(); 
             foreach(var key in dict.Keys) {
                 var value = dict[key];
@@ -122,6 +124,7 @@ namespace KianCommons {
         /// returns all items as string
         /// </summary>
         internal static string ToSTR(this IEnumerable list) {
+            if (list is Package p) return p.ToString(); // don't print all assets
             if (list == null) return "<null>";
             string ret = "{ ";
             foreach (object item in list) {
@@ -142,6 +145,7 @@ namespace KianCommons {
         /// throws exception if T.ToString(format) does not exists.
         /// </summary>
         internal static string ToSTR<T>(this IEnumerable list, string format) {
+            if (list == null) return "<null>";
             MethodInfo mToString = typeof(T).GetMethod("ToString", new[] { typeof(string) })
                 ?? throw new Exception($"{typeof(T).Name}.ToString(string) was not found");
             var arg = new object[] { format };
