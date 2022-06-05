@@ -1305,14 +1305,14 @@ namespace KianCommons.StockCode {
                     if (!infoSegment.m_netAI.CanModify()) {
                         CanModify = false;
                     }
-                    int backwardVehicleLaneCount; // lane count from head to tail 
-                    int forwardVehicleLaneCount; // lane count from tail to head 
+                    int backwardVehicleLaneCount; // lane count away from node
+                    int forwardVehicleLaneCount; // lane count toward node
                     bool segmentInvert = segmentID.ToSegment().m_flags.IsFlagSet(NetSegment.Flags.Invert);
-                    if (bStartNode == segmentInvert) // head node
+                    if (bStartNode == segmentInvert) // normal
                     {
                         backwardVehicleLaneCount = infoSegment.m_backwardVehicleLaneCount;
                         forwardVehicleLaneCount = infoSegment.m_forwardVehicleLaneCount;
-                    } else // tail node
+                    } else // reverse
                       {
                         backwardVehicleLaneCount = infoSegment.m_forwardVehicleLaneCount;
                         forwardVehicleLaneCount = infoSegment.m_backwardVehicleLaneCount;
