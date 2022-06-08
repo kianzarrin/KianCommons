@@ -99,14 +99,17 @@ namespace KianCommons {
         }
 
         internal static void AppendElement<T>(ref T[] array, T element) {
-            int n1 = array.Length;
-            T[] ret = new T[n1 + 1];
+            Array.Resize(ref array, array.Length + 1);
+            array.Last() = element;
+        }
 
-            for (int i = 0; i < n1; ++i)
-                ret[i] = array[i];
-
-            ret.Last() = element;
-            array = ret;
+        internal static T[] AppendOrCreate<T>(this T[] array, T element) {
+            if (array == null) {
+                array = new T[] { element };
+            } else {
+                AppendElement(ref array, element);
+            }
+            return array;
         }
 
         internal static void ReplaceElement<T>(this T[] array, T oldVal, T newVal) {
