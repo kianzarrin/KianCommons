@@ -137,6 +137,16 @@ namespace KianCommons {
                 .Where(_field => _field.HasAttribute<T>(inherit));
         }
 
+        internal static IEnumerable<MemberInfo> GetMembersWithAttribute<T>(
+            this object obj, bool inherit = true) where T : Attribute {
+            return obj.GetType().GetMembersWithAttribute<T>(inherit);
+        }
+
+        internal static IEnumerable<MemberInfo> GetMembersWithAttribute<T>(
+            this Type type, bool inherit = true) where T : Attribute {
+            return type.GetMembers().Where(_member => _member.HasAttribute<T>(inherit));
+        }
+
         public const BindingFlags ALL = BindingFlags.Public
             | BindingFlags.NonPublic
             | BindingFlags.Instance
