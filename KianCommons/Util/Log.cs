@@ -188,6 +188,20 @@ namespace KianCommons {
             Exception,
         }
 
+        #region debug once
+        public static HashSet<object> logged_ids_ = new();
+
+        [Conditional("DEBUG")]
+        public static void DebugOnce(string message, object id = null, bool copyToGameLog = true) {
+            id ??= Environment.StackTrace + message;
+            if (!logged_ids_.Contains(id))
+                logged_ids_.Add(id);
+            else
+                Log.Debug(message, copyToGameLog);
+        }
+        #endregion
+
+        #region debug wait
 
         public const int MAX_WAIT_ID = 1000;
         static DateTime[] times_ = new DateTime[MAX_WAIT_ID];
@@ -212,8 +226,8 @@ namespace KianCommons {
             if (id == null)
                 id = Environment.StackTrace + message;
             DebugWait(message, id.GetHashCode(), seconds, copyToGameLog);
-
         }
+        #endregion
 
         /// <summary>
         /// Logs debug trace, only in <c>DEBUG</c> builds.
