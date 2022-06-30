@@ -4,6 +4,7 @@ namespace KianCommons.UI.Helpers {
     using UnityEngine;
 
     public class UIWindow : UIAutoPanel {
+        private bool started_ = false;
         protected UIDragHandle DragHandle;
         public UILabel Caption;
         public UIAutoPanel Container;
@@ -16,10 +17,15 @@ namespace KianCommons.UI.Helpers {
             set => position_ = value;
         }
 
-        public static UIWindow Create(UIComponent parent = null) {
+        public string Title {
+            get => Caption.text;
+            set => Caption.text = value;
+        } 
+
+        public static T Create<T>(UIComponent parent = null) where T : UIWindow {
             var wrapper = parent?.AddUIComponent<UIPanel>() ??
                 UIView.GetAView().AddUIComponent<UIPanel>();
-            return wrapper.AddUIComponent<UIWindow>();
+            return wrapper.AddUIComponent<T>();
         }
 
         public override void OnDestroy() {
@@ -31,15 +37,10 @@ namespace KianCommons.UI.Helpers {
             try {
                 base.Awake();
                 Log.Called();
+                SetSpacing(0, 0);
                 atlas = TextureUtil.Ingame;
                 backgroundSprite = "MenuPanel2";
-            } catch (Exception ex) { ex.Log(); }
-        }
 
-        public override void Start() {
-            try {
-                base.Start();
-                Log.Called();
                 absolutePosition = Position;
 
                 DragHandle = AddUIComponent<UIDragHandle>();
@@ -53,11 +54,28 @@ namespace KianCommons.UI.Helpers {
                 Caption.name = name + "_caption";
                 Caption.anchor = UIAnchorStyle.CenterHorizontal | UIAnchorStyle.CenterVertical;
 
+                AddUIComponent<UIPanel>().size = new Vector2(1, 3);
+
                 Container = AddUIComponent<UIAutoPanel>();
-                isVisible = true;
             } catch (Exception ex) { ex.Log(); }
         }
 
+        public override void Start() {
+            base.Start();
+            started_ = true;
+        }
+
+        protected override void OnSizeChanged() {
+            base.OnSizeChanged();
+            Log.Called(width);
+            if (started_ && DragHandle && Caption) {
+                Log.Debug("DragHandle.width was " + DragHandle.width);
+                DragHandle.width = width;
+                Caption.anchor = UIAnchorStyle.CenterHorizontal | UIAnchorStyle.CenterVertical;
+                Log.Debug("DragHandle.width changed to " + DragHandle.width);
+
+            }
+        }
 
         protected override void OnPositionChanged() {
             Assertion.AssertStack();

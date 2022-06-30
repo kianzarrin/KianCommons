@@ -3,13 +3,8 @@ namespace KianCommons.UI.Helpers {
     using UnityEngine;
 
     public class UIAutoPanel : UIPanel{
-        private int spacing_ = 3;
-        public int Spacing {
-            get => spacing_;
-            set {
-                spacing_ = value;
-                padding = autoLayoutPadding = new RectOffset(Spacing, Spacing, Spacing, Spacing);
-            }
+        public void SetSpacing(int x, int y) {
+            autoLayoutPadding = new RectOffset(x, x, y, y);
         }
         public override void Awake() {
             base.Awake();
@@ -18,15 +13,18 @@ namespace KianCommons.UI.Helpers {
             autoLayoutDirection = LayoutDirection.Vertical;
             autoFitChildrenHorizontally = true;
             autoFitChildrenVertically = true;
-            autoLayoutPadding = new RectOffset(Spacing, Spacing, Spacing, Spacing);
-            padding = new RectOffset(Spacing, Spacing, Spacing, Spacing);
+            autoLayoutPadding = new RectOffset(3, 3, 3, 3);
+            padding = default;
             eventFitChildren += OnAutoFit;
 
             atlas = TextureUtil.Ingame;
         }
 
         private void OnAutoFit() {
-            size += new Vector2(Spacing, Spacing);
+            if (autoFitChildrenHorizontally) 
+                width += padding.right + autoLayoutPadding.right;
+            if(autoFitChildrenVertically)
+                height += padding.bottom + autoLayoutPadding.bottom;
         }
     }
 }
