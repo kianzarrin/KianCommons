@@ -35,7 +35,7 @@ namespace KianCommons.Patches {
             m.DeclaringType.FullName + "::" + m.Name;
 
         /// <typeparam name="TDelegate">delegate type</typeparam>
-        /// <returns>Type[] represeting arguments of the delegate.</returns>
+        /// <returns>Type[] representing arguments of the delegate.</returns>
         internal static Type[] GetParameterTypes<TDelegate>(bool instance = false)
             where TDelegate : Delegate {
             var ret = typeof(TDelegate)
@@ -50,7 +50,7 @@ namespace KianCommons.Patches {
         /// Gets directly declared method based on a delegate that has
         /// the same name and the same args as the target method.
         /// </summary>
-        /// <param name="type">the class/type where the method is delcared</param>
+        /// <param name="type">the class/type where the method is declared</param>
         internal static MethodInfo DeclaredMethod<TDelegate>
             (Type type, bool throwOnError = true, bool instance = false) where TDelegate : Delegate =>
             DeclaredMethod<TDelegate>(type, typeof(TDelegate).Name, throwOnError:throwOnError, instance:instance);
@@ -59,7 +59,7 @@ namespace KianCommons.Patches {
         /// Gets directly declared method based on a delegate that has
         /// the same name as the target method
         /// </summary>
-        /// <param name="type">the class/type where the method is delcared</param>
+        /// <param name="type">the class/type where the method is declared</param>
         /// <param name="name">the name of the method</param>
         internal static MethodInfo DeclaredMethod<TDelegate>
             (Type type, string name, bool throwOnError = false, bool instance = false)
@@ -89,7 +89,7 @@ namespace KianCommons.Patches {
                     .Where(_t => _t.Name.Contains($"<{name}>"))
                     .Select(_t => _t.FullName);
                 KianCommons.Log.Exception(
-                    ex, $"the following types contian '<{name}>': " + types.ToSTR());
+                    ex, $"the following types contain '<{name}>': " + types.ToSTR());
                 return null;
             }
         }
@@ -128,7 +128,7 @@ namespace KianCommons.Patches {
         }
 
         /// <summary>
-        /// Post condtion: for instnace method add one to get argument location
+        /// Post condition: for instance method add one to get argument location
         /// </summary>
         public static byte GetParameterLoc(MethodBase method, string name) {
             var parameters = method.GetParameters();
@@ -233,7 +233,7 @@ namespace KianCommons.Patches {
             public InstructionNotFoundException(string m) : base(m) { }
         }
 
-        /// <param name="count">Number of occurances. Negative count searches backward</param>
+        /// <param name="count">Number of occurrences. Negative count searches backward</param>
         public static int Search(
             this List<CodeInstruction> codes,
             Func<CodeInstruction, bool> predicate,
@@ -317,7 +317,7 @@ namespace KianCommons.Patches {
             return (Label)codes[index].operand;
         }
 
-        [Obsolete("use harmoyn extension Branches() instead")]
+        [Obsolete("use harmony extension Branches() instead")]
         public static bool IsBR32(OpCode opcode) {
             return opcode == OpCodes.Br || opcode == OpCodes.Brtrue || opcode == OpCodes.Brfalse || opcode == OpCodes.Beq;
         }
@@ -333,7 +333,7 @@ namespace KianCommons.Patches {
         public static int PeekAfter = 15;
 
         /// <summary>
-        /// replaces one instruction at the given index with multiple instrutions
+        /// replaces one instruction at the given index with multiple instructions
         /// </summary>
         public static void ReplaceInstructions(List<CodeInstruction> codes, CodeInstruction[] insertion, int index) {
             foreach (var code in insertion)
@@ -403,7 +403,7 @@ namespace KianCommons.Patches {
 
 
         /// <summary>
-        /// replaces one instruction at the given index with multiple instrutions
+        /// replaces one instruction at the given index with multiple instructions
         /// </summary>
         public static void ReplaceInstruction(
             this List<CodeInstruction> codes, int index, CodeInstruction[] insertion) {
@@ -474,6 +474,11 @@ namespace KianCommons.Patches {
             return loc == loc0;
         }
 
+        /// <summary>
+        /// loads a field of the given type or its address (ldfld/ldflda and their variants).
+        /// </summary>
+        /// <param name="type">type of variable being loaded</param>
+        /// <param name="method">method containing the local variable</param>
         public static bool IsLdLoc(this CodeInstruction code, Type type, MethodBase method) {
             if (!code.IsLdloc())
                 return false;
@@ -491,6 +496,11 @@ namespace KianCommons.Patches {
             
         }
 
+        /// <summary>
+        /// ldloca[.s] for a certain variable type
+        /// </summary>
+        /// <param name="type">type of variable being loaded</param>
+        /// <param name="method">method containing the local variable</param>
         public static bool IsLdLocA(this CodeInstruction code, Type type, out int loc) {
             bool isldloca =
                 code.opcode == OpCodes.Ldloca ||

@@ -1,4 +1,5 @@
 namespace KianCommons {
+    using ColossalFramework.Packaging;
     using System;
     using System.Collections;
     using System.Collections.Generic;
@@ -79,6 +80,8 @@ namespace KianCommons {
                 return instanceID.ToSTR();
             if (obj is KeyValuePair<InstanceID, InstanceID> map)
                 return map.ToSTR();
+            if(obj is IDictionary dict)
+                return dict.ToSTR();
             if (obj is IEnumerable list)
                 return list.ToSTR();
             return obj.ToString();
@@ -107,10 +110,21 @@ namespace KianCommons {
         internal static string ToSTR(this KeyValuePair<InstanceID, InstanceID> map)
             => $"[{map.Key.ToSTR()}:{map.Value.ToSTR()}]";
 
+        internal static string ToSTR(this IDictionary dict) {
+            if (dict is null) return "<null>";
+            List<string> terms = new List<string>(); 
+            foreach(var key in dict.Keys) {
+                var value = dict[key];
+                terms.Add($"({key.ToSTR()} : {value.ToSTR()})");
+            }
+            return $"{{{terms.Join(", ")} }}";
+        }
+
         /// <summary>
         /// returns all items as string
         /// </summary>
         internal static string ToSTR(this IEnumerable list) {
+            if (list is Package p) return p.ToString(); // don't print all assets
             if (list == null) return "<null>";
             string ret = "{ ";
             foreach (object item in list) {
@@ -131,6 +145,7 @@ namespace KianCommons {
         /// throws exception if T.ToString(format) does not exists.
         /// </summary>
         internal static string ToSTR<T>(this IEnumerable list, string format) {
+            if (list == null) return "<null>";
             MethodInfo mToString = typeof(T).GetMethod("ToString", new[] { typeof(string) })
                 ?? throw new Exception($"{typeof(T).Name}.ToString(string) was not found");
             var arg = new object[] { format };

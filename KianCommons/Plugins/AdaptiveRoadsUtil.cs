@@ -5,6 +5,8 @@ namespace KianCommons.Plugins {
     using static KianCommons.Plugins.PluginUtil;
     using ColossalFramework.Plugins;
 
+
+
     internal static class AdaptiveRoadsUtil {
         static AdaptiveRoadsUtil() {
             Init();
@@ -24,11 +26,11 @@ namespace KianCommons.Plugins {
                 API = asm.GetType("AdaptiveRoads.API", throwOnError: true, ignoreCase: true);
                 var version = Plugin.userModInstance.VersionOf() ?? new Version(0, 0);
                 Log.Info("AR Version=" + version);
-                if (version >= new Version(2, 1, 8)) {
-                    nodeVehicleTypes_ = CreateDelegate<NodeVehicleTypes>();
-                    nodeLaneTypes_ = CreateDelegate<NodeLaneTypes>();
-                    hideBrokenMedians_ = CreateDelegate<HideBrokenMedians>();
-                }
+                nodeVehicleTypes_ = CreateDelegate<NodeVehicleTypes>();
+                nodeLaneTypes_ = CreateDelegate<NodeLaneTypes>();
+                hideBrokenMedians_ = CreateDelegate<HideBrokenMedians>();
+                getSharpCorners_ = CreateDelegate<GetSharpCorners>();
+                isAdaptive_ = CreateDelegate<IsAdaptive>();
             } else {
                 Log.Info("AR not found.");
                 asm = null;
@@ -42,18 +44,21 @@ namespace KianCommons.Plugins {
 
         public static Assembly asm { get; private set; }
         public static Type API { get; private set; }
-        static MethodInfo GetMethod(string name) =>
-            API.GetMethod(name) ?? throw new Exception(name + " not found");
+        static MethodInfo GetMethod(string name) {
+            var ret = API.GetMethod(name);
+            if( ret == null) {
+                Log.Warning($"AdaptiveRoadsUtil: method {name} not found!");
+            }
+            return ret;
+        }
         static object Invoke(string methodName, params object[] args) =>
-            GetMethod(methodName).Invoke(null, args);
+            GetMethod(methodName)?.Invoke(null, args);
 
-        static TDelegate CreateDelegate<TDelegate>() where TDelegate : Delegate => DelegateUtil.CreateDelegate<TDelegate>(API);
+        static TDelegate CreateDelegate<TDelegate>() where TDelegate : Delegate =>
+            DelegateUtil.CreateDelegate<TDelegate>(API);
 
 #pragma warning disable HAA0601, HAA0101
-        public static bool IsAdaptive(this NetInfo info) {
-            if (!IsActive) return false;
-            return (bool)Invoke("IsAdaptive", info);
-        }
+        #region flags
         public static object GetARSegmentFlags(ushort id) {
             if (!IsActive) return null;
             return Invoke("GetARSegmentFlags", id);
@@ -75,10 +80,23 @@ namespace KianCommons.Plugins {
             if (!IsActive) return null;
             return Invoke("GetARLaneFlags", laneId);
         }
+        #endregion
+
+        public static void OverrideARSharpner(bool value = true) {
+            if (IsActive) 
+                Invoke("OverrideSharpner", value);
+        }
+#pragma warning restore HAA0101, HAA0601
+
+        delegate bool IsAdaptive(NetInfo info);
+        static IsAdaptive isAdaptive_;
+        public static bool GetIsAdaptive(this NetInfo info) {
+            if (isAdaptive_ == null) return false;
+            return isAdaptive_(info);
+        }
 
         delegate VehicleInfo.VehicleType NodeVehicleTypes(NetInfo.Node node);
         static NodeVehicleTypes nodeVehicleTypes_;
-
         public static VehicleInfo.VehicleType ARVehicleTypes(this NetInfo.Node node) {
             if (nodeVehicleTypes_ == null)
                 return 0;
@@ -101,6 +119,12 @@ namespace KianCommons.Plugins {
             return hideBrokenMedians_(node);
         }
 
-#pragma warning restore HAA0101, HAA0601
+        delegate bool GetSharpCorners(NetInfo info);
+        static GetSharpCorners getSharpCorners_;
+        public static bool GetARSharpCorners(this NetInfo info) {
+            if (getSharpCorners_ == null)
+                return false;
+            return getSharpCorners_(info);
+        }
     }
 }

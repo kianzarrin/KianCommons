@@ -22,7 +22,7 @@ namespace KianCommons {
         private static readonly bool ShowLevel = true;
 
         /// <summary>
-        /// Set to <c>true</c> to include timestamp in log entries.
+        /// Set to <c>true</c> to include time-stamp in log entries.
         /// </summary>
         private static readonly bool ShowTimestamp = true;
 
@@ -188,6 +188,20 @@ namespace KianCommons {
             Exception,
         }
 
+        #region debug once
+        public static HashSet<object> logged_ids_ = new();
+
+        [Conditional("DEBUG")]
+        public static void DebugOnce(string message, object id = null, bool copyToGameLog = true) {
+            id ??= Environment.StackTrace + message;
+            if (!logged_ids_.Contains(id))
+                logged_ids_.Add(id);
+            else
+                Log.Debug(message, copyToGameLog);
+        }
+        #endregion
+
+        #region debug wait
 
         public const int MAX_WAIT_ID = 1000;
         static DateTime[] times_ = new DateTime[MAX_WAIT_ID];
@@ -212,8 +226,8 @@ namespace KianCommons {
             if (id == null)
                 id = Environment.StackTrace + message;
             DebugWait(message, id.GetHashCode(), seconds, copyToGameLog);
-
         }
+        #endregion
 
         /// <summary>
         /// Logs debug trace, only in <c>DEBUG</c> builds.
@@ -345,7 +359,7 @@ namespace KianCommons {
 
                 if (copyToGameLog) {
                     // copying to game log is slow anyways so
-                    // this is a good time to flush if neccessary.
+                    // this is a good time to flush if necessary.
                     Flush();
                     m = assemblyName_ + " | " + m;
                     m = RemoveExtraNewLine(m);
@@ -397,13 +411,14 @@ namespace KianCommons {
 
     internal static class LogExtensions {
         /// <summary>
-        /// useful for easily debuggin inline functions
+        /// useful for easily debugging inline functions
         /// to be used like this example:
         /// TYPE inlinefunctionname(...) => expression
-        /// TYPE inlinefunctionname(...) => expression.LogRet("messege");
+        /// TYPE inlinefunctionname(...) => expression.LogRet("message");
         /// </summary>
-        internal static T LogRet<T>(this T a, string m) {
-            KianCommons.Log.Debug(m + " -> " + a);
+        internal static T LogRet<T>(this T a, string m = null) {
+            m ??= ReflectionHelpers.CurrentMethod(2);
+            KianCommons.Log.Debug(m + " -> " + a.ToSTR());
             return a;
         }
 

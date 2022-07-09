@@ -7,14 +7,72 @@ namespace KianCommons.Serialization {
     using System.Runtime.Serialization;
     using System.Runtime.Serialization.Formatters;
     using System.Runtime.Serialization.Formatters.Binary;
+    using System.Collections.Generic;
+    using System.Text;
+
+    public class AssemblyBinder : SerializationBinder {
+        public class TypeName {
+            /// <summary>
+            /// name excluding declaring type
+            /// </summary>
+            public string Name;
+
+            /// <summary>
+            /// name including declaring type
+            /// </summary>
+            public string NestedName;
+
+            public string DeclaringType;
+
+            public string NameSpace;
+
+            public TypeName(string fullName) {
+                int iDot = fullName.LastIndexOf('.');
+                if(iDot >= 0)
+                    NameSpace = fullName.Substring(0, iDot);
+                NestedName = fullName.Substring(iDot + 1);
+
+                int iPlus = NestedName.LastIndexOf('+');
+                if(iPlus >= 0)
+                    DeclaringType = NestedName.Substring(0, iPlus);
+                Name = NestedName.Substring(iPlus + 1);
+            }
+
+        }
+
+        public Assembly ThisAssembly;
+        public AssemblyName ThisAssemblyName;
+
+        public AssemblyBinder() {
+            ThisAssembly = typeof(AssemblyBinder).Assembly;
+            ThisAssemblyName = ThisAssembly.GetName();
+        }
+
+        public override Type BindToType(string assemblyName0, string typeName0) {
+            AssemblyName assemblyName = new AssemblyName(assemblyName0);
+            if(assemblyName.Name == ThisAssemblyName.Name) {
+                return ThisAssembly.GetType(typeName0);
+            }
+
+            return null; //auto detect type.
+        }
+    }
 
     internal static class SerializationUtil {
         public static Version DeserializationVersion;
 
-        static BinaryFormatter GetBinaryFormatter =>
-            new BinaryFormatter { AssemblyFormat = FormatterAssemblyStyle.Simple };
 
-        public static object Deserialize(byte[] data, Version version) {
+
+        static BinaryFormatter GetBinaryFormatter(SerializationBinder binder = null) {
+            var ret = new BinaryFormatter { AssemblyFormat = FormatterAssemblyStyle.Simple };
+            if(binder != null) {
+                ret.Binder = binder;
+            }
+            return ret;
+        }
+
+
+        public static object Deserialize(byte[] data, Version version, SerializationBinder binder = null) {
             if (data == null || data.Length == 0) return null;
             try {
                 DeserializationVersion = version;
@@ -22,7 +80,7 @@ namespace KianCommons.Serialization {
                 var memoryStream = new MemoryStream();
                 memoryStream.Write(data, 0, data.Length);
                 memoryStream.Position = 0;
-                return GetBinaryFormatter.Deserialize(memoryStream);
+                return GetBinaryFormatter(binder).Deserialize(memoryStream);
             }
             catch (Exception e) {
                 Log.Exception(e, showInPanel: false);
@@ -35,7 +93,7 @@ namespace KianCommons.Serialization {
         public static byte[] Serialize(object obj) {
             if (obj == null) return null;
             var memoryStream = new MemoryStream();
-            GetBinaryFormatter.Serialize(memoryStream, obj);
+            GetBinaryFormatter().Serialize(memoryStream, obj);
             memoryStream.Position = 0; // redundant
             return memoryStream.ToArray();
         }
@@ -54,7 +112,7 @@ namespace KianCommons.Serialization {
         }
 
         /// <summary>
-        /// warning, structs should make use of the return value.
+        /// warning: structs should make use of the return value.
         /// </summary>
         public static object SetObjectFields(SerializationInfo info, object instance)  {
             foreach (SerializationEntry item in info) {

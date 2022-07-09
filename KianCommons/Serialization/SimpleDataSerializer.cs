@@ -69,5 +69,30 @@ namespace KianCommons.Serialization {
             WriteInt32(version.Build);
             WriteInt32(version.Revision);
         }
+
+        public void WriteInt32Array(int [] array) {
+            if (array == null) {
+                WriteInt32(-1);
+                return;
+            }
+
+            WriteInt32(array.Length);
+            for(int i = 0; i < array.Length; ++i) {
+                WriteInt32(array[i]);
+            }
+        }
+        public int[] ReadInt32Array() {
+            int n = ReadInt32();
+            if(n < 0) {
+                return null;
+            }
+
+            int[] array = new int[n];
+            for (int i = 0; i < n; ++i) {
+                array[i] = ReadInt32();
+            }
+            return array;
+        }
+
     }
 }

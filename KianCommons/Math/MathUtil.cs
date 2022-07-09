@@ -40,9 +40,6 @@ namespace KianCommons.Math {
         public static bool IsPow2(short x) => x != 0 && (x & (x - 1)) == 0;
         public static bool IsPow2(SByte x) => x != 0 && (x & (x - 1)) == 0;
 
-
-
-
         internal static ushort Clamp2U16(int value) => (ushort)Mathf.Clamp(value, 0, ushort.MaxValue);
     }
 
