@@ -48,21 +48,21 @@ namespace KianCommons.StockCode {
                             propIndex = currentPropIndex + (repeatCountTimes2 + 1) >> 1; // div 2
                         }
                         if(prop.CheckFlags(this.m_flags, startFlags, endFlags)) {
-                            float halfSegmentOffset = prop.m_segmentOffset * 0.5f;
+                            float offset = prop.m_segmentOffset * 0.5f;
                             if(this.m_length != 0f) {
-                                halfSegmentOffset = Mathf.Clamp(halfSegmentOffset + prop.m_position.z / this.m_length, -0.5f, 0.5f);
+                                offset = Mathf.Clamp(offset + prop.m_position.z / this.m_length, -0.5f, 0.5f);
                             }
                             if(reverse) {
-                                halfSegmentOffset = -halfSegmentOffset;
+                                offset = -offset;
                             }
-                            PropInfo finalProp = prop.m_finalProp;
-                            if(finalProp != null && (layerMask & 1 << finalProp.m_prefabDataLayer) != 0) {
+                            PropInfo propInfo = prop.m_finalProp;
+                            if(propInfo != null && (layerMask & 1 << propInfo.m_prefabDataLayer) != 0) {
                                 Color color = (prop.m_colorMode != NetLaneProps.ColorMode.EndState) ? startColor : endColor;
                                 Randomizer randomizer = new Randomizer((int)(laneID + (uint)i));
                                 for(int j = 1; j <= repeatCountTimes2; j += 2) {
                                     if(randomizer.Int32(100u) < prop.m_probability) {
-                                        float t = halfSegmentOffset + (float)j / (float)repeatCountTimes2;
-                                        PropInfo variation = finalProp.GetVariation(ref randomizer);
+                                        float t = offset + (float)j / (float)repeatCountTimes2;
+                                        PropInfo variation = propInfo.GetVariation(ref randomizer);
                                         float scale = variation.m_minScale + (float)randomizer.Int32(10000u) * (variation.m_maxScale - variation.m_minScale) * 0.0001f;
                                         if(prop.m_colorMode == NetLaneProps.ColorMode.Default) {
                                             color = variation.GetColor(ref randomizer);
@@ -133,7 +133,7 @@ namespace KianCommons.StockCode {
                                 Randomizer randomizer2 = new Randomizer((int)(laneID + (uint)i));
                                 for(int k = 1; k <= repeatCountTimes2; k += 2) {
                                     if(randomizer2.Int32(100u) < prop.m_probability) {
-                                        float t = halfSegmentOffset + (float)k / (float)repeatCountTimes2;
+                                        float t = offset + (float)k / (float)repeatCountTimes2;
                                         TreeInfo variation2 = finalTree.GetVariation(ref randomizer2);
                                         float scale2 = variation2.m_minScale + (float)randomizer2.Int32(10000u) * (variation2.m_maxScale - variation2.m_minScale) * 0.0001f;
                                         float brightness = variation2.m_minBrightness + (float)randomizer2.Int32(10000u) * (variation2.m_maxBrightness - variation2.m_minBrightness) * 0.0001f;
@@ -301,6 +301,122 @@ namespace KianCommons.StockCode {
                     }
                     vector3.y += prop.m_position.y;
                     TreeInstance.PopulateGroupData(variation2, vector3, scale2, brightness, RenderManager.DefaultColorLocation, ref vertexIndex, ref triangleIndex, groupPosition, data, ref min, ref max, ref maxRenderDistance, ref maxInstanceDistance);
+                }
+            }
+        }
+
+        public void RefreshInstance(ushort segmentID, uint laneID, NetInfo.Lane laneInfo, float startAngle, float endAngle, bool invert, ref RenderManager.Instance data, ref int propIndex) {
+            NetLaneProps laneProps = laneInfo.m_laneProps;
+            if (laneProps != null && laneProps.m_props != null) {
+                bool backward = (byte)(laneInfo.m_finalDirection & NetInfo.Direction.Both) == 2 || (byte)(laneInfo.m_finalDirection & NetInfo.Direction.AvoidBoth) == 11;
+                bool reverse = backward != invert;
+                int nProps = laneProps.m_props.Length;
+                for (int i = 0; i < nProps; i++) {
+                    NetLaneProps.Prop prop = laneProps.m_props[i];
+                    if (this.m_length >= prop.m_minLength) {
+                        int repeatCountTimes2 = 2;
+                        if (prop.m_repeatDistance > 1f) {
+                            repeatCountTimes2 *= Mathf.Max(1, Mathf.RoundToInt(this.m_length / prop.m_repeatDistance));
+                        }
+                        int currentPropIndex = propIndex;
+                        propIndex = currentPropIndex + ((repeatCountTimes2 + 1) >> 1);
+                        float halfSegmentOffset = prop.m_segmentOffset * 0.5f;
+                        if (this.m_length != 0f) {
+                            halfSegmentOffset = Mathf.Clamp(halfSegmentOffset + prop.m_position.z / this.m_length, -0.5f, 0.5f);
+                        }
+                        if (reverse) {
+                            halfSegmentOffset = -halfSegmentOffset;
+                        }
+                        PropInfo propInfo = prop.m_finalProp;
+                        if (propInfo != null) {
+                            Randomizer randomizer = new Randomizer((int)(laneID + (uint)i));
+                            for (int j = 1; j <= repeatCountTimes2; j += 2) {
+                                if (randomizer.Int32(100U) < prop.m_probability) {
+                                    float t = halfSegmentOffset + (float)j / (float)repeatCountTimes2;
+                                    PropInfo variation = propInfo.GetVariation(ref randomizer);
+                                    randomizer.Int32(10000U);
+                                    if (prop.m_colorMode == NetLaneProps.ColorMode.Default) {
+                                        variation.GetColor(ref randomizer);
+                                    }
+                                    Vector3 worldPos = this.m_bezier.Position(t);
+                                    Vector3 dir = this.m_bezier.Tangent(t);
+                                    if (dir != Vector3.zero) {
+                                        if (reverse) {
+                                            dir = -dir;
+                                        }
+                                        dir.y = 0f;
+                                        if (prop.m_position.x != 0f) {
+                                            dir = Vector3.Normalize(dir);
+                                            worldPos.x += dir.z * prop.m_position.x;
+                                            worldPos.z -= dir.x * prop.m_position.x;
+                                        }
+                                        float num6 = Mathf.Atan2(dir.x, -dir.z);
+                                        if (prop.m_cornerAngle != 0f || prop.m_position.x != 0f) {
+                                            float num7 = endAngle - startAngle;
+                                            if (num7 > Mathf.PI) {
+                                                num7 -= 2 * Mathf.PI;
+                                            }
+                                            if (num7 < -Mathf.PI) {
+                                                num7 += 2 * Mathf.PI;
+                                            }
+                                            float num8 = startAngle + num7 * t;
+                                            num7 = num8 - num6;
+                                            if (num7 > Mathf.PI) {
+                                                num7 -= 2 * Mathf.PI;
+                                            }
+                                            if (num7 < -Mathf.PI) {
+                                                num7 += 2 * Mathf.PI;
+                                            }
+                                            num6 += num7 * prop.m_cornerAngle;
+                                            if (num7 != 0f && prop.m_position.x != 0f) {
+                                                float num9 = Mathf.Tan(num7);
+                                                worldPos.x += dir.x * num9 * prop.m_position.x;
+                                                worldPos.z += dir.z * num9 * prop.m_position.x;
+                                            }
+                                        }
+                                        if (variation.m_requireWaterMap) {
+                                            worldPos.y = Singleton<TerrainManager>.instance.SampleRawHeightSmoothWithWater(worldPos, false, 0f);
+                                        } else {
+                                            worldPos.y = Singleton<TerrainManager>.instance.SampleDetailHeight(worldPos);
+                                        }
+                                        data.m_extraData.SetUShort(currentPropIndex++, (ushort)Mathf.Clamp(Mathf.RoundToInt(worldPos.y * 64f), 0, 65535));
+                                    }
+                                }
+                            }
+                        }
+                        TreeInfo treeInfo = prop.m_finalTree;
+                        if (treeInfo != null) {
+                            if (prop.m_upgradable) {
+                                TreeInfo treeInfo2 = Singleton<NetManager>.instance.m_segments.m_buffer[(int)segmentID].TreeInfo;
+                                if (treeInfo2 != null) {
+                                    treeInfo = treeInfo2;
+                                }
+                            }
+                            Randomizer randomizer2 = new Randomizer((int)(laneID + (uint)i));
+                            for (int k = 1; k <= repeatCountTimes2; k += 2) {
+                                if (randomizer2.Int32(100U) < prop.m_probability) {
+                                    float t = halfSegmentOffset + (float)k / (float)repeatCountTimes2;
+                                    treeInfo.GetVariation(ref randomizer2);
+                                    randomizer2.Int32(10000U);
+                                    randomizer2.Int32(10000U);
+                                    Vector3 worldPos2 = this.m_bezier.Position(t);
+                                    worldPos2.y += prop.m_position.y;
+                                    if (prop.m_position.x != 0f) {
+                                        Vector3 dir = this.m_bezier.Tangent(t);
+                                        if (reverse) {
+                                            dir = -dir;
+                                        }
+                                        dir.y = 0f;
+                                        dir = Vector3.Normalize(dir);
+                                        worldPos2.x += dir.z * prop.m_position.x;
+                                        worldPos2.z -= dir.x * prop.m_position.x;
+                                    }
+                                    worldPos2.y = Singleton<TerrainManager>.instance.SampleDetailHeight(worldPos2);
+                                    data.m_extraData.SetUShort(currentPropIndex++, (ushort)Mathf.Clamp(Mathf.RoundToInt(worldPos2.y * 64f), 0, 65535));
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
