@@ -6,9 +6,14 @@ namespace KianCommons.Serialization {
     using System.IO;
     using System.Linq;
 
-    public abstract class XMLData<C> where C : class, new() {
+    public abstract class XMLData<C> : IXMLData
+        where C : class, IXMLData, new() {
         private static C instance_;
         public static C Instance => instance_ ??= (Load() ?? new C());
+        public static void ResetSettings() {
+            instance_ = new C();
+            instance_.Save();
+        }
 
         public static C Load() {
             try {
@@ -46,6 +51,8 @@ namespace KianCommons.Serialization {
             }
         }
     }
+
+    public interface IXMLData { void Save(); }
 
     [AttributeUsage(AttributeTargets.Class)]
     public class ConfigurationPathAttribute : Attribute {
