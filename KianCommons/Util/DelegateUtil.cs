@@ -62,7 +62,7 @@ namespace KianCommons {
                 if(method == null) return null;
                 return (TDelegate)Delegate.CreateDelegate(type: typeof(TDelegate), method: method);
             } catch(Exception ex) {
-                throw new Exception($"CreateClosedDelegate<{typeof(TDelegate).Name}>({instance.GetType().Name},{name}) failed!", ex);
+                throw new Exception($"CreateDelegate<{typeof(TDelegate).Name}>({instance.GetType().Name},{name}) failed!", ex);
             }
         }
     }
