@@ -10,10 +10,10 @@ namespace KianCommons.Serialization {
 
         [FieldOffset(0)] private float m_float;
 
-        // recast float to int without changing bits
+        ///<summary>recast float to int without changing bits</summary>
         public static int AsInt(float f) => new FloatConverter { m_float = f }.m_int;
 
-        // recast int to float without changing bits
+        ///<summary>recast int to float without changing bits</summary>
         public static float AsFloat(int i) => new FloatConverter { m_int = i }.m_float;
     }
 
