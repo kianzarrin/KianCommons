@@ -1,7 +1,17 @@
 namespace KianCommons.Serialization {
     using System;
     using System.IO;
+    using System.Runtime.InteropServices;
     using KianCommons;
+
+    [StructLayout(LayoutKind.Explicit, Pack = 4)]
+    struct FloatConverter {
+        [FieldOffset(0)]
+        public int m_int;
+
+        [FieldOffset(0)]
+        public float m_float;
+    }
 
     public class SimpleDataSerializer {
         public readonly Version Version;
@@ -53,6 +63,20 @@ namespace KianCommons.Serialization {
             Stream.WriteByte((byte)(value >> 16 & 255u));
             Stream.WriteByte((byte)(value >> 8 & 255u));
             Stream.WriteByte((byte)(value & 255u));
+        }
+
+        public void WriteFloat(float value) {
+            FloatConverter num;
+            num.m_int = 0;
+            num.m_float = value;
+            this.WriteInt32(num.m_int);
+        }
+
+        public float ReadFloat() {
+            FloatConverter num;
+            num.m_float = 0f;
+            num.m_int = this.ReadInt32();
+            return num.m_float;
         }
 
         public Version ReadVersion() {
