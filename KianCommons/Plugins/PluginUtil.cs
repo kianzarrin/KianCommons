@@ -75,17 +75,19 @@ namespace KianCommons.Plugins {
                 id.PadRight(12);
                 if(!detailed)
                     return $"\t{enabled} {id} {p.GetModName()}";
-#pragma warning disable
                 return $"\t{enabled} " +
                     $"{id} " +
-                    $"mod-name:{p.GetModName()} " +
-                    $"asm-name:{p.GetMainAssembly()?.Name()} " +
-                    $"user-mod-type:{p?.userModInstance?.GetType().Name}";
-#pragma warning restore
+                    $"mod-name:{(p?.GetModName()).ToSTR()} " +
+                    $"asm-name:{(p?.GetMainAssembly()?.Name()).ToSTR()} " +
+                    $"user-mod-type:{(p?.userModInstance?.GetType()?.Name).ToSTR()}";
             }
-
+            static int Comparison(PluginInfo a, PluginInfo b) {
+                if (b == null) return 1;
+                if (a == null) return -1;
+                return b.isEnabled.CompareTo(a.isEnabled);
+            }
             var plugins = man.GetPluginsInfo().ToList();
-            plugins.Sort((a, b) => b.isEnabled.CompareTo(a.isEnabled)); // enabled first
+            plugins.Sort(Comparison); // enabled first
             var m = plugins.Select(p => PluginToString(p)).JoinLines();
             Log.Info("Installed mods are:\n" + m, true);
         }
