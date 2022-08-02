@@ -194,10 +194,10 @@ namespace KianCommons {
         [Conditional("DEBUG")]
         public static void DebugOnce(string message, object id = null, bool copyToGameLog = true) {
             id ??= Environment.StackTrace + message;
-            if (!logged_ids_.Contains(id))
+            if (!logged_ids_.Contains(id)) {
                 logged_ids_.Add(id);
-            else
                 Log.Debug(message, copyToGameLog);
+            }
         }
         #endregion
 

@@ -6,9 +6,7 @@ namespace KianCommons.Plugins {
     using ColossalFramework;
     using static ColossalFramework.Plugins.PluginManager;
     using ColossalFramework.PlatformServices;
-    using UnityEngine.Assertions;
     using System.Linq;
-    using System.Collections;
     using System.Collections.Generic;
 
     internal static class DelegateUtil {
@@ -46,9 +44,9 @@ namespace KianCommons.Plugins {
 
 
     internal static class PluginExtensions {
-        public static IUserMod GetUserModInstance(this PluginInfo plugin) => plugin.userModInstance as IUserMod;
+        public static IUserMod GetUserModInstance(this PluginInfo plugin) => plugin?.userModInstance as IUserMod;
 
-        public static string GetModName(this PluginInfo plugin) => GetUserModInstance(plugin).Name;
+        public static string GetModName(this PluginInfo plugin) => GetUserModInstance(plugin)?.Name;
 
         public static ulong GetWorkshopID(this PluginInfo plugin) => plugin.publishedFileID.AsUInt64;
 
@@ -60,7 +58,7 @@ namespace KianCommons.Plugins {
         public static Assembly GetMainAssembly(this PluginInfo plugin) => plugin?.userModInstance?.GetType()?.Assembly;
 
         public static bool IsLocal(this PluginInfo plugin) =>
-            plugin.GetWorkshopID() == 0 || plugin.publishedFileID == PublishedFileId.invalid;
+            plugin != null && (plugin.GetWorkshopID() == 0 || plugin.publishedFileID == PublishedFileId.invalid);
 
         public static PluginInfo GetPlugin(this Assembly assembly) => PluginUtil.GetPlugin(assembly);
     }
@@ -77,17 +75,19 @@ namespace KianCommons.Plugins {
                 id.PadRight(12);
                 if(!detailed)
                     return $"\t{enabled} {id} {p.GetModName()}";
-#pragma warning disable
                 return $"\t{enabled} " +
                     $"{id} " +
-                    $"mod-name:{p.GetModName()} " +
-                    $"asm-name:{p.GetMainAssembly()?.Name()} " +
-                    $"user-mod-type:{p?.userModInstance?.GetType().Name}";
-#pragma warning restore
+                    $"mod-name:{(p?.GetModName()).ToSTR()} " +
+                    $"asm-name:{(p?.GetMainAssembly()?.Name()).ToSTR()} " +
+                    $"user-mod-type:{(p?.userModInstance?.GetType()?.Name).ToSTR()}";
             }
-
+            static int Comparison(PluginInfo a, PluginInfo b) {
+                if (b == null) return 1;
+                if (a == null) return -1;
+                return b.isEnabled.CompareTo(a.isEnabled);
+            }
             var plugins = man.GetPluginsInfo().ToList();
-            plugins.Sort((a, b) => b.isEnabled.CompareTo(a.isEnabled)); // enabled first
+            plugins.Sort(Comparison); // enabled first
             var m = plugins.Select(p => PluginToString(p)).JoinLines();
             Log.Info("Installed mods are:\n" + m, true);
         }

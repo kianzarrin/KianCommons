@@ -402,5 +402,44 @@ namespace KianCommons.StockCode {
             }
         }
 
+        public virtual float GetNodeBuildingAngle(ushort nodeID, ref NetNode data) {
+            NetManager instance = Singleton<NetManager>.instance;
+            float[] angleBuffer = instance.m_angleBuffer;
+            int angleCount = 0;
+            for (int segmentIndex = 0; segmentIndex < 8; segmentIndex++) {
+                ushort segmentId = data.GetSegment(segmentIndex);
+                if (segmentId != 0) {
+                    var dir = segmentId.ToSegment().GetDirection(nodeID);
+                    float angle = Mathf.Atan2(dir.x, -dir.z) * 0.159154937f + 1.25f;
+                    angleBuffer[angleCount++] = angle - Mathf.Floor(angle);
+                    angle += 0.5f;
+                    angleBuffer[angleCount++] = angle - Mathf.Floor(angle);
+                }
+            }
+            float result = 0f;
+            if (angleCount != 0) {
+                if (angleCount == 2) {
+                    result = angleBuffer[0] + 0.75f;
+                } else {
+                    Array.Sort(angleBuffer, 0, angleCount);
+                    var angle1 = angleBuffer[angleCount - 1];
+                    var angle2 = angleBuffer[0];
+                    result = (angle1 + angle2) * 0.5f;
+                    float maxAngleDiff = angle2 - angle1 + 1; // why +1 ?
+                    for (int angleIndex = 1; angleIndex < angleCount; angleIndex++) {
+                        angle1 = angleBuffer[angleIndex - 1];
+                        angle2 = angleBuffer[angleIndex];
+                        float angleDiff = angle2 - angle1;
+                        if (angleDiff > maxAngleDiff) {
+                            maxAngleDiff = angleDiff;
+                            result = (angle1 + angle2) * 0.5f;
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+
+
     }
 }

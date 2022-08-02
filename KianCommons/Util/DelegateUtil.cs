@@ -45,8 +45,8 @@ namespace KianCommons {
         /// <returns>a delegate that can be called without the need to provide instance argument.</returns>
         internal static TDelegate CreateClosedDelegate<TDelegate>(object instance, string name = null) where TDelegate : Delegate {
             try {
-                var type = instance.GetType();
-                var method = type.GetMethod<TDelegate>(name);
+                var type = instance?.GetType();
+                var method = type?.GetMethod<TDelegate>(name);
                 if(method == null) return null;
                 return (TDelegate)Delegate.CreateDelegate(type: typeof(TDelegate), firstArgument: instance, method: method);
             } catch(Exception ex) {
@@ -58,11 +58,12 @@ namespace KianCommons {
         /// <param name="name">method name or null to use delegate type as name</param>
         internal static TDelegate CreateDelegate<TDelegate>(Type type, string name = null, bool instance = false, bool throwOnError = false) where TDelegate : Delegate {
             try {
-                var method = type.GetMethod<TDelegate>(name, instance: instance, throwOnError: throwOnError);
+                var method = type?.GetMethod<TDelegate>(name, instance: instance, throwOnError: throwOnError);
                 if(method == null) return null;
                 return (TDelegate)Delegate.CreateDelegate(type: typeof(TDelegate), method: method);
             } catch(Exception ex) {
-                throw new Exception($"CreateClosedDelegate<{typeof(TDelegate).Name}>({instance.GetType().Name},{name}) failed!", ex);
+                if (!throwOnError) return null;
+                throw new Exception($"CreateDelegate<{typeof(TDelegate).Name}>({instance.GetType().Name},{name}) failed!", ex);
             }
         }
     }
