@@ -35,7 +35,7 @@ namespace KianCommons.UI {
 
         public void RefreshSizeRecursive() {
             foreach (UIComponent item in components) {
-                (item as UIAutoSizePanel)?.RefreshSizeRecursive();
+                if(item)(item as UIAutoSizePanel)?.RefreshSizeRecursive();
             }
             RefreshSize();
         }

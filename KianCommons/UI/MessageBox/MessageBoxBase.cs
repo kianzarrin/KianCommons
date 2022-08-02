@@ -210,7 +210,7 @@ namespace KianCommons.UI.MessageBox
 
             // Position main panel under title bar and set width.
             mainPanel.relativePosition = new Vector2(0, titleBar.height);
-            mainPanel.width = width - (mainPanel?.verticalScrollbar?.width ?? 0) - 3f;
+            mainPanel.width = width - (mainPanel.verticalScrollbar?.width ?? 0) - 3f;
 
             // Position button panel under main panel.
             buttonPanel.relativePosition = new Vector2(0, titleBar.height + mainPanel.height + Padding);
