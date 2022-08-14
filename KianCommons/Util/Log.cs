@@ -177,6 +177,11 @@ namespace KianCommons {
             }
         }
 
+        public static void ReadCommandLineArgs() {
+            VERBOSE = Environment.GetCommandLineArgs().Contains("-VERBOSE");
+            Buffered = !Environment.GetCommandLineArgs().Contains("-UNBUF");
+        }
+
         /// <summary>
         /// Log levels. Also output in log file.
         /// </summary>
