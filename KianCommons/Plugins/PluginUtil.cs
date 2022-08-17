@@ -9,40 +9,6 @@ namespace KianCommons.Plugins {
     using System.Linq;
     using System.Collections.Generic;
 
-    internal static class DelegateUtil {
-        /// <typeparam name="TDelegate">delegate type</typeparam>
-        /// <returns>Type[] representing arguments of the delegate.</returns>
-        internal static Type[] GetParameterTypes<TDelegate>()
-            where TDelegate : Delegate =>
-            typeof(TDelegate)
-            .GetMethod("Invoke")
-            .GetParameters()
-            .Select(p => p.ParameterType)
-            .ToArray();
-
-        /// <summary>
-        /// Gets directly declared method based on a delegate that has
-        /// the same name as the target method
-        /// </summary>
-        /// <param name="type">the class/type where the method is declared</param>
-        /// <param name="name">the name of the method</param>
-        internal static MethodInfo GetMethod<TDelegate>(this Type type, string name) where TDelegate : Delegate {
-            var ret = type.GetMethod(
-                name,
-                types: GetParameterTypes<TDelegate>());
-            if(ret == null) 
-                Log.Warning($"could not find method {type.Name}.{name}");
-            return ret;
-        }
-
-        internal static TDelegate CreateDelegate<TDelegate>(Type type, string name = null) where TDelegate : Delegate {
-            var method = type.GetMethod<TDelegate>(name ?? typeof(TDelegate).Name);
-            if (method == null) return null;
-            return (TDelegate)Delegate.CreateDelegate(typeof(TDelegate), method);
-        }
-    }
-
-
     internal static class PluginExtensions {
         public static IUserMod GetUserModInstance(this PluginInfo plugin) => plugin?.userModInstance as IUserMod;
 
