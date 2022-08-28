@@ -530,6 +530,30 @@ namespace KianCommons.Patches {
             }
         }
 
+        public static int GetLoc(this CodeInstruction code) {
+            int loc = -1;
+            if (code.opcode == OpCodes.Ldloc_0 || code.opcode == OpCodes.Stloc_0) {
+                loc = 0;
+            } else if (code.opcode == OpCodes.Ldloc_1 || code.opcode == OpCodes.Stloc_1) {
+                loc = 1;
+            } else if (code.opcode == OpCodes.Ldloc_2 || code.opcode == OpCodes.Stloc_2) {
+                loc = 2;
+            } else if (code.opcode == OpCodes.Ldloc_3 || code.opcode == OpCodes.Stloc_3) {
+                loc = 3;
+            } else if (
+                code.opcode == OpCodes.Ldloc_S || code.opcode == OpCodes.Ldloc ||
+                code.opcode == OpCodes.Ldloca_S || code.opcode == OpCodes.Ldloca ||
+                code.opcode == OpCodes.Stloc_S || code.opcode == OpCodes.Stloc) {
+                if (code.operand is LocalBuilder lb)
+                    loc = lb.LocalIndex;
+                else
+                    loc = (int)code.operand;
+            } else {
+                throw new Exception($"{code} is not stloc, ldloc or ldlocA");
+            }
+            return loc;
+        }
+
         public static bool LoadsConstant(this CodeInstruction code, string value) {
             return code.opcode == OpCodes.Ldstr
                 && code.operand is string str
