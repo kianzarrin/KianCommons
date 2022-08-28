@@ -114,12 +114,18 @@ namespace KianCommons.Serialization {
         /// <summary>
         /// warning: structs should make use of the return value.
         /// </summary>
-        public static object SetObjectFields(SerializationInfo info, object instance)  {
+        public static object SetObjectFields(SerializationInfo info, object instance, bool silentInvalidCast = false)  {
             foreach (SerializationEntry item in info) {
-                FieldInfo field = instance.GetType().GetField(item.Name, ReflectionHelpers.COPYABLE);
-                if (field != null) {
-                    object val = Convert.ChangeType(item.Value, field.FieldType);
-                    field.SetValue(instance, val);
+                try {
+                    FieldInfo field = instance.GetType().GetField(item.Name, ReflectionHelpers.COPYABLE);
+                    if (field != null) {
+                        object val = Convert.ChangeType(item.Value, field.FieldType);
+                        field.SetValue(instance, val);
+                    }
+                } catch (InvalidCastException) when(silentInvalidCast == true) {
+                    // silent
+                } catch (Exception ex) {
+                    ex.Log();
                 }
             }
             return instance;
@@ -128,13 +134,19 @@ namespace KianCommons.Serialization {
         /// <summary>
         /// warning, structs should make use of the return value.
         /// </summary>
-        public static object SetObjectProperties(SerializationInfo info, object instance)  {
-            foreach (SerializationEntry item in info) {
-                var p = instance.GetType().GetProperty(item.Name, ReflectionHelpers.COPYABLE);
-                var setter = p?.GetSetMethod();
-                if (setter != null) {
-                    object val = Convert.ChangeType(item.Value, p.PropertyType);
-                    p.SetValue(instance, val, null);
+        public static object SetObjectProperties(SerializationInfo info, object instance, bool silentInvalidCast = false)  {
+                foreach (SerializationEntry item in info) {
+                try {
+                    var p = instance.GetType().GetProperty(item.Name, ReflectionHelpers.COPYABLE);
+                    var setter = p?.GetSetMethod();
+                    if (setter != null) {
+                        object val = Convert.ChangeType(item.Value, p.PropertyType);
+                        p.SetValue(instance, val, null);
+                    }
+                } catch (InvalidCastException) when (silentInvalidCast == true) {
+                    // silent
+                } catch (Exception ex) {
+                    ex.Log();
                 }
             }
             return instance;
