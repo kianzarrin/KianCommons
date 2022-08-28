@@ -413,6 +413,7 @@ namespace KianCommons {
                 VehicleInfo.VehicleType.Car | VehicleInfo.VehicleType.Train |
                 VehicleInfo.VehicleType.Tram | VehicleInfo.VehicleType.Metro |
                 VehicleInfo.VehicleType.Monorail,
+                VehicleInfo.VehicleCategory.All,
                 ref forward,
                 ref backward);
             return (forward == 0) ^ (backward == 0);

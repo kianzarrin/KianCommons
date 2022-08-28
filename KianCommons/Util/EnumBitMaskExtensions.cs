@@ -92,6 +92,7 @@ namespace KianCommons {
         internal static bool IsFlagSet(this NetInfo.LaneType value, NetInfo.LaneType flag) => (value & flag) != 0;
         internal static bool IsFlagSet(this VehicleInfo.VehicleType value, VehicleInfo.VehicleType flag) => (value & flag) != 0;
         internal static bool IsFlagSet(this NetNode.Flags value, NetNode.Flags flag) => (value & flag) != 0;
+        internal static bool IsFlagSet(this NetNode.FlagsLong value, NetNode.FlagsLong flag) => (value & flag) != 0;
         internal static bool IsFlagSet(this NetSegment.Flags value, NetSegment.Flags flag) => (value & flag) != 0;
         internal static bool IsFlagSet(this NetLane.Flags value, NetLane.Flags flag) => (value & flag) != 0;
 
@@ -103,6 +104,9 @@ namespace KianCommons {
             (value & (required | forbidden)) == required;
         internal static bool CheckFlags(this NetNode.Flags value, NetNode.Flags required, NetNode.Flags forbidden =0) =>
             (value & (required | forbidden)) == required;
+        internal static bool CheckFlags(this NetNode.FlagsLong value, NetNode.FlagsLong required, NetNode.FlagsLong forbidden = 0) =>
+            (value & (required | forbidden)) == required;
+
         internal static bool CheckFlags(this NetSegment.Flags value, NetSegment.Flags required, NetSegment.Flags forbidden=0) =>
             (value & (required | forbidden)) == required;
         internal static bool CheckFlags(this NetLane.Flags value, NetLane.Flags required, NetLane.Flags forbidden = 0) =>
