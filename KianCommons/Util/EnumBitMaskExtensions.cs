@@ -161,17 +161,29 @@ namespace KianCommons {
             }
         }
 
+        public static IEnumerable<IConvertible> GetValuesSorted(Type enumType) {
+            Log.Called(enumType);
+            CheckEnumWithFlags(enumType);
+            foreach (var member in enumType.GetMembers()) {
+                if(member is FieldInfo fieldInfo && fieldInfo.FieldType == enumType) {
+                    IConvertible ret = null;
+                    // try parse
+                    try { ret = Enum.Parse(enumType, member.Name) as IConvertible; } catch { }
+                    if (ret != null) yield return ret;
+                }
+            }
+        }
+
+        public static IEnumerable<T> GetValuesSorted<T>() where T : struct, Enum, IConvertible {
+            return GetValuesSorted(typeof(T)).Cast<T>();
+        }
 
         public static IEnumerable<IConvertible> GetPow2Values(Type enumType) {
-            CheckEnumWithFlags(enumType);
-            var values = Enum.GetValues(enumType).Cast<IConvertible>();
-            return values.Where(val => IsPow2(val));
+            return GetValuesSorted(enumType).Where(val => IsPow2(val));
         }
 
         public static IEnumerable<T> GetPow2Values<T>() where T : struct, Enum, IConvertible {
-            CheckEnumWithFlags(typeof(T));
-            var values = Enum.GetValues(typeof(T)).Cast<T>();
-            return values.Where(val => IsPow2(val));
+            return GetValuesSorted<T>().Where(val => IsPow2(val));
         }
         public static IEnumerable<T> ExtractPow2Flags<T>(this T flags)
             where T : struct, Enum, IConvertible {
