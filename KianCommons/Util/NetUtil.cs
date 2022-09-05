@@ -16,6 +16,23 @@ namespace KianCommons {
     }
 
     public static class NetUtil {
+        public static Dictionary<string, int> kTags = ReflectionHelpers.GetFieldValue<NetInfo>("kTags") as Dictionary<string, int>;
+
+        /// <summary>
+        /// WARNING: low performance!
+        /// </summary>
+        public static string[] GetTags(DynamicFlags flags) {
+            List<string> tags = new();
+            foreach (string tag in kTags.Keys) {
+                var flag = NetInfo.GetFlags(new[] { tag });
+                if (!(flag & flags).IsEmpty) {
+                    tags.Add(tag);
+                }
+            }
+
+            return tags.ToArray();
+        }
+
         public const float SAFETY_NET = 0.02f;
 
         public static NetManager netMan = NetManager.instance;
