@@ -7,6 +7,7 @@ using System.Xml.Serialization;
 using System.Xml.Linq;
 using UnityEngine;
 using System.Linq;
+using System.Reflection;
 
 namespace KianCommons.Serialization {
     internal static class XMLSerializerUtil {
@@ -44,6 +45,55 @@ namespace KianCommons.Serialization {
                 Log.Debug("data=" + data);
                 Log.Exception(ex, showInPanel: false);
                 return default;
+            }
+        }
+
+        [Obsolete("incomplete", true)]
+        public static void ReadXml(this IXmlSerializable target, XmlReader reader) {
+            Console.WriteLine("ReadXml()");
+            bool empty = reader.IsEmptyElement;
+            reader.ReadStartElement();
+            if (!empty) {
+                while (reader.IsStartElement()) {
+                    try {
+                        string name = reader.Name;
+                        string value = reader.ReadElementString();
+                        Type type = target.GetType();
+                        var field = type.GetField(name, BindingFlags.Instance);
+                        if (field != null) {
+                            field.SetValue(target, value);
+                            continue;
+                        }
+                        var property = type.GetProperty(name, BindingFlags.Instance);
+                        if (property?.GetSetMethod() != null) {
+                            property.SetValue(target, value, null);
+                        }
+                    } catch(Exception ex) {
+                        Log.Warning(ex.Message);
+                    }
+                }
+                reader.ReadEndElement();
+            }
+        }
+
+        [Obsolete("incomplete", true)]
+        public static void WriteXml(this IXmlSerializable target, XmlWriter writer) {
+            Type type = target.GetType();
+            foreach (var field in type.GetFields(BindingFlags.Instance)) {
+                if (!field.HasAttribute<XmlIgnoreAttribute>()) {
+                    string value = field.GetValue(target)?.ToString();
+                    if (value != null) {
+                        writer.WriteElementString(field.Name, value);
+                    }
+                }
+            }
+            foreach (var property in type.GetProperties(BindingFlags.Instance)) {
+                if (!property.HasAttribute<XmlIgnoreAttribute>()) {
+                    string value = property.GetValue(target, null)?.ToString();
+                    if (value != null) {
+                        writer.WriteElementString(property.Name, value);
+                    }
+                }
             }
         }
 
