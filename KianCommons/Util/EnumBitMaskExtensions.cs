@@ -162,7 +162,7 @@ namespace KianCommons {
         }
 
         public static IEnumerable<IConvertible> GetValuesSorted(Type enumType) {
-            Log.Called(enumType);
+            //Log.Called(enumType);
             CheckEnumWithFlags(enumType);
             foreach (var member in enumType.GetMembers()) {
                 if(member is FieldInfo fieldInfo && fieldInfo.FieldType == enumType) {

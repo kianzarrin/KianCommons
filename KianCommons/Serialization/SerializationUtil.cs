@@ -7,8 +7,8 @@ namespace KianCommons.Serialization {
     using System.Runtime.Serialization;
     using System.Runtime.Serialization.Formatters;
     using System.Runtime.Serialization.Formatters.Binary;
-    using System.Collections.Generic;
-    using System.Text;
+
+    public class NonSerialized2Attribute : Attribute { }
 
     public class AssemblyBinder : SerializationBinder {
         public class TypeName {
@@ -111,6 +111,19 @@ namespace KianCommons.Serialization {
             }
         }
 
+        public static void GetObjectProperties(SerializationInfo info, object instance) {
+            var properties = instance.GetType().GetProperties(ReflectionHelpers.COPYABLE).Where(field => !field.HasAttribute<NonSerialized2Attribute>());
+            foreach (PropertyInfo p in properties) {
+                var type = p.GetType();
+                if (type == typeof(Vector3)) {
+                    //Vector3Serializable v = (Vector3Serializable)field.GetValue(instance);
+                    info.AddValue(p.Name, p.GetValue(instance, null), typeof(Vector3Serializable));
+                } else {
+                    info.AddValue(p.Name, p.GetValue(instance, null), p.PropertyType);
+                }
+            }
+        }
+
         /// <summary>
         /// warning: structs should make use of the return value.
         /// </summary>
@@ -160,6 +173,9 @@ namespace KianCommons.Serialization {
 
         public static T GetValue<T>(this SerializationInfo info, string name) =>
             (T)info.GetValue(name, typeof(T));
+
+        public static void AddValue<T>(this SerializationInfo info, string name, T value) =>
+            info.AddValue(name, value, typeof(T));
     }
 
     internal static class IOExtensions {
