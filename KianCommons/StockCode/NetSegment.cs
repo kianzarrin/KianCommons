@@ -1005,6 +1005,131 @@ namespace KianCommons.StockCode {
                 cornerPos.y += startNodeID.ToNode().m_heightOffset * 0.015625f /* some constant used in terrain manager.*/; 
             }
         }
-    }
 
+#if OLD
+        public void UpdateEndSegments(ushort segmentID) {
+            NetInfo info = Info;
+            if ((object)info == null) {
+                return;
+            }
+            ItemClass connectionClass = info.GetConnectionClass();
+            float maxDot1 = -4f;
+            float maxDot2 = -4f;
+            ushort endLeftSegment = 0;
+            ushort endRightSegment = 0;
+            for (int i = 0; i < 8; i++) {
+                ushort segmentId2 = m_endNode.ToNode().GetSegment(i);
+                if (segmentId2 == 0 || segmentId2 == segmentID) {
+                    continue;
+                }
+                NetInfo info2 = segmentId2.ToSegment().Info;
+                if ((object)info2 == null) {
+                    continue;
+                }
+                ItemClass connectionClass2 = info2.GetConnectionClass();
+                if (connectionClass.m_service != connectionClass2.m_service) {
+                    continue;
+                }
+                Vector3 endDir2 = segmentId2.ToSegment().GetDirection(m_endNode);
+                float dot = m_endDirection.x * endDir2.x + m_endDirection.z * endDir2.z;
+                float det = endDir2.z * m_endDirection.x - endDir2.x * m_endDirection.z;
+                if (det < 0f) {
+                    if (dot > maxDot1) {
+                        maxDot1 = dot;
+                        endLeftSegment = segmentId2;
+                    }
+                    dot = -2f - dot;
+                    if (dot > maxDot2) {
+                        maxDot2 = dot;
+                        endRightSegment = segmentId2;
+                    }
+                } else {
+                    if (dot > maxDot2) {
+                        maxDot2 = dot;
+                        endRightSegment = segmentId2;
+                    }
+                    dot = -2f - dot;
+                    if (dot > maxDot1) {
+                        maxDot1 = dot;
+                        endLeftSegment = segmentId2;
+                    }
+                }
+            }
+            m_endLeftSegment = endLeftSegment;
+            m_endRightSegment = endRightSegment;
+        }
+#endif
+        public void UpdateEndSegments(ushort segmentID) {
+            NetInfo info = Info;
+            if ((object)info == null) {
+                return;
+            }
+            ItemClass connectionClass = info.GetConnectionClass();
+            float maxDot1 = -4f;
+            float maxDot2 = -4f;
+            float maxDot11 = -4f;
+            float maxDot22 = -4f;
+            ushort endLeftSegment = 0;
+            ushort endRightSegment = 0;
+            ushort endLeftSegment2 = 0;
+            ushort endRightSegment2 = 0;
+            for (int i = 0; i < 8; i++) {
+                ushort segmentId2 = m_endNode.ToNode().GetSegment(i);
+                if (segmentId2 == 0 || segmentId2 == segmentID) {
+                    continue;
+                }
+                NetInfo info2 = segmentId2.ToSegment().Info;
+                if ((object)info2 == null) {
+                    continue;
+                }
+                ItemClass connectionClass2 = info2.GetConnectionClass();
+                if (connectionClass.m_service != connectionClass2.m_service) {
+                    continue;
+                }
+                bool connects = (!info.m_onlySameConnectionGroup && !info2.m_onlySameConnectionGroup) || (info.m_connectGroup & info2.m_connectGroup) != 0;
+                Vector3 endDir2 = segmentId2.ToSegment().GetDirection(m_endNode);
+                float dot = m_endDirection.x * endDir2.x + m_endDirection.z * endDir2.z;
+                float det = endDir2.z * m_endDirection.x - endDir2.x * m_endDirection.z;
+                if (det < 0f) {
+                    if (dot > maxDot1) {
+                        maxDot1 = dot;
+                        endLeftSegment = segmentId2;
+                    }
+                    if (dot > maxDot11 && connects) {
+                        maxDot11 = dot;
+                        endLeftSegment2 = segmentId2;
+                    }
+                    dot = -2f - dot;
+                    if (dot > maxDot2) {
+                        maxDot2 = dot;
+                        endRightSegment = segmentId2;
+                    }
+                    if (dot > maxDot22 && connects) {
+                        maxDot22 = dot;
+                        endRightSegment2 = segmentId2;
+                    }
+                } else {
+                    if (dot > maxDot2) {
+                        maxDot2 = dot;
+                        endRightSegment = segmentId2;
+                    }
+                    if (dot > maxDot22 && connects) {
+                        maxDot22 = dot;
+                        endRightSegment2 = segmentId2;
+                    }
+                    dot = -2f - dot;
+                    if (dot > maxDot1) {
+                        maxDot1 = dot;
+                        endLeftSegment = segmentId2;
+                    }
+                    if (dot > maxDot11 && connects) {
+                        maxDot11 = dot;
+                        endLeftSegment2 = segmentId2;
+                    }
+                }
+            }
+            m_endLeftSegment = endLeftSegment;
+            m_endRightSegment = endRightSegment;
+        }
+    }
 }
