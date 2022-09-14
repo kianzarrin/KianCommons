@@ -127,6 +127,11 @@ namespace KianCommons.Patches {
             return idx;
         }
 
+        public static bool IsLdarg(this CodeInstruction code, MethodBase method, string argName) {
+            byte loc = method.GetArgLoc(argName);
+            return code.IsLdarg(loc);
+        }
+
         /// <summary>
         /// Post condition: for instance method add one to get argument location
         /// </summary>
