@@ -134,20 +134,19 @@ namespace KianCommons {
     }
 
     public class RefChain<T> {
-        private readonly RefChain traverse;
+        private readonly RefChain refchain_;
+        private RefChain() { }
 
         /// <summary>Gets/Sets the current value</summary>
         /// <value>The value to read or write</value>
         public T Value {
-            get => traverse.GetValue<T>();
-            set => traverse.SetValue(value);
+            get => refchain_.GetValue<T>();
+            set => refchain_.SetValue(value);
         }
 
-        private RefChain() { }
-
-        public RefChain(RefChain traverse) {
-            Assertion.Assert(typeof(T) == traverse.GetValueType(), $"T:{typeof(T)} traverse:{traverse}");
-            this.traverse = traverse;
+        public RefChain(RefChain refchain) {
+            Assertion.Assert(typeof(T) == refchain.GetValueType(), $"T:{typeof(T)} refchain:{refchain}");
+            this.refchain_ = refchain;
         }
     }
 }
