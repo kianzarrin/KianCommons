@@ -414,6 +414,10 @@ namespace KianCommons {
             }
         }
 
+        /// <summary>
+        /// returns TypeName.MethodName()
+        /// name space excluded
+        /// </summary>
         internal static string ThisMethod {
             [MethodImpl(MethodImplOptions.NoInlining)]
             get => CurrentMethod(2);

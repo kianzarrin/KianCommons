@@ -112,7 +112,9 @@ namespace KianCommons.Serialization {
         }
 
         public static void GetObjectProperties(SerializationInfo info, object instance) {
-            var properties = instance.GetType().GetProperties(ReflectionHelpers.COPYABLE).Where(field => !field.HasAttribute<NonSerialized2Attribute>());
+            var properties = instance.GetType().GetProperties(ReflectionHelpers.COPYABLE).Where(
+                p => p.GetSetMethod() != null && p.GetGetMethod() != null &&
+                !p.HasAttribute<NonSerialized2Attribute>());
             foreach (PropertyInfo p in properties) {
                 var type = p.GetType();
                 if (type == typeof(Vector3)) {
