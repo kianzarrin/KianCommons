@@ -608,17 +608,20 @@ namespace KianCommons.StockCode {
             }
         }
 
+        /// <param name="heightOffset"></param>
+        /// <param name="leftSide">going toward the node</param>
+        /// <param name="smooth">outputs true on middle nodes</param>
         public void CalculateCorner(ushort segmentID, bool heightOffset, bool start, bool leftSide, out Vector3 cornerPos, out Vector3 cornerDirection, out bool smooth) {
             NetInfo info = this.Info;
             NetManager instance = Singleton<NetManager>.instance;
-            ushort startNodeID = (!start) ? this.m_endNode : this.m_startNode;
-            ushort num2 = (!start) ? this.m_startNode : this.m_endNode;
-            Vector3 position = instance.m_nodes.m_buffer[(int)startNodeID].m_position;
-            Vector3 position2 = instance.m_nodes.m_buffer[(int)num2].m_position;
-            Vector3 startDir = (!start) ? this.m_endDirection : this.m_startDirection;
-            Vector3 endDir = (!start) ? this.m_startDirection : this.m_endDirection;
+            ushort startNodeID = this.GetNodeID(start); // bezier start (beizer.a)
+            ushort endNodeID = this.getNodeID(!start); // bezier end (beizer.d)
+            Vector3 startPos = startNodeID.ToNode().m_position;
+            Vector3 endPos = endNodeID.ToNode().m_position;
+            Vector3 startDir = this.GetDirection(startNodeID);
+            Vector3 endDir = this.GetDirection(endNodeID);
             NetSegment.CalculateCorner(info,
-                position, position2,
+                startPos, endPos,
                 startDir, endDir,
                 null, Vector3.zero, Vector3.zero, Vector3.zero,
                 null, Vector3.zero, Vector3.zero, Vector3.zero,
@@ -626,6 +629,21 @@ namespace KianCommons.StockCode {
                 heightOffset, leftSide, out cornerPos, out cornerDirection, out smooth);
         }
 
+        /// <summary>
+        /// start refers to start of the bezier (biezier.a). it is not referring to startNode
+        /// </summary>
+        /// <param name="info">NetInfo of segment</param>
+        /// <param name="startPos">node position of start of the bezier (where corner is calculated)</param>
+        /// <param name="endPos">node position of start of the bezier</param>
+        /// <param name="startDir">direction at start of the bezier</param>
+        /// <param name="endDir">direction at end of the bezier</param>
+        /// <param name="ignoreSegmentID">segmentID to calculated corner</param>
+        /// <param name="startNodeID">node at which to calculated corner</param>
+        /// <param name="heightOffset"></param>
+        /// <param name="leftSide">going toward the node</param>
+        /// <param name="cornerPos"></param>
+        /// <param name="cornerDirection"></param>
+        /// <param name="smooth">outputs true for middle nodes</param>
         public static void CalculateCorner(NetInfo info,
             Vector3 startPos, Vector3 endPos,
             Vector3 startDir, Vector3 endDir,
