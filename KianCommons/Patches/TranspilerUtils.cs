@@ -371,8 +371,8 @@ namespace KianCommons.Patches {
                     throw new Exception("Bad Instructions:\n" + insertion.IL2STR());
             if (VERBOSE)
                 Log($"Insert point:\n between: <{codes[index - 1]}>  and  <{codes[index]}>");
-
-            MoveLabels(codes[index], insertion[0]);
+            if(moveLabels)
+                MoveLabels(codes[index], insertion[0]);
             codes.InsertRange(index, insertion);
 
             if (VERBOSE) {
