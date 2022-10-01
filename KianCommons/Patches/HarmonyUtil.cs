@@ -36,7 +36,7 @@ namespace KianCommons {
                 }
                 AssertCitiesHarmonyInstalled();
                 Log.Info("Patching...");
-                PatchAll(harmonyID);
+                PatchAll(harmonyID, null);
                 harmonyInstalled_ = true;
                 Log.Info("Patched.");
             } catch (TypeLoadException ex) {
