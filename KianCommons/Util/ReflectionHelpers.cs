@@ -147,6 +147,18 @@ namespace KianCommons {
             return type.GetMembers().Where(_member => _member.HasAttribute<T>(inherit));
         }
 
+        internal static IEnumerable<PropertyInfo> GetPropertiesWithAttribute<T>(
+            this object obj, bool inherit = true) where T : Attribute {
+            return obj.GetType().GetProperties()
+                .Where(_property => _property.HasAttribute<T>(inherit));
+        }
+
+        internal static IEnumerable<PropertyInfo> GetPropertiesWithAttribute<T>(
+            this Type type, bool inherit = true) where T : Attribute {
+            return type.GetProperties()
+                .Where(_property => _property.HasAttribute<T>(inherit));
+        }
+
         public const BindingFlags ALL = BindingFlags.Public
             | BindingFlags.NonPublic
             | BindingFlags.Instance
@@ -402,6 +414,10 @@ namespace KianCommons {
             }
         }
 
+        /// <summary>
+        /// returns TypeName.MethodName()
+        /// name space excluded
+        /// </summary>
         internal static string ThisMethod {
             [MethodImpl(MethodImplOptions.NoInlining)]
             get => CurrentMethod(2);

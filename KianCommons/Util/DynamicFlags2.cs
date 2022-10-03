@@ -1,6 +1,7 @@
 namespace KianCommons {
     public struct DynamicFlags2 {
-        public static ulong[] EMPTY_FLAGS = new ulong[0];
+        public static readonly ulong[] EMPTY_FLAGS = new ulong[0];
+        public static readonly DynamicFlags2 NONE = new DynamicFlags2(EMPTY_FLAGS);
 
         private ulong[] m_flags;
 

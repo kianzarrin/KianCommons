@@ -64,11 +64,13 @@ namespace KianCommons.UI.MessageBox.WhatsNew {
 
         static ToolController ToolController => ToolsModifierControl.toolController;
         public void Regsiter() {
+            Log.Called();
             ToolController.eventEditPrefabChanged -= ToolController_eventEditPrefabChanged;
             ToolController.eventEditPrefabChanged += ToolController_eventEditPrefabChanged;
         }
 
         private void ToolController_eventEditPrefabChanged(PrefabInfo info) {
+            Log.Called();
             if (ToolController.m_editPrefabInfo is NetInfo) {
                 ToolController.eventEditPrefabChanged -= ToolController_eventEditPrefabChanged;
                 ShowWhatsNew();

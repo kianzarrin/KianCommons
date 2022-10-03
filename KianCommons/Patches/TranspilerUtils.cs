@@ -127,6 +127,11 @@ namespace KianCommons.Patches {
             return idx;
         }
 
+        public static bool IsLdarg(this CodeInstruction code, MethodBase method, string argName) {
+            byte loc = method.GetArgLoc(argName);
+            return code.IsLdarg(loc);
+        }
+
         /// <summary>
         /// Post condition: for instance method add one to get argument location
         /// </summary>
@@ -366,8 +371,8 @@ namespace KianCommons.Patches {
                     throw new Exception("Bad Instructions:\n" + insertion.IL2STR());
             if (VERBOSE)
                 Log($"Insert point:\n between: <{codes[index - 1]}>  and  <{codes[index]}>");
-
-            MoveLabels(codes[index], insertion[0]);
+            if(moveLabels)
+                MoveLabels(codes[index], insertion[0]);
             codes.InsertRange(index, insertion);
 
             if (VERBOSE) {

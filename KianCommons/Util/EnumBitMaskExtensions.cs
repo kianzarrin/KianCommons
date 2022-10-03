@@ -88,6 +88,11 @@ namespace KianCommons {
             if (!Enum.GetUnderlyingType(type).IsInteger())
                 throw new Exception($"Type '{type.FullName}' is not integer based enum.");
         }
+
+        public static void SetFlagsRef<T>(ref this T value, T flags, bool on) where T : struct, IConvertible {
+            value = value.SetFlags(flags, on: on);
+        }
+
         internal static bool IsFlagSet(this NetInfo.Direction value, NetInfo.Direction flag) => (value & flag) != 0;
         internal static bool IsFlagSet(this NetInfo.LaneType value, NetInfo.LaneType flag) => (value & flag) != 0;
         internal static bool IsFlagSet(this VehicleInfo.VehicleType value, VehicleInfo.VehicleType flag) => (value & flag) != 0;
