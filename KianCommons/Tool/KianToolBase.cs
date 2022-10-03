@@ -16,9 +16,10 @@ namespace KianCommons.Tool {
 
     internal abstract class KianToolBase : ToolBase  {
         bool leftMouseWasDown_;
+        public static Camera Camera { get; private set; }
         public static Vector3 MousePosition => Input.mousePosition;
-        public static Ray MouseRay => Camera.main.ScreenPointToRay(MousePosition);
-        public static float MouseRayLength => Camera.main.farClipPlane;
+        public static Ray MouseRay => Camera.ScreenPointToRay(MousePosition);
+        public static float MouseRayLength => Camera.farClipPlane;
         public static bool MouseRayValid => !UIView.IsInsideUI() && Cursor.visible;
 
         public ushort HoveredNodeID { get; private set; } = 0;
@@ -34,6 +35,11 @@ namespace KianCommons.Tool {
             base.OnDisable();
             if(ToolsModifierControl.toolController.CurrentTool == this)
                 ToolsModifierControl.SetTool<DefaultTool>();
+        }
+
+        protected override void Awake() {
+            base.Awake();
+            Camera = Camera.main; // cache camera
         }
 
         protected abstract void OnPrimaryMouseClicked();
