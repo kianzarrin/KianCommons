@@ -52,6 +52,16 @@ namespace KianCommons {
         public static NetInfo.Lane GetLaneInfo(uint laneId) =>
             laneId.ToLane().m_segment.ToSegment().Info.m_lanes[GetLaneIndex(laneId)];
 
+        public static IEnumerable<NetInfo> IterateLoadedNetInfos() {
+            int n = PrefabCollection<NetInfo>.LoadedCount();
+            for (uint i = 0; i < n; i++) {
+                NetInfo info = PrefabCollection<NetInfo>.GetLoaded(i);
+                if (info == null) continue;
+                yield return info;
+            }
+            yield break;
+        }
+
         /// <summary>
         /// returns lane data of the given lane ID.
         /// throws exception if unsuccessful.

@@ -565,6 +565,7 @@ namespace KianCommons.Patches {
                 && str == value;
         }
 
+        /// <param name="method">method name(excluding class name)</param>
         public static bool Calls(this CodeInstruction code, string method) {
             if (method is null) throw new ArgumentNullException(nameof(method));
             if (code.opcode != OpCodes.Call && code.opcode != OpCodes.Callvirt) return false;
