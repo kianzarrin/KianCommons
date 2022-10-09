@@ -169,6 +169,11 @@ namespace KianCommons {
             return dict.TryGetValue(key, out TValue value) ? value : default(TValue);
         }
 
+        internal static TValue GetorSet<TKey, TValue>(this Dictionary<TKey, TValue> dict, TKey key) {
+            return dict.TryGetValue(key, out TValue value) ? value : (dict[key] = value);
+        }
+
+
         internal static void AddRange<T>(this HashSet<T> hashset, IEnumerable<T> elements) {
             foreach (var element in elements) {
                 hashset.Add(element);
