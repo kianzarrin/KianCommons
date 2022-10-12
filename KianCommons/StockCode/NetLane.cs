@@ -14,7 +14,7 @@ namespace KianCommons.StockCode {
         public void RenderInstance(
             RenderManager.CameraInfo cameraInfo,
             ushort segmentID, uint laneID, NetInfo.Lane laneInfo,
-            NetNode.Flags startFlags, NetNode.Flags endFlags,
+            NetNode.FlagsLong startFlags, NetNode.FlagsLong endFlags,
             Color startColor, Color endColor,
             float startAngle, float endAngle,
             bool invert, int layerMask,
@@ -25,7 +25,7 @@ namespace KianCommons.StockCode {
                 bool backward = (byte)(laneInfo.m_finalDirection & NetInfo.Direction.Both) == 2 || (byte)(laneInfo.m_finalDirection & NetInfo.Direction.AvoidBoth) == 11;
                 bool reverse = backward != invert;
                 if(backward) { //swap
-                    NetNode.Flags flags = startFlags;
+                    NetNode.FlagsLong flags = startFlags;
                     startFlags = endFlags;
                     endFlags = flags;
                 }
@@ -163,7 +163,7 @@ namespace KianCommons.StockCode {
         }
         public void PopulateGroupData(
             ushort segmentID, uint laneID, NetInfo.Lane laneInfo, bool destroyed,
-            NetNode.Flags startFlags, NetNode.Flags endFlags,
+            NetNode.FlagsLong startFlags, NetNode.FlagsLong endFlags,
             float startAngle, float endAngle,
             bool invert, bool terrainHeight, int layer,
             ref int vertexIndex, ref int triangleIndex, Vector3 groupPosition, RenderGroup.MeshData data, ref Vector3 min, ref Vector3 max, ref float maxRenderDistance, ref float maxInstanceDistance, ref bool hasProps) {
@@ -174,7 +174,7 @@ namespace KianCommons.StockCode {
             bool backward = (laneInfo.m_finalDirection & NetInfo.Direction.Both) == NetInfo.Direction.Backward || (laneInfo.m_finalDirection & NetInfo.Direction.AvoidBoth) == NetInfo.Direction.AvoidForward;
             bool reverse = backward != invert;
             if(backward) { //swap
-                NetNode.Flags flags = startFlags;
+                NetNode.FlagsLong flags = startFlags;
                 startFlags = endFlags;
                 endFlags = flags;
             }

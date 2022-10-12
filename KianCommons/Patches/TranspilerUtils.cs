@@ -371,8 +371,8 @@ namespace KianCommons.Patches {
                     throw new Exception("Bad Instructions:\n" + insertion.IL2STR());
             if (VERBOSE)
                 Log($"Insert point:\n between: <{codes[index - 1]}>  and  <{codes[index]}>");
-
-            MoveLabels(codes[index], insertion[0]);
+            if(moveLabels)
+                MoveLabels(codes[index], insertion[0]);
             codes.InsertRange(index, insertion);
 
             if (VERBOSE) {
@@ -565,6 +565,7 @@ namespace KianCommons.Patches {
                 && str == value;
         }
 
+        /// <param name="method">method name(excluding class name)</param>
         public static bool Calls(this CodeInstruction code, string method) {
             if (method is null) throw new ArgumentNullException(nameof(method));
             if (code.opcode != OpCodes.Call && code.opcode != OpCodes.Callvirt) return false;

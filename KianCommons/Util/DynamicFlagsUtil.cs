@@ -2,8 +2,9 @@ namespace KianCommons {
     using System;
 
     public static class DynamicFlagsUtil {
-        public static ulong[] EMPTY_FLAGS = new ulong[0];
-        public static string[] EMPTY_TAGS = new string[0];
+        public readonly static ulong[] EMPTY_FLAGS = new ulong[0];
+        public readonly static string[] EMPTY_TAGS = new string[0];
+        public readonly static DynamicFlags NONE = new DynamicFlags(EMPTY_FLAGS);
 
         public static bool CheckFlags(this DynamicFlags flags, DynamicFlags required, DynamicFlags forbidden) =>
             DynamicFlags.Check(flags, required: required, forbidden: forbidden);
