@@ -63,7 +63,7 @@ namespace KianCommons {
             NetInfo.ConnectGroup.DoubleMetro |
             NetInfo.ConnectGroup.SingleMetro |
             NetInfo.ConnectGroup.MetroStation;
-        public const NetInfo.ConnectGroup TROLLY =
+        public const NetInfo.ConnectGroup TROLLEY =
             NetInfo.ConnectGroup.CenterTrolleybus |
             NetInfo.ConnectGroup.SingleTrolleybus |
             NetInfo.ConnectGroup.NarrowTrolleybus |
@@ -85,7 +85,7 @@ namespace KianCommons {
             if ((flags & MONORAIL) != 0) {
                 ret |= VehicleInfo.VehicleType.Monorail;
             }
-            if ((flags & TROLLY) != 0) {
+            if ((flags & TROLLEY) != 0) {
                 ret |= VehicleInfo.VehicleType.Trolleybus;
             }
             return ret;
