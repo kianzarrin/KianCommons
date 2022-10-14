@@ -36,8 +36,8 @@ namespace KianCommons.StockCode {
                 Vector4 zero3 = Vector4.zero;
                 Vector4 zero4 = Vector4.zero;
                 int nProps = laneProps.m_props.Length;
-                for(int i = 0; i < nProps; i++) {
-                    NetLaneProps.Prop prop = laneProps.m_props[i];
+                for(int iProp = 0; iProp < nProps; iProp++) {
+                    NetLaneProps.Prop prop = laneProps.m_props[iProp];
                     if(this.m_length >= prop.m_minLength) {
                         int repeatCountTimes2 = 2;
                         if(prop.m_repeatDistance > 1f) {
@@ -58,7 +58,7 @@ namespace KianCommons.StockCode {
                             PropInfo propInfo = prop.m_finalProp;
                             if(propInfo != null && (layerMask & 1 << propInfo.m_prefabDataLayer) != 0) {
                                 Color color = (prop.m_colorMode != NetLaneProps.ColorMode.EndState) ? startColor : endColor;
-                                Randomizer randomizer = new Randomizer((int)(laneID + (uint)i));
+                                Randomizer randomizer = new Randomizer((int)(laneID + (uint)iProp));
                                 for(int j = 1; j <= repeatCountTimes2; j += 2) {
                                     if(randomizer.Int32(100u) < prop.m_probability) {
                                         float t = offset + (float)j / (float)repeatCountTimes2;
@@ -130,7 +130,7 @@ namespace KianCommons.StockCode {
                             }
                             TreeInfo finalTree = prop.m_finalTree;
                             if(finalTree != null && (layerMask & 1 << finalTree.m_prefabDataLayer) != 0) {
-                                Randomizer randomizer2 = new Randomizer((int)(laneID + (uint)i));
+                                Randomizer randomizer2 = new Randomizer((int)(laneID + (uint)iProp));
                                 for(int k = 1; k <= repeatCountTimes2; k += 2) {
                                     if(randomizer2.Int32(100u) < prop.m_probability) {
                                         float t = offset + (float)k / (float)repeatCountTimes2;
