@@ -4,7 +4,7 @@ namespace KianCommons {
     using System.Collections.Generic;
     using System.Linq;
 
-    internal static class EnumerationExtensions {
+    internal static class ListExtensions {
         /// <summary>
         /// returns a new List of cloned items.
         /// </summary>

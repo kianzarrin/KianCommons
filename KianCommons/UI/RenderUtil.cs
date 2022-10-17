@@ -131,12 +131,12 @@ namespace KianCommons.UI {
 
         public static void RenderLaneOverlay(
             RenderManager.CameraInfo cameraInfo,
-            LaneData laneData,
+            LaneIdAndIndex laneData,
             Color color,
             bool alphaBlend = false) {
             float hw;
             try { hw = laneData.LaneInfo.m_width * 0.5f; } catch { hw = 0.5f; }
-            laneData.Bezier.Render(cameraInfo, color, hw, alphaBlend);
+            laneData.Lane.m_bezier.Render(cameraInfo, color, hw, alphaBlend);
         }
 
         public static void RenderInstanceOverlay(
@@ -148,7 +148,7 @@ namespace KianCommons.UI {
                 return;
             switch (instanceID.Type) {
                 case InstanceType.NetLane:
-                    LaneData laneData = NetUtil.GetLaneData(instanceID.NetLane);
+                    LaneIdAndIndex laneData = NetUtil.GetLaneData(instanceID.NetLane);
                     RenderUtil.RenderLaneOverlay(cameraInfo, laneData, color, alphaBlend);
                     break;
                 case InstanceType.NetSegment:
@@ -235,37 +235,6 @@ namespace KianCommons.UI {
             RenderManager.instance.OverlayEffect.DrawSegment(cameraInfo, color, line, 0,
                 0,
                 -1, 1024, false, true);
-        }
-
-        public static void RenderLine(Vector2 a, Vector2 b, RenderManager.CameraInfo cameraInfo, Color color) {
-            var line = new Segment3 {
-                a = NetUtil.Get3DPos(a),
-                b = NetUtil.Get3DPos(a),
-            };
-            RenderLine(line, cameraInfo, color);
-        }
-
-        public static void RenderGrid(RenderManager.CameraInfo cameraInfo, GridVector grid, Color color) {
-            var corner0 = grid.GetGirdStartCorner();
-            var corner3 = new GridVector(grid.x + 1, grid.y + 1).GetGirdStartCorner();
-            var corner1 = new Vector2(corner0.x, corner3.y);
-            var corner2 = new Vector2(corner3.x, corner0.y);
-            RenderLine(corner0, corner1, cameraInfo, color);
-            RenderLine(corner0, corner2, cameraInfo, color);
-            RenderLine(corner3, corner1, cameraInfo, color);
-            RenderLine(corner3, corner2, cameraInfo, color);
-        }
-
-        public static void RenderGrids(RenderManager.CameraInfo cameraInfo, Vector3 pos, Color color) {
-            var grid = new GridVector(pos);
-            for (int dx = -2; dx <= +2; ++dx) {
-                for (int dy = -2; dy <= +2; ++dy) {
-                    var grid2 = grid;
-                    grid2.x += dx;
-                    grid2.y += dy;
-                    RenderGrid(cameraInfo, grid2, color);
-                }
-            }
         }
     }
 }

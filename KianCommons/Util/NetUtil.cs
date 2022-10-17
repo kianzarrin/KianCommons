@@ -1,13 +1,10 @@
 using ColossalFramework;
 using ColossalFramework.Math;
-using KianCommons.Math;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using UnityEngine;
-using Object = UnityEngine.Object;
 namespace KianCommons {
     internal class NetServiceException : Exception {
         public NetServiceException(string m) : base(m) { }
@@ -66,13 +63,13 @@ namespace KianCommons {
         /// returns lane data of the given lane ID.
         /// throws exception if unsuccessful.
         /// </summary>
-        public static LaneData GetLaneData(uint laneId) {
+        public static LaneIdAndIndex GetLaneData(uint laneId) {
             Assertion.Assert(laneId != 0, "laneId!=0");
             var flags = laneId.ToLane().Flags();
             bool valid = (flags & NetLane.Flags.Created | NetLane.Flags.Deleted) != NetLane.Flags.Created;
             Assertion.Assert(valid, "valid");
             ushort segmentId = laneId.ToLane().m_segment;
-            foreach (var laneData in IterateSegmentLanes(segmentId))
+            foreach (var laneData in new LaneIterator(segmentId))
                 if (laneData.LaneID == laneId)
                     return laneData;
             throw new Exception($"Unreachable code. " +
@@ -188,53 +185,6 @@ namespace KianCommons {
             return bezier;
         }
 
-        /// <param name="startNode"> if true the bezier is inverted so that it will be facing start node</param>
-        /// Note: inverted flag or LHT does not influence the bezier.
-        internal static Bezier2 CalculateSegmentBezier2(ushort segmentId, bool startNode) {
-            Bezier3 bezier3 = segmentId.ToSegment().CalculateSegmentBezier3(startNode);
-            Bezier2 bezier2 = bezier3.ToCSBezier2();
-            return bezier2;
-        }
-
-        /// <param name="endNodeID">bezier will be facing endNodeID</param>
-        internal static Bezier2 CalculateSegmentBezier2(ushort segmentId, ushort endNodeID) {
-            bool startNode = !IsStartNode(segmentId, endNodeID);
-            return CalculateSegmentBezier2(segmentId, startNode);
-        }
-
-        internal static float GetClosestT(this ref NetSegment segment, Vector3 position) {
-            Bezier3 bezier = segment.CalculateSegmentBezier3();
-            return bezier.GetClosestT(position);
-        }
-
-        /// <param name="bLeft2">if other segment is to the left side of segmentID.</param>
-        /// <param name="cornerDir">is normalized</param>
-        internal static void CalculateCorner(
-            ushort segmentID, ushort nodeID, bool bLeft2,
-            out Vector2 cornerPoint, out Vector2 cornerDir) {
-            segmentID.ToSegment().CalculateCorner(
-                segmentID,
-                true,
-                IsStartNode(segmentID, nodeID),
-                !bLeft2, // leftSide = if this segment is to the left of the other segment = !bLeft2
-                out Vector3 cornerPos,
-                out Vector3 cornerDirection,
-                out bool smooth);
-            cornerPoint = cornerPos.ToCS2D();
-            cornerDir = cornerDirection.ToCS2D().normalized;
-        }
-
-        /// <param name="bLeft2">if other segment is to the left side of segmentID.</param>
-        internal static void CalculateOtherCorner(
-            ushort segmentID, ushort nodeID, bool bLeft2,
-            out Vector2 cornerPoint, out Vector2 cornerDir) {
-            ushort otherSegmentID = bLeft2 ?
-                segmentID.ToSegment().GetLeftSegment(nodeID) :
-                segmentID.ToSegment().GetRightSegment(nodeID);
-            CalculateCorner(otherSegmentID, nodeID, !bLeft2,
-                            out cornerPoint, out cornerDir);
-        }
-
         /// <param name="bLeft2">if other segment is to the left side of segmentID.</param>
         internal static void CalculateCorner(
             ushort segmentID, ushort nodeID, bool bLeft2,
@@ -260,13 +210,6 @@ namespace KianCommons {
 
         #endregion math
 
-        public static float SampleHeight(Vector2 point) {
-            return terrainMan.SampleDetailHeightSmooth(point.ToCS3D(0));
-        }
-
-        public static Vector3 Get3DPos(Vector2 point) {
-            return point.ToCS3D(SampleHeight(point));
-        }
 
         #region copied from TMPE
         /// <summary>
@@ -578,26 +521,6 @@ namespace KianCommons {
             }
         }
 
-        // requires testing.
-        //public static bool IsLaneHeadingTowardsStartNode(uint laneID, int laneIndex) {
-        //    ushort segmentID = laneID.ToLane().m_segment;
-        //    var laneInfo = segmentID.ToSegment().Info.m_lanes[laneIndex];
-        //    bool backward = laneInfo.m_finalDirection == NetInfo.Direction.Backward;
-        //    bool inverted = segmentID.ToSegment().m_flags.IsFlagSet(NetSegment.Flags.Invert);
-        //    return backward ^ inverted;
-        //}
-
-
-        public static LaneDataIterator IterateSegmentLanes(ushort segmentId) =>
-            new LaneDataIterator(segmentId);
-
-        public static LaneDataIterator IterateLanes(
-         ushort segmentId,
-         bool? startNode = null,
-         NetInfo.LaneType ?laneType = null,
-         VehicleInfo.VehicleType ?vehicleType = null) =>
-            new LaneDataIterator(segmentId, startNode, laneType, vehicleType);
-
         public static NetInfo.Lane SortedLane(this NetInfo info, int index) {
             int sortedIndex = info.m_sortedLanes[index];
             return info.m_lanes[sortedIndex];
@@ -613,7 +536,7 @@ namespace KianCommons {
         /// <summary>
         /// sorted from outer lane to inner lane when heading toward <paramref name="startNode"/>
         /// </summary>
-        public static LaneData[] GetSortedLanes(
+        public static LaneIdAndIndex[] GetSortedLanes(
             ushort segmentId,
             bool? startNode = null,
             NetInfo.LaneType? laneType = null,
@@ -639,6 +562,7 @@ namespace KianCommons {
             }
             return -1;
         }
+
         public static uint GetlaneID(ushort segmentID, int laneIndex) {
             uint laneID = segmentID.ToSegment().m_lanes;
             int n = segmentID.ToSegment().Info.m_lanes.Length;
@@ -672,120 +596,89 @@ namespace KianCommons {
     }
 
     [Serializable]
-    public struct LaneData {
+    public struct LaneIdAndIndex {
         public uint LaneID;
-        public int LaneIndex;
-        /// <summary>true if the lane is going toward the start node of its segment (undefined for bidirectional lanes)</summary>
-        public bool StartNode;
+        public int Index;
 
-
-        [NonSerialized] private NetInfo.Lane laneInfo_;
-        public NetInfo.Lane LaneInfo {
-            get => laneInfo_ ??= Segment.Info.m_lanes[LaneIndex];
-            set => laneInfo_ = value;
-        }
-
-        public LaneData(uint laneID, int laneIndex = -1) {
+        public LaneIdAndIndex(uint laneID, int laneIndex = -1) {
             LaneID = laneID;
             if (laneIndex < 0)
                 laneIndex = NetUtil.GetLaneIndex(laneID);
-            LaneIndex = laneIndex;
-
-            ushort segmentID = LaneID.ToLane().m_segment;
-            try {
-                laneInfo_ = segmentID.ToSegment().Info.m_lanes[LaneIndex];
-            } catch (IndexOutOfRangeException ex) {
-                ex.Log($"LaneIndex:{LaneIndex} laneID={laneID} segmentID={segmentID}.\n" +
-                    $"Use network detective mod to debug the segment.", showInPannel: false);
-                Log.Error(NetUtil.PrintSegmentLanes(segmentID));
-                throw ex;
-            }
-            bool backward = laneInfo_.IsGoingBackward();
-            bool invert = segmentID.ToSegment().IsInvert();
-
-            // simple case: forward, not-invert : false != false -> false
-            StartNode = backward != invert; //xnor
+            Index = laneIndex;
         }
 
-        public readonly ushort SegmentID => Lane.m_segment;
-        public readonly ref NetSegment Segment => ref SegmentID.ToSegment();
-        public readonly ref NetLane Lane => ref LaneID.ToLane();
-        public readonly ushort NodeID => StartNode ? Segment.m_startNode : Segment.m_endNode;
-        public readonly NetLane.Flags Flags {
+        public NetInfo.Lane LaneInfo => Segment.Info?.m_lanes?[Index];
+        public ushort SegmentID => Lane.m_segment;
+        public ref NetSegment Segment => ref SegmentID.ToSegment();
+        public ref NetLane Lane => ref LaneID.ToLane();
+        public NetLane.Flags Flags {
             get => (NetLane.Flags)Lane.m_flags;
             set => LaneID.ToLane().m_flags = (ushort)value;
+        }
+
+        public bool IsHeadStartNode {
+            get {
+                // normally tail is start node.
+                return
+                    Segment.IsInvert() ^
+                    LaneInfo.IsGoingBackward();
+            }
         }
 
         public bool LeftSide => LaneInfo.m_position < 0 != Segment.m_flags.IsFlagSet(NetSegment.Flags.Invert);
         public bool RightSide => !LeftSide;
 
-        public readonly Bezier3 Bezier => Lane.m_bezier;
-        public override string ToString() {
-            try {
-                return $"LaneData:[segment:{SegmentID} segmentInfo:{Segment.Info} node:{NodeID} laneID:{LaneID} Index={LaneIndex} {LaneInfo?.m_laneType} { LaneInfo?.m_vehicleType}]";
-            }
-            catch (NullReferenceException) {
-                return $"LaneData:[segment:{SegmentID} segmentInfo:{Segment.Info} node:{NodeID} lane ID:{LaneID} null";
-            }
-        }
+        public override string ToString() =>
+            $"LaneData:[segment:{SegmentID} segmentInfo:{Segment.Info} laneID:{LaneID} Index={Index} {LaneInfo?.m_laneType} { LaneInfo?.m_vehicleType}]";
     }
 
-    public struct LaneIDIterator : IEnumerable<uint>, IEnumerator<uint> {
+    public struct LaneIterator : IEnumerable<LaneIdAndIndex>, IEnumerator<LaneIdAndIndex>  {
         ushort segmentID_;
-
-        uint laneID_;
-        int laneIndex_;
         int laneCount_;
+        LaneIdAndIndex current_;
 
-
-        public LaneIDIterator(ushort segmentID) {
+        public LaneIterator(ushort segmentID) {
             segmentID_ = segmentID;
-            laneID_ = 0;
-            laneIndex_ = 0;
+            current_ = default;
             laneCount_ = segmentID.ToSegment().Info.m_lanes.Length;
         }
 
-        public void Reset() {
-            laneID_ = 0;
-            laneIndex_ = 0;
-        }
-
+        public void Reset() { }
         public void Dispose() { }
 
-        public uint Current => laneID_;
-        public int CurrentLaneIndex => laneIndex_;
+        public LaneIdAndIndex Current => current_;
 
         public bool MoveNext() {
-            if (laneID_ == 0) {
-                if (laneIndex_ > 0)
-                    return false; 
-                laneID_ = segmentID_.ToSegment().m_lanes;
+            if (current_.LaneID == 0) {
+                if (current_.Index > 0)
+                    return false;
+                current_.LaneID = segmentID_.ToSegment().m_lanes;
             } else {
-                laneID_ = laneID_.ToLane().m_nextLane;
+                current_.LaneID = current_.LaneID.ToLane().m_nextLane;
             }
-            return laneID_ != 0 && laneIndex_++ < laneCount_;
+            return current_.LaneID != 0 && current_.Index++ < laneCount_;
         }
 
-        public LaneIDIterator GetEnumerator() => this; 
-        IEnumerator<uint> IEnumerable<uint>.GetEnumerator() => this;
+        public LaneIterator GetEnumerator() => this;
         IEnumerator IEnumerable.GetEnumerator() => this;
+        IEnumerator<LaneIdAndIndex> IEnumerable<LaneIdAndIndex>.GetEnumerator() => this;
         object IEnumerator.Current => Current;
     }
 
-    public struct LaneDataIterator : IEnumerable<LaneData>, IEnumerator<LaneData> {
+    public struct LaneDataIterator : IEnumerable<LaneIdAndIndex>, IEnumerator<LaneIdAndIndex> {
         ushort segmentID_;
         bool? startNode_;
         NetInfo.LaneType? laneType_;
         VehicleInfo.VehicleType? vehicleType_;
         int nLanes_;
 
-        LaneData current_;
+        LaneIdAndIndex current_;
 
         public LaneDataIterator(
             ushort segmentID,
             bool? startNode = null,
             NetInfo.LaneType? laneType = null,
-            VehicleInfo.VehicleType? vehicleType = null) { 
+            VehicleInfo.VehicleType? vehicleType = null) {
             segmentID_ = segmentID;
             startNode_ = startNode;
             laneType_ = laneType;
@@ -800,7 +693,7 @@ namespace KianCommons {
             int nextLaneIndex;
             if (current_.LaneID != 0) {
                 nextLaneId = current_.Lane.m_nextLane;
-                nextLaneIndex = current_.LaneIndex+1;
+                nextLaneIndex = current_.Index + 1;
             } else {
                 nextLaneId = segmentID_.ToSegment().m_lanes;
                 nextLaneIndex = 0;
@@ -811,7 +704,7 @@ namespace KianCommons {
                     Log.Warning($"lane count mismatch! segment:{segmentID_} laneID:{nextLaneId} laneIndex:{nextLaneIndex}", false);
                     Log.Warning(NetUtil.PrintSegmentLanes(segmentID_), false);
                 }
-                return false; 
+                return false;
             }
             if (nextLaneId.ToLane().m_segment != segmentID_) {
                 if (Log.VERBOSE) {
@@ -821,12 +714,12 @@ namespace KianCommons {
                 return false;
             }
             try {
-                current_ = new LaneData(nextLaneId, nextLaneIndex);
+                current_ = new LaneIdAndIndex(nextLaneId, nextLaneIndex);
             } catch (Exception ex) {
                 ex.Log($"bad lane! segment:{segmentID_} laneID:{nextLaneId} laneIndex:{nextLaneIndex}", false);
             }
 
-            if (startNode_.HasValue && startNode_.Value != current_.StartNode)
+            if (startNode_.HasValue && startNode_.Value != current_.IsHeadStartNode)
                 return MoveNext(); //continue
             if (laneType_.HasValue && !current_.LaneInfo.m_laneType.IsFlagSet(laneType_.Value))
                 return MoveNext(); //continue
@@ -836,24 +729,11 @@ namespace KianCommons {
             return true;
         }
 
-        public int Count {
-            get {
-                int ret = 0;
-                try {
-                    while (MoveNext())
-                        ret++;
-                } finally {
-                    Reset();
-                }
-                return ret;
-            }
-        }
-
-        public LaneData Current => current_;
+        public LaneIdAndIndex Current => current_;
         public void Reset() => current_ = default;
         public LaneDataIterator GetEnumerator() => this;
         public void Dispose() { }
-        IEnumerator<LaneData> IEnumerable<LaneData>.GetEnumerator() => this;
+        IEnumerator<LaneIdAndIndex> IEnumerable<LaneIdAndIndex>.GetEnumerator() => this;
         IEnumerator IEnumerable.GetEnumerator() => this;
         object IEnumerator.Current => Current;
     }

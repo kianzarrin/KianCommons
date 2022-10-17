@@ -42,14 +42,4 @@ namespace KianCommons.Math {
 
         internal static ushort Clamp2U16(int value) => (ushort)Mathf.Clamp(value, 0, ushort.MaxValue);
     }
-
-    internal static class Extensions {
-        public static Quad3 ToCS3D(this Quad2 q) {
-            return new Quad3(
-                q.a.ToCS3D(),
-                q.b.ToCS3D(),
-                q.c.ToCS3D(),
-                q.d.ToCS3D());
-        }
-    }
 }

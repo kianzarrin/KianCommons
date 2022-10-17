@@ -227,15 +227,6 @@ namespace KianCommons.Math {
                 bezier.d + sideDistance * normalEnd, -tangentEnd);
         }
 
-        public static Bezier3 ToCSBezier3(this Bezier2 bezier) {
-            return new Bezier3 {
-                a = NetUtil.Get3DPos(bezier.a),
-                b = NetUtil.Get3DPos(bezier.b),
-                c = NetUtil.Get3DPos(bezier.c),
-                d = NetUtil.Get3DPos(bezier.d),
-            };
-        }
-
         public static Bezier3 ToCSBezier3(this Bezier2 bezier, float h) {
             return new Bezier3 {
                 a = bezier.a.ToCS3D(h),
