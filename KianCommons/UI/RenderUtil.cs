@@ -206,29 +206,29 @@ namespace KianCommons.UI {
 
         }
 
-        public static void RenderArrow(this Bezier3 bezier, RenderManager.CameraInfo cameraInfo,
-            Color color, float hw, bool alphaBlend = false) {
-            bezier.Render(cameraInfo, color, hw, alphaBlend, cutEnds: true);
+        //public static void RenderArrow(this Bezier3 bezier, RenderManager.CameraInfo cameraInfo,
+        //    Color color, float hw, bool alphaBlend = false) {
+        //    bezier.Render(cameraInfo, color, hw, alphaBlend, cutEnds: true);
 
-            Vector2 center = bezier.d.ToCS2D();
-            Vector2 dira = bezier.Tangent(1).ToCS2D().normalized * hw * 2;
+        //    Vector2 center = bezier.d.ToCS2D();
+        //    Vector2 dira = bezier.Tangent(1).ToCS2D().normalized * hw * 2;
 
-            var dirb = dira.Rotate90CW();
-            var dirc = dira.Rotate90CCW();
+        //    var dirb = dira.Rotate90CW();
+        //    var dirc = dira.Rotate90CCW();
 
-            Quad2 quad = new Quad2 {
-                a = center + dira,
-                b = center + dirb,
-                c = center + dirc,
-                d = center + dirc,
-            };
+        //    Quad2 quad = new Quad2 {
+        //        a = center + dira,
+        //        b = center + dirb,
+        //        c = center + dirc,
+        //        d = center + dirc,
+        //    };
 
-            Singleton<ToolManager>.instance.m_drawCallData.m_overlayCalls++;
-            RenderManager.instance.OverlayEffect.DrawQuad(
-                cameraInfo, color, quad.ToCS3D(), 
-                -1, 1024, false, alphaBlend);
+        //    Singleton<ToolManager>.instance.m_drawCallData.m_overlayCalls++;
+        //    RenderManager.instance.OverlayEffect.DrawQuad(
+        //        cameraInfo, color, quad.ToCS3D(), 
+        //        -1, 1024, false, alphaBlend);
 
-        }
+        //}
 
         public static void RenderLine(Segment3 line, RenderManager.CameraInfo cameraInfo, Color color) {
             Singleton<ToolManager>.instance.m_drawCallData.m_overlayCalls++;
@@ -236,5 +236,17 @@ namespace KianCommons.UI {
                 0,
                 -1, 1024, false, true);
         }
+
+        //public static void RenderGrids(RenderManager.CameraInfo cameraInfo, Vector3 pos, Color color) {
+        //    var grid = new GridVector(pos);
+        //    for (int dx = -2; dx <= +2; ++dx) {
+        //        for (int dy = -2; dy <= +2; ++dy) {
+        //            var grid2 = grid;
+        //            grid2.x += dx;
+        //            grid2.y += dy;
+        //            RenderGrid(cameraInfo, grid2, color);
+        //        }
+        //    }
+        //}
     }
 }

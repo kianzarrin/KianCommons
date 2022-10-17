@@ -598,16 +598,16 @@ namespace KianCommons {
     [Serializable]
     public struct LaneIdAndIndex {
         public uint LaneID;
-        public int Index;
+        public int LaneIndex;
 
         public LaneIdAndIndex(uint laneID, int laneIndex = -1) {
             LaneID = laneID;
             if (laneIndex < 0)
                 laneIndex = NetUtil.GetLaneIndex(laneID);
-            Index = laneIndex;
+            LaneIndex = laneIndex;
         }
 
-        public NetInfo.Lane LaneInfo => Segment.Info?.m_lanes?[Index];
+        public NetInfo.Lane LaneInfo => Segment.Info?.m_lanes?[LaneIndex];
         public ushort SegmentID => Lane.m_segment;
         public ref NetSegment Segment => ref SegmentID.ToSegment();
         public ref NetLane Lane => ref LaneID.ToLane();
@@ -616,7 +616,7 @@ namespace KianCommons {
             set => LaneID.ToLane().m_flags = (ushort)value;
         }
 
-        public bool IsHeadStartNode {
+        public bool HeadsToStartNode {
             get {
                 // normally tail is start node.
                 return
@@ -625,11 +625,14 @@ namespace KianCommons {
             }
         }
 
+        public ushort HeadNode => Segment.GetNode(HeadsToStartNode);
+        public ushort TailNode => Segment.GetNode(!HeadsToStartNode);
+
         public bool LeftSide => LaneInfo.m_position < 0 != Segment.m_flags.IsFlagSet(NetSegment.Flags.Invert);
         public bool RightSide => !LeftSide;
 
         public override string ToString() =>
-            $"LaneData:[segment:{SegmentID} segmentInfo:{Segment.Info} laneID:{LaneID} Index={Index} {LaneInfo?.m_laneType} { LaneInfo?.m_vehicleType}]";
+            $"LaneData:[segment:{SegmentID} segmentInfo:{Segment.Info} laneID:{LaneID} Index={LaneIndex} {LaneInfo?.m_laneType} { LaneInfo?.m_vehicleType}]";
     }
 
     public struct LaneIterator : IEnumerable<LaneIdAndIndex>, IEnumerator<LaneIdAndIndex>  {
@@ -650,13 +653,14 @@ namespace KianCommons {
 
         public bool MoveNext() {
             if (current_.LaneID == 0) {
-                if (current_.Index > 0)
+                if (current_.LaneIndex > 0)
                     return false;
                 current_.LaneID = segmentID_.ToSegment().m_lanes;
             } else {
                 current_.LaneID = current_.LaneID.ToLane().m_nextLane;
+                current_.LaneIndex++;
             }
-            return current_.LaneID != 0 && current_.Index++ < laneCount_;
+            return current_.LaneID != 0 && current_.LaneIndex < laneCount_;
         }
 
         public LaneIterator GetEnumerator() => this;
@@ -693,7 +697,7 @@ namespace KianCommons {
             int nextLaneIndex;
             if (current_.LaneID != 0) {
                 nextLaneId = current_.Lane.m_nextLane;
-                nextLaneIndex = current_.Index + 1;
+                nextLaneIndex = current_.LaneIndex + 1;
             } else {
                 nextLaneId = segmentID_.ToSegment().m_lanes;
                 nextLaneIndex = 0;
@@ -719,7 +723,7 @@ namespace KianCommons {
                 ex.Log($"bad lane! segment:{segmentID_} laneID:{nextLaneId} laneIndex:{nextLaneIndex}", false);
             }
 
-            if (startNode_.HasValue && startNode_.Value != current_.IsHeadStartNode)
+            if (startNode_.HasValue && startNode_.Value != current_.HeadsToStartNode)
                 return MoveNext(); //continue
             if (laneType_.HasValue && !current_.LaneInfo.m_laneType.IsFlagSet(laneType_.Value))
                 return MoveNext(); //continue
