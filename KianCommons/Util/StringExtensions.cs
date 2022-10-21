@@ -1,10 +1,12 @@
 namespace KianCommons {
+    using ColossalFramework.Math;
     using ColossalFramework.Packaging;
     using System;
     using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
+    using UnityEngine;
 
     internal static class StringExtensions {
         public static string RemoveExtension(this string path) {
@@ -56,13 +58,6 @@ namespace KianCommons {
             return stringToCenter.PadLeft(leftPadding).PadRight(totalLength);
         }
 
-        [Obsolete("use ToSTR")]
-        internal static string STR(this object obj) => obj == null ? "<null>" : obj.ToString();
-        [Obsolete("use ToSTR")]
-        internal static string STR(this InstanceID instanceID) =>
-            instanceID.Type + ":" + instanceID.Index;
-
-
         /// <summary>
         /// Like To string but:
         ///  - returns "null" if object is null
@@ -78,6 +73,8 @@ namespace KianCommons {
                 return str.ToSTR();
             if (obj is InstanceID instanceID)
                 return instanceID.ToSTR();
+            if (obj is Bezier3 bezier3)
+                return bezier3.ToSTR();
             if (obj is KeyValuePair<InstanceID, InstanceID> map)
                 return map.ToSTR();
             if(obj is IDictionary dict)
@@ -103,6 +100,10 @@ namespace KianCommons {
         /// </summary>
         internal static string ToSTR(this InstanceID instanceID)
             => $"{instanceID.Type}:{instanceID.Index}";
+
+
+        internal static string ToSTR(this Bezier3 bezier)
+            => $"Bezier[{bezier.a}, {bezier.b}, {bezier.c}, {bezier.d}]";
 
         /// <summary>
         /// returns id and type of both key and value
