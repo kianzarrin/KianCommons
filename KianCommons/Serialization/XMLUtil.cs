@@ -8,15 +8,22 @@ using System.Xml.Linq;
 using UnityEngine;
 using System.Linq;
 using System.Reflection;
+using ColossalFramework.Math;
+using Mono.Cecil.Cil;
 
 namespace KianCommons.Serialization {
     internal static class XMLSerializerUtil {
-        static XmlSerializer Serilizer<T>() => new XmlSerializer(typeof(T));
+        static XmlSerializer Serilizer<T>() {
+            var ret = new XmlSerializer(typeof(T));
+            
+            return ret;
+        }
         static XmlSerializerNamespaces NoNamespaces {
             get {
                 var ret = new XmlSerializerNamespaces();
                 ret.Add("", "");
                 return ret;
+                var t = new XmlSerializer(xmlTypeMapping: default);
             }
         }
 
@@ -48,67 +55,16 @@ namespace KianCommons.Serialization {
             }
         }
 
-        [Obsolete("incomplete", true)]
-        public static void ReadXml(this IXmlSerializable target, XmlReader reader) {
-            Console.WriteLine("ReadXml()");
-            bool empty = reader.IsEmptyElement;
-            reader.ReadStartElement();
-            if (!empty) {
-                while (reader.IsStartElement()) {
-                    try {
-                        string name = reader.Name;
-                        string value = reader.ReadElementString();
-                        Type type = target.GetType();
-                        var field = type.GetField(name, BindingFlags.Instance);
-                        if (field != null) {
-                            field.SetValue(target, value);
-                            continue;
-                        }
-                        var property = type.GetProperty(name, BindingFlags.Instance);
-                        if (property?.GetSetMethod() != null) {
-                            property.SetValue(target, value, null);
-                        }
-                    } catch(Exception ex) {
-                        Log.Warning(ex.Message);
-                    }
-                }
-                reader.ReadEndElement();
-            }
-        }
-
-        [Obsolete("incomplete", true)]
-        public static void WriteXml(this IXmlSerializable target, XmlWriter writer) {
-            Type type = target.GetType();
-            foreach (var field in type.GetFields(BindingFlags.Instance)) {
-                if (!field.HasAttribute<XmlIgnoreAttribute>()) {
-                    string value = field.GetValue(target)?.ToString();
-                    if (value != null) {
-                        writer.WriteElementString(field.Name, value);
-                    }
-                }
-            }
-            foreach (var property in type.GetProperties(BindingFlags.Instance)) {
-                if (!property.HasAttribute<XmlIgnoreAttribute>()) {
-                    string value = property.GetValue(target, null)?.ToString();
-                    if (value != null) {
-                        writer.WriteElementString(property.Name, value);
-                    }
-                }
-            }
-        }
-
         public static Version ExtractVersion(string xmlData) {
-            if (false) {
-                var rx = new Regex(@"Version='([\.\d]+)'".Replace("'", "\""));
-                var match = rx.Match(xmlData);
-                string version = match.Groups[1].Value;
-                return new Version(version);
-            } else {
-                var document = new XmlDocument();
-                document.LoadXml(xmlData);
-                string version = document.DocumentElement.Attributes["Version"].Value;
-                return new Version(version);
-            }
+#if false
+            var rx = new Regex(@"Version='([\.\d]+)'".Replace("'", "\""));
+            var match = rx.Match(xmlData);
+            string version = match.Groups[1].Value;
+            return new Version(version);
+#endif
+            XDocument xdoc = XDocument.Parse(xmlData);
+            string version = xdoc.Root.Attribute("version").Value;
+            return new Version(version);
         }
 
 
@@ -134,10 +90,10 @@ namespace KianCommons.Serialization {
         }
 
         public static object XMLConvert(object value, Type type) {
-            if (value is Vector3 vector3 && type == typeof(Vector3Serializable))
-                return (Vector3Serializable)vector3;
-            if (value is Vector3Serializable xmlVector3 && type == typeof(Vector3))
-                return (Vector3)xmlVector3;
+            //if (value is Vector3 vector3 && type == typeof(Vector3Serializable))
+            //    return (Vector3Serializable)vector3;
+            //if (value is Vector3Serializable xmlVector3 && type == typeof(Vector3))
+            //    return (Vector3)xmlVector3;
 
             object ret;
             ret = XMLPrefabConvert<PropInfo>(value, type);
@@ -186,5 +142,33 @@ namespace KianCommons.Serialization {
         public XmlSchema GetSchema() => null;
         public void ReadXml(XmlReader reader) => version_ = new Version(reader.ReadString());
         public void WriteXml(XmlWriter writer) => writer.WriteString(version_.ToString());
+    }
+
+    public struct Vector3XML : IXmlSerializable {
+        public Vector3 Vector;
+        private float[] dims => new[] { Vector[0], Vector[1], Vector[2] };
+        public static implicit operator Vector3(Vector3XML v) => v.Vector;
+        public static implicit operator Vector3XML(Vector3 v) => new Vector3XML { Vector = v };
+        public XmlSchema GetSchema() => null;
+        public void ReadXml(XmlReader reader) {
+            int d = 0;
+            foreach (string s in reader.ReadString().Split(',')) {
+                Vector[d++] = float.Parse(s);
+            }
+        }
+
+        public void WriteXml(XmlWriter writer) {
+            writer.WriteString(ToString());
+        }
+        public override string ToString() {
+            var strDims = dims.Select(v => v.ToString("G9"));
+            return string.Join(", ", strDims.ToArray());
+        }
+    }
+
+    public struct Bezier3XML {
+        public Vector3XML A, B, C, D;
+        public static implicit operator Bezier3(Bezier3XML v) => new Bezier3(v.A, v.B, v.C, v.D);
+        public static implicit operator Bezier3XML(Bezier3 v) => new Bezier3XML { A = v.a, B = v.b, C = v.c, D = v.d };
     }
 }

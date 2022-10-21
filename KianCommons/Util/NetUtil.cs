@@ -236,10 +236,13 @@ namespace KianCommons {
 
         internal static bool IsInvert(this ref NetSegment segment) =>
             segment.m_flags.IsFlagSet(NetSegment.Flags.Invert);
+        internal static bool Smooth(this ref NetSegment segment, bool start) =>
+            segment.GetNode(start).ToNode().m_flags.IsFlagSet(NetNode.Flags.Middle);
+        internal static bool SmoothStart(this ref NetSegment segment) => segment.Smooth(true);
+        internal static bool SmoothEnd(this ref NetSegment segment) => segment.Smooth(false);
 
         internal static bool IsJunction(this ref NetNode node) =>
             node.m_flags.IsFlagSet(NetNode.Flags.Junction);
-
 
         internal static NetInfo.Direction Invert(this NetInfo.Direction direction, bool invert = true) {
             if (invert)
@@ -646,7 +649,7 @@ namespace KianCommons {
             laneCount_ = segmentID.ToSegment().Info.m_lanes.Length;
         }
 
-        public void Reset() { }
+        public void Reset() => current_ = default;
         public void Dispose() { }
 
         public LaneIdAndIndex Current => current_;

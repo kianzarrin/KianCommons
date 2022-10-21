@@ -31,7 +31,7 @@ namespace KianCommons {
 
         internal static IEnumerable<T> EmptyIfNull<T>(this IEnumerable<T> a) where T : class =>
             a ?? Enumerable.Empty<T>();
-        internal static IEnumerable<T?> EmptyIfNull<T>(this IEnumerable<T?> a) where T: struct=>
+        internal static IEnumerable<T?> EmptyIfNull<T>(this IEnumerable<T?> a) where T : struct =>
             a ?? Enumerable.Empty<T?>();
 
         internal static bool AllEqual<T>(this IEnumerable<T> source, IEqualityComparer<T> comparer = null) {
@@ -54,13 +54,13 @@ namespace KianCommons {
             }
         }
 
-        internal static bool AllEqual<T,T2>(this IEnumerable<T> source, Func<T,T2> selector, IEqualityComparer<T2> comparer = null) {
+        internal static bool AllEqual<T, T2>(this IEnumerable<T> source, Func<T, T2> selector, IEqualityComparer<T2> comparer = null) {
             return source.Select(selector).AllEqual();
         }
 
-        internal static int FindIndex<T>(this IEnumerable<T> e, Func<T,bool> predicate) {
+        internal static int FindIndex<T>(this IEnumerable<T> e, Func<T, bool> predicate) {
             int i = 0;
-            foreach(var item in e) {
+            foreach (var item in e) {
                 if (predicate(item))
                     return i;
                 i++;
@@ -114,13 +114,13 @@ namespace KianCommons {
 
         internal static void ReplaceElement<T>(this T[] array, T oldVal, T newVal) {
             int index = (array as IList).IndexOf(oldVal);
-            if(index>=0)
+            if (index >= 0)
                 array[index] = newVal;
         }
 
         internal static void ReplaceElement(this Array array, object oldVal, object newVal) {
             int index = (array as IList).IndexOf(oldVal);
-            if(index >= 0)
+            if (index >= 0)
                 array.SetValue(newVal, index);
         }
 
@@ -173,11 +173,13 @@ namespace KianCommons {
             return dict.TryGetValue(key, out TValue value) ? value : (dict[key] = value);
         }
 
-
         internal static void AddRange<T>(this HashSet<T> hashset, IEnumerable<T> elements) {
             foreach (var element in elements) {
                 hashset.Add(element);
             }
         }
+
+        internal static bool InRange(this IList list, int i) => 0 <= i && i < list.Count;
+        internal static bool InRange<T>(this IList<T> list, int i) => 0 <= i && i < list.Count;
     }
 }
