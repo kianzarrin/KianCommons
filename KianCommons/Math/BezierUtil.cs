@@ -22,6 +22,12 @@ namespace KianCommons.Math {
             return ret;
         }
 
+        /// <summary>points inward(b-a)</summary>
+        internal static Vector3 DirA(ref this Bezier3 bezier) => bezier.b - bezier.a;
+
+        /// <summary>points inward(c-d)</summary>
+        internal static Vector3 DirD(ref this Bezier3 bezier) => bezier.c - bezier.d;
+
         /// <summary>
         /// Travels some distance on bezier and calculates the point and tangent at that distance.
         /// </summary>
