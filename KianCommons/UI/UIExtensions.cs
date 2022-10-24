@@ -1,4 +1,5 @@
 using ColossalFramework.UI;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 
@@ -33,5 +34,11 @@ namespace KianCommons.UI {
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static bool FPSOptimisedIsVisble(this UIComponent c) => c.isVisible;
+
+        public static T FindObjectOfType<T>(string name) where T : Object =>
+            Object.FindObjectsOfType<T>().FirstOrDefault(item => item.name == name);
+        public static T[] FindObjectsOfType<T>(string name) where T : Object =>
+            Object.FindObjectsOfType<T>().Where(item => item.name == name).ToArray();
+
     }
 }

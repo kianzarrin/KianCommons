@@ -1,29 +1,22 @@
 using System;
 using System.IO;
-using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
 using System.Xml.Linq;
 using UnityEngine;
 using System.Linq;
-using System.Reflection;
 using ColossalFramework.Math;
-using Mono.Cecil.Cil;
 
 namespace KianCommons.Serialization {
     internal static class XMLSerializerUtil {
-        static XmlSerializer Serilizer<T>() {
-            var ret = new XmlSerializer(typeof(T));
-            
-            return ret;
-        }
+        static XmlSerializer Serilizer<T>() => new XmlSerializer(typeof(T));
+
         static XmlSerializerNamespaces NoNamespaces {
             get {
                 var ret = new XmlSerializerNamespaces();
                 ret.Add("", "");
                 return ret;
-                var t = new XmlSerializer(xmlTypeMapping: default);
             }
         }
 
@@ -34,8 +27,12 @@ namespace KianCommons.Serialization {
         public static string Serialize<T>(T value) {
             try {
                 using (TextWriter writer = new StringWriter()) {
-                    Serialize(writer, value);
-                    return writer.ToString();
+                    using (XmlTextWriter xmlWriter = new XmlTextWriter(writer)) {
+                        xmlWriter.Formatting = Formatting.Indented;
+                        xmlWriter.Namespaces = false;
+                        Serialize(writer, value);
+                        return writer.ToString();
+                    }
                 }
             } catch (Exception ex) {
                 Log.Exception(ex);
@@ -57,6 +54,7 @@ namespace KianCommons.Serialization {
 
         public static Version ExtractVersion(string xmlData) {
 #if false
+            // Regex maybe faster?
             var rx = new Regex(@"Version='([\.\d]+)'".Replace("'", "\""));
             var match = rx.Match(xmlData);
             string version = match.Groups[1].Value;
@@ -67,27 +65,6 @@ namespace KianCommons.Serialization {
             return new Version(version);
         }
 
-
-        public static void WriteToFile(string fileName, string data) {
-            try {
-                using (StreamWriter sw = File.CreateText(fileName)) {
-                    sw.WriteLine(data);
-                }
-            } catch (Exception ex) {
-                Log.Exception(ex);
-            }
-        }
-
-        public static string ReadFromFile(string fileName) {
-            try {
-                using (StreamReader sw = File.OpenText(fileName)) {
-                    return sw.ReadToEnd();
-                }
-            } catch (Exception ex) {
-                Log.Exception(ex);
-                return null;
-            }
-        }
 
         public static object XMLConvert(object value, Type type) {
             //if (value is Vector3 vector3 && type == typeof(Vector3Serializable))

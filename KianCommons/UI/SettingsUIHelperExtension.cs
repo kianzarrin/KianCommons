@@ -9,7 +9,7 @@ using System.Text;
 using UnityEngine;
 
 namespace KianCommons.UI {
-    public static class UIHelperExtension {
+    public static class SettingsUIHelperExtension {
         public static UICheckBox AddUpdatingCheckbox(
             this UIHelperBase helper, string label, Action<bool> SetValue, Func<bool> GetValue) {
             Log.Info($"option {label} is " + GetValue());
