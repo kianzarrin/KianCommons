@@ -156,7 +156,7 @@ namespace KianCommons {
 
         internal static float MaxNodeHW(ushort nodeId) {
             float ret = 0;
-            foreach (var segmentId in IterateNodeSegments(nodeId)) {
+            foreach (var segmentId in new NodeSegmentIterator(nodeId)) {
                 float hw = segmentId.ToSegment().Info.m_halfWidth;
                 if (hw > ret)
                     ret = hw;
@@ -456,17 +456,10 @@ namespace KianCommons {
             }
         }
 
-        public static IEnumerable<ushort> IterateNodeSegments(ushort nodeID) {
-            for (int i = 0; i < 8; ++i) {
-                ushort segmentID = nodeID.ToNode().GetSegment(i);
-                if (segmentID != 0) {
-                    yield return segmentID;
-                }
-            }
-        }
-
         public static NodeSegmentIterator IterateSegments(this ref NetNode node)
             => new NodeSegmentIterator(node.GetID());
+
+        public static LaneIterator2 IterateLanes(this ref NetSegment segment) => new LaneIterator2(ref segment);
 
         public static ushort GetAnotherSegment(this ref NetNode node, ushort segmentId0) {
             for(int i = 0; i < 8; ++i) {
@@ -476,10 +469,6 @@ namespace KianCommons {
             }
             return 0;
         }
-
-        [Obsolete("use IterateNodeSegments instead")]
-        internal static IEnumerable<ushort> GetSegmentsCoroutine(ushort nodeID)
-            => IterateNodeSegments(nodeID);
 
         public static void LaneTest(ushort segmentId) {
             string message = $"STRANGE LANE ISSUE: lane count mismatch for " +
@@ -612,7 +601,7 @@ namespace KianCommons {
         }
 
         public bool IsValid => LaneId != 0 && LaneIndex >= 0;
-        public NetInfo.Lane LaneInfo => Segment.Info?.m_lanes?[LaneIndex];
+        public NetInfo.Lane LaneInfo => Segment.Info?.m_lanes?.ElementAtOrDefault(LaneIndex);
         public ushort SegmentId => Lane.m_segment;
         public ref NetSegment Segment => ref SegmentId.ToSegment();
         public ref NetLane Lane => ref LaneId.ToLane();
@@ -671,6 +660,41 @@ namespace KianCommons {
         }
 
         public LaneIterator GetEnumerator() => this;
+        IEnumerator IEnumerable.GetEnumerator() => this;
+        IEnumerator<LaneIdAndIndex> IEnumerable<LaneIdAndIndex>.GetEnumerator() => this;
+        object IEnumerator.Current => Current;
+    }
+
+    public struct LaneIterator2 : IEnumerable<LaneIdAndIndex>, IEnumerator<LaneIdAndIndex> {
+        uint firstLaneId_;
+        int laneCount_;
+        LaneIdAndIndex current_;
+
+        public LaneIterator2(ref NetSegment segment) {
+            firstLaneId_ = segment.m_lanes;
+            current_ = default;
+            laneCount_ = segment.Info.m_lanes.Length;
+        }
+
+        public void Reset() => current_ = default;
+        public void Dispose() { }
+
+        public LaneIdAndIndex Current => current_;
+
+        public bool MoveNext() {
+            if (current_.LaneId == 0) {
+                if (current_.LaneIndex == 0)
+                    current_.LaneId = firstLaneId_;
+                else
+                    return false;
+            } else {
+                current_.LaneId = current_.LaneId.ToLane().m_nextLane;
+                current_.LaneIndex++;
+            }
+            return current_.LaneId != 0 && current_.LaneIndex < laneCount_;
+        }
+
+        public LaneIterator2 GetEnumerator() => this;
         IEnumerator IEnumerable.GetEnumerator() => this;
         IEnumerator<LaneIdAndIndex> IEnumerable<LaneIdAndIndex>.GetEnumerator() => this;
         object IEnumerator.Current => Current;
