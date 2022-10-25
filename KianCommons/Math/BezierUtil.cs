@@ -263,5 +263,31 @@ namespace KianCommons.Math {
             return Mirror(point.ToCS3D(0), bezier.ToCSBezier3(0)).ToCS2D();
         }
 
+        public static Vector3 CalcShift(Vector3 pos, Vector3 dir, float shift) => pos + dir.NormalCW() * shift;
+
+        /// <summary>
+        /// shifts bezier to the right produced by NetSegment.CalculateMiddlePoints()
+        /// </summary>
+        /// <param name="shift">shift toward right-normal at any point</param>
+        /// <param name="vshift">vertical shift</param>
+        /// <returns>parallel bezier</returns>
+        public static Bezier3 Shift(this Bezier3 bezier, float shift, float vshift = 0) {
+            float len0 = (bezier.d - bezier.a).magnitude;
+            Vector3 dira = bezier.b - bezier.a;
+            bezier.a = CalcShift(bezier.a, dira, shift);
+            bezier.a.y += vshift;
+
+            Vector3 dird = bezier.c - bezier.d;
+            bezier.d = CalcShift(bezier.d, -dird, shift);
+            bezier.d.y += vshift;
+
+            float len = (bezier.d - bezier.a).magnitude;
+            float r = len / len0;
+            bezier.b = bezier.a + dira * r;
+            bezier.c = bezier.d + dird * r;
+
+            return bezier;
+        }
+
     }
 }
