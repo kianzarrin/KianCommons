@@ -4,9 +4,7 @@ namespace KianCommons.Math {
     using static MathUtil;
 
     internal static class BezierUtil {
-        public static string STR(this Bezier2 bezier) {
-            return $"Bezier2(" + bezier.a + ", " + bezier.b + ", " + bezier.c + ", " + bezier.d + ")";
-        }
+
 
         public static float ArcLength(this Bezier3 beizer, float step = 0.1f) {
             float ret = 0;
@@ -23,10 +21,10 @@ namespace KianCommons.Math {
         }
 
         /// <summary>points inward(b-a)</summary>
-        internal static Vector3 DirA(ref this Bezier3 bezier) => bezier.b - bezier.a;
+        internal static Vector3 DirA(in this Bezier3 bezier) => bezier.b - bezier.a;
 
         /// <summary>points inward(c-d)</summary>
-        internal static Vector3 DirD(ref this Bezier3 bezier) => bezier.c - bezier.d;
+        internal static Vector3 DirD(in this Bezier3 bezier) => bezier.c - bezier.d;
 
         /// <summary>
         /// Travels some distance on bezier and calculates the point and tangent at that distance.
@@ -271,7 +269,7 @@ namespace KianCommons.Math {
         /// <param name="shift">shift toward right-normal at any point</param>
         /// <param name="vshift">vertical shift</param>
         /// <returns>parallel bezier</returns>
-        public static Bezier3 Shift(this Bezier3 bezier, float shift, float vshift = 0) {
+        public static Bezier3 SimpleShiftRight(this Bezier3 bezier, float shift, float vshift = 0) {
             float len0 = (bezier.d - bezier.a).magnitude;
             Vector3 dira = bezier.b - bezier.a;
             bezier.a = CalcShift(bezier.a, dira, shift);

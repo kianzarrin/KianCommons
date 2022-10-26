@@ -1,4 +1,5 @@
 namespace KianCommons {
+    using ColossalFramework.Math;
     using ColossalFramework.Packaging;
     using System;
     using System.Collections;
@@ -78,6 +79,10 @@ namespace KianCommons {
                 return str.ToSTR();
             if (obj is InstanceID instanceID)
                 return instanceID.ToSTR();
+            if (obj is Bezier2 bezier2)
+                return bezier2.ToSTR();
+            if (obj is Bezier3 bezier3)
+                return bezier3.ToSTR();
             if (obj is KeyValuePair<InstanceID, InstanceID> map)
                 return map.ToSTR();
             if(obj is IDictionary dict)
@@ -86,6 +91,12 @@ namespace KianCommons {
                 return list.ToSTR();
             return obj.ToString();
         }
+
+        public static string ToSTR(this Bezier2 bezier) =>
+            bezier.a + ", " + bezier.b + ", " + bezier.c + ", " + bezier.d;
+
+        public static string ToSTR(this Bezier3 bezier) =>
+            bezier.a + ", " + bezier.b + ", " + bezier.c + ", " + bezier.d;
 
         /// <summary>
         ///  - returns "null" if string is null
