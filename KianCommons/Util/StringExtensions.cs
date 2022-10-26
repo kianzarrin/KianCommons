@@ -92,11 +92,11 @@ namespace KianCommons {
             return obj.ToString();
         }
 
-        public static string ToSTR(this Bezier2 bezier) =>
-            bezier.a + ", " + bezier.b + ", " + bezier.c + ", " + bezier.d;
+        public static string ToSTR(this Bezier2 bezier) => $"{bezier.a}, {bezier.b}, {bezier.c}, {bezier.d}";
+        public static string ToSTR(this Bezier3 bezier) => $"{bezier.a}, {bezier.b}, {bezier.c}, {bezier.d}";
 
-        public static string ToSTR(this Bezier3 bezier) =>
-            bezier.a + ", " + bezier.b + ", " + bezier.c + ", " + bezier.d;
+        public static string ToSTR(this Bezier2 bezier, string format) =>
+            $"{bezier.a.ToString(format)}, {bezier.b.ToString(format)}, {bezier.c.ToString(format)}, {bezier.d.ToString(format)}";
 
         /// <summary>
         ///  - returns "null" if string is null
