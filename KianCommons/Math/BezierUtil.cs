@@ -136,11 +136,11 @@ namespace KianCommons.Math {
         /// <param name="startDir">should be going toward the end of the bezier.</param>
         /// <param name="endDir">should be going toward the start of the  bezier.</param>
         /// <returns></returns>
-        public static Bezier3 Bezier3ByDir(Vector3 startPos, Vector3 startDir, Vector3 endPos, Vector3 endDir) {
+        public static Bezier3 Bezier3ByDir(Vector3 startPos, Vector3 startDir, Vector3 endPos, Vector3 endDir, bool startSmooth = false, bool endSmooth=false) {
             NetSegment.CalculateMiddlePoints(
                 startPos, startDir,
                 endPos, endDir,
-                false, false,
+                startSmooth, endSmooth,
                 out Vector3 MiddlePoint1, out Vector3 MiddlePoint2);
             return new Bezier3 {
                 a = startPos,
