@@ -271,7 +271,7 @@ namespace KianCommons.Patches {
             }
             if (n != counter) {
                 if (throwOnError == true) {
-                    throw new InstructionNotFoundException($"count: found={n} requested={count}");
+                    throw new InstructionNotFoundException($"count: found={n} requested={count} predicate={predicate.Method}");
                 } else {
                     if (VERBOSE)
                         Log("Did not found instruction[s].\n" + Environment.StackTrace);
