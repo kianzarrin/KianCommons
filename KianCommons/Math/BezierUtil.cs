@@ -20,6 +20,23 @@ namespace KianCommons.Math {
             return ret;
         }
 
+        public static float ArcTravel(this Bezier3 beizer, float distance, float step = 0.1f) {
+            float accDistance = 0;
+            float t;
+            for (t = step;; t += step) {
+                if (t > 1f) t = 1f;
+                float len = (beizer.Position(t) - beizer.Position(t - step)).magnitude;
+                accDistance += len;
+                if (accDistance >= distance) {
+                    // travel backward to correct position.
+                    t = beizer.Travel(t, distance - accDistance);
+                    return t;
+                }
+                if (t >= 1f)
+                    return 1;
+            }
+        }
+
         /// <summary>points inward(b-a)</summary>
         internal static Vector3 DirA(in this Bezier3 bezier) => bezier.b - bezier.a;
 
