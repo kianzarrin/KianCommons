@@ -12,8 +12,8 @@ public static class Extensions {
     public static ref PathUnit ToPathUnit(this uint id) => ref PathManager.instance.m_pathUnits.m_buffer[id];
     public static ref Vehicle ToVehicle(this ushort id) => ref VehicleManager.instance.m_vehicles.m_buffer[id];
     public static ref Building ToBuilding(this ushort id) => ref BuildingManager.instance.m_buildings.m_buffer[id];
-
 }
+
 internal class VehicleAI2 : VehicleAI {
 
     protected void UpdatePathTargetPositions(
@@ -55,6 +55,11 @@ internal class VehicleAI2 : VehicleAI {
                         if (firstIter) {
                             firstIter = false;
                         } else {
+                            // if Vector3.Distance(targetPos, refPos) != 0
+                            // then it means we tried to inch forward last time
+                            // but it was too small.
+                            // this time we don't want to double it but add a little bit more it.
+                            // so we take an smaller step than Mathf.Sqrt(minSqrDist) this time
                             float distDiff = Mathf.Sqrt(minSqrDist) - Vector3.Distance(targetPos, refPos);
                             int pathOffsetDelta;
                             if (distDiff < 0f) {
@@ -225,10 +230,13 @@ internal class VehicleAI2 : VehicleAI {
                 Bezier3 transitionBezier = default;
                 CalculateSegmentPosition(vehicleID, ref vehicleData,
                     curPathPos, curLaneId, curPathPos.m_offset,
-                    out transitionBezier.a, out var curSegDir, out var _);
-                bool calculateNextNextPos = pathOffset == 0;
+                    out transitionBezier.a, out var curSegDir, out var _); // start pos/dir of transition
+                bool calculateNextNextPos = pathOffset == 0; 
                 if (calculateNextNextPos) {
-                    calculateNextNextPos = (vehicleData.m_flags & Vehicle.Flags.Reversed) == 0 ? vehicleData.m_leadingVehicle == 0 : vehicleData.m_trailingVehicle == 0;
+                    // trailers don't need to calculate next path pos.
+                    calculateNextNextPos = (vehicleData.m_flags & Vehicle.Flags.Reversed) == 0 ?
+                        vehicleData.m_leadingVehicle == 0 : // train going forward  and this is the head cabin.
+                        vehicleData.m_trailingVehicle == 0; // train going reversed and this is the tail cabin.
                 }
                 Vector3 nextSegDir;
                 float curMaxSpeed;
@@ -239,7 +247,7 @@ internal class VehicleAI2 : VehicleAI {
                     CalculateSegmentPosition(vehicleID, ref vehicleData,
                         nextNextPosition, nextPosition, nextlaneID, nextSegOffset,
                         curPathPos, curLaneId, curPathPos.m_offset, index,
-                        out transitionBezier.d, out nextSegDir, out curMaxSpeed);
+                        out transitionBezier.d, out nextSegDir, out curMaxSpeed); // end pos/dir of transition
                 } else {
                     CalculateSegmentPosition(vehicleID, ref vehicleData,
                         nextPosition, nextlaneID, nextSegOffset,
@@ -264,51 +272,53 @@ internal class VehicleAI2 : VehicleAI {
                 }
                 curSegDir.Normalize();
                 nextSegDir.Normalize();
-                float distance;
+                float transitionLength;
                 if (curPathPos.m_segment == nextPosition.m_segment) {
-                    distance = (transitionBezier.d - transitionBezier.a).magnitude;
+                    transitionLength = (transitionBezier.d - transitionBezier.a).magnitude;
                     NetInfo info3 = curPathPos.m_segment.ToSegment().Info;
                     float endRadius = info3.m_netAI.GetEndRadius();
                     float a = Mathf.Abs(info3.m_lanes[curPathPos.m_lane].m_position - info3.m_lanes[nextPosition.m_lane].m_position) * 0.75f;
                     float num9 = Mathf.Max(info3.m_lanes[curPathPos.m_lane].m_width, info3.m_lanes[nextPosition.m_lane].m_width);
                     a = Mathf.Min(a, endRadius * (1f - info3.m_pavementWidth / info3.m_halfWidth) - num9 * 0.5f);
-                    transitionBezier.b = transitionBezier.a + curSegDir * a * 1.333f;
+                    transitionBezier.b = transitionBezier.a + curSegDir * a * 1.333f; // is this to make u-turns more extreme?
                     transitionBezier.c = transitionBezier.d + nextSegDir * a * 1.333f;
                 } else {
-                    NetSegment.CalculateMiddlePoints(transitionBezier.a, curSegDir, transitionBezier.d, nextSegDir, smoothStart: true, smoothEnd: true, out transitionBezier.b, out transitionBezier.c, out distance);
+                    NetSegment.CalculateMiddlePoints(transitionBezier.a, curSegDir, transitionBezier.d, nextSegDir, smoothStart: true, smoothEnd: true, out transitionBezier.b, out transitionBezier.c, out transitionLength);
                 }
-                if (distance > 1f) {
+                if (transitionLength > 1f) {
                     ushort nextNodeID = nextSegOffset switch {
                         0 => nextPosition.m_segment.ToSegment().m_startNode,
                         byte.MaxValue => nextPosition.m_segment.ToSegment().m_endNode,
                         _ => 0,
                     };
-                    float num11 = (float)Math.PI / 2f * (1f + Vector3.Dot(curSegDir, nextSegDir));
-                    if (distance > 1f) {
-                        num11 /= distance;
+                    float curve = (float)Math.PI / 2f * (1f + Vector3.Dot(curSegDir, nextSegDir));
+                    if (transitionLength > 1f) {
+                        curve /= transitionLength;
                     }
-                    curMaxSpeed = Mathf.Min(curMaxSpeed, CalculateTargetSpeed(vehicleID, ref vehicleData, 1000f, num11));
+                    curMaxSpeed = Mathf.Min(curMaxSpeed, CalculateTargetSpeed(vehicleID, ref vehicleData, 1000f, curve));
                     while (pathOffset < byte.MaxValue) {
-                        float num12 = Mathf.Sqrt(minSqrDist) - Vector3.Distance(targetPos, refPos);
-                        int num13 = !(num12 < 0f) ? 8 + Mathf.Max(0, Mathf.CeilToInt(num12 * 256f / (distance + 1f))) : 8;
+                        float distDiff = Mathf.Sqrt(minSqrDist) - Vector3.Distance(targetPos, refPos);
+                        int pathOffsetDelta = distDiff >= 0f ? 8 + Mathf.Max(0, Mathf.CeilToInt(distDiff * 256f / (transitionLength + 1f))) : 8;
                         byte lastPathOffset = pathOffset;
                         byte stopOffset;
-                        bool flag3 = NeedStopAtNode(vehicleID, ref vehicleData, nextNodeID, ref nextNodeID.ToNode(), curPathPos, curLaneId, nextPosition, nextlaneID, transitionBezier, out stopOffset) && stopOffset >= lastPathOffset;
-                        pathOffset = (byte)Mathf.Min(pathOffset + num13, 255);
-                        if (flag3) {
+                        // at pedestrian zone bollards:
+                        bool needStopAtNode = NeedStopAtNode(vehicleID, ref vehicleData, nextNodeID, ref nextNodeID.ToNode(), curPathPos, curLaneId, nextPosition, nextlaneID, transitionBezier, out stopOffset) && stopOffset >= lastPathOffset;
+                        pathOffset = (byte)Mathf.Min(pathOffset + pathOffsetDelta, 255);
+                        if (needStopAtNode) {
                             pathOffset = (byte)Mathf.Min(pathOffset, stopOffset);
                         }
                         Vector3 bezierPos = transitionBezier.Position(pathOffset * (1f / 255));
                         targetPos.Set(bezierPos.x, bezierPos.y, bezierPos.z, Mathf.Min(targetPos.w, curMaxSpeed));
-                        if (!((bezierPos - refPos).sqrMagnitude >= minSqrDist) && !flag3) {
+                        if ((bezierPos - refPos).sqrMagnitude < minSqrDist && !needStopAtNode) {
                             continue;
                         }
                         if (index <= 0) {
                             vehicleData.m_lastPathOffset = pathOffset;
                         }
                         if (nextNodeID != 0) {
+                            // raise at level crossings
                             UpdateNodeTargetPos(vehicleID, ref vehicleData, nextNodeID, ref nextNodeID.ToNode(), ref targetPos, index);
-                            if (flag3 && pathOffset == stopOffset) {
+                            if (needStopAtNode && pathOffset == stopOffset) {
                                 if (index <= 0) {
                                     vehicleData.m_lastPathOffset = lastPathOffset;
                                 }
@@ -358,7 +368,7 @@ internal class VehicleAI2 : VehicleAI {
                 if (LeftHandDrive(nextLaneInfo)) {
                     vehicleData.m_flags |= Vehicle.Flags.LeftHandDrive;
                 } else {
-                    vehicleData.m_flags &= Vehicle.Flags.Created | Vehicle.Flags.Deleted | Vehicle.Flags.Spawned | Vehicle.Flags.Inverted | Vehicle.Flags.TransferToTarget | Vehicle.Flags.TransferToSource | Vehicle.Flags.Emergency1 | Vehicle.Flags.Emergency2 | Vehicle.Flags.WaitingPath | Vehicle.Flags.Stopped | Vehicle.Flags.Leaving | Vehicle.Flags.Arriving | Vehicle.Flags.Reversed | Vehicle.Flags.TakingOff | Vehicle.Flags.Flying | Vehicle.Flags.Landing | Vehicle.Flags.WaitingSpace | Vehicle.Flags.WaitingCargo | Vehicle.Flags.GoingBack | Vehicle.Flags.WaitingTarget | Vehicle.Flags.Importing | Vehicle.Flags.Exporting | Vehicle.Flags.Parking | Vehicle.Flags.CustomName | Vehicle.Flags.OnGravel | Vehicle.Flags.WaitingLoading | Vehicle.Flags.Congestion | Vehicle.Flags.DummyTraffic | Vehicle.Flags.Underground | Vehicle.Flags.Transition | Vehicle.Flags.InsideBuilding;
+                    vehicleData.m_flags &= ~Vehicle.Flags.LeftHandDrive;
                 }
             }
             curPathPos = nextPosition;
@@ -389,20 +399,20 @@ internal class VehicleAI2 : VehicleAI {
         float speed = frameData.m_velocity.magnitude;
         Vector3 deltaPos = (Vector3)vehicleData.m_targetPos0 - frameData.m_position;
         float deltaPosSquar = deltaPos.sqrMagnitude;
-        float delta1 = (speed + accelerationPower) * (0.5f + 0.5f * (speed + accelerationPower) / brakingPower) + m_info.m_generatedInfo.m_size.z * 0.5f;
-        float delta2 = Mathf.Max(speed + accelerationPower, 5f);
+        float estimatedFrameDist = (speed + accelerationPower) * (0.5f + 0.5f * (speed + accelerationPower) / brakingPower) + m_info.m_generatedInfo.m_size.z * 0.5f;
+        float maxSpeedAdd = Mathf.Max(speed + accelerationPower, 5f);
         if (lodPhysics >= 2 && (currentFrameIndex >> 4 & 3) == (vehicleID & 3)) {
-            delta2 *= 2f;
+            maxSpeedAdd *= 2f;
         }
-        float detla3 = Mathf.Max((delta1 - delta2) / 3f, 1f);
-        float minSqrDistanceA = delta2 * delta2;
-        float minSqrDistanceB = detla3 * detla3;
+        float meanSpeedAdd = Mathf.Max((estimatedFrameDist - maxSpeedAdd) / 3f, 1f);
+        float maxSpeedAddSqr = maxSpeedAdd * maxSpeedAdd;
+        float meanSpeedAddSqr = meanSpeedAdd * meanSpeedAdd;
         int index = 0;
         bool flag = false;
-        if ((deltaPosSquar < minSqrDistanceA || vehicleData.m_targetPos3.w < 0.01f) && (leaderData.m_flags & (Vehicle.Flags.WaitingPath | Vehicle.Flags.Stopped)) == 0) {
+        if ((deltaPosSquar < maxSpeedAddSqr || vehicleData.m_targetPos3.w < 0.01f) && (leaderData.m_flags & (Vehicle.Flags.WaitingPath | Vehicle.Flags.Stopped)) == 0) {
             if (leaderData.m_path != 0) {
                 UpdatePathTargetPositions(vehicleID, ref vehicleData, frameData.m_position, ref index, 4,
-                    minSqrDistanceA: minSqrDistanceA, minSqrDistanceB: minSqrDistanceB);
+                    minSqrDistanceA: maxSpeedAddSqr, minSqrDistanceB: meanSpeedAddSqr);
                 if ((leaderData.m_flags & Vehicle.Flags.Spawned) == 0) {
                     frameData = vehicleData.m_frame0;
                     return;
@@ -413,11 +423,11 @@ internal class VehicleAI2 : VehicleAI {
                     float minSqrDistance;
                     Vector3 refPos;
                     if (index == 0) {
-                        minSqrDistance = minSqrDistanceA;
+                        minSqrDistance = maxSpeedAddSqr;
                         refPos = frameData.m_position;
                         flag = true;
                     } else {
-                        minSqrDistance = minSqrDistanceB;
+                        minSqrDistance = meanSpeedAddSqr;
                         refPos = vehicleData.GetTargetPos(index - 1);
                     }
                     int num8 = index;
@@ -517,9 +527,9 @@ internal class VehicleAI2 : VehicleAI {
             vector3 = VectorUtils.NormalizeXZ(deltaPos, out len);
             if (len > 1f) {
                 Vector3 v = deltaPos;
-                delta2 = Mathf.Max(speed, 2f);
-                if (deltaPosSquar > delta2 * delta2) {
-                    v *= delta2 / Mathf.Sqrt(deltaPosSquar);
+                maxSpeedAdd = Mathf.Max(speed, 2f);
+                if (deltaPosSquar > maxSpeedAdd * maxSpeedAdd) {
+                    v *= maxSpeedAdd / Mathf.Sqrt(deltaPosSquar);
                 }
                 bool flag4 = false;
                 if (v.z < Mathf.Abs(v.x)) {
@@ -554,7 +564,7 @@ internal class VehicleAI2 : VehicleAI {
                 }
                 maxSpeed = Mathf.Min(maxSpeed, CalculateMaxSpeed(num16, 0f, brakingPower * 0.9f));
                 if (!DisableCollisionCheck(leaderID, ref leaderData)) {
-                    CheckOtherVehicles(vehicleID, ref vehicleData, ref frameData, ref maxSpeed, ref blocked, ref collisionPush, delta1, brakingPower * 0.9f, lodPhysics);
+                    CheckOtherVehicles(vehicleID, ref vehicleData, ref frameData, ref maxSpeed, ref blocked, ref collisionPush, estimatedFrameDist, brakingPower * 0.9f, lodPhysics);
                 }
                 if (flag4) {
                     maxSpeed = 0f - maxSpeed;
