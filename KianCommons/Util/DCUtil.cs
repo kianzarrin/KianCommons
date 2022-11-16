@@ -35,7 +35,7 @@ namespace KianCommons {
         // TODO add wide narrow center single for tram and trolley
         public const NetInfo.ConnectGroup DOUBLE =
             NetInfo.ConnectGroup.DoubleMetro | NetInfo.ConnectGroup.DoubleMonorail | NetInfo.ConnectGroup.DoubleTrain |
-            NetInfo.ConnectGroup.NarrowTram | NetInfo.ConnectGroup.WideTram |
+            NetInfo.ConnectGroup.NarrowTram | NetInfo.ConnectGroup.WideTram | NetInfo.ConnectGroup.LargeWideTram |
             NetInfo.ConnectGroup.NarrowTrolleybus | NetInfo.ConnectGroup.WideTrolleybus;
 
         public const NetInfo.ConnectGroup SINGLE =
@@ -50,7 +50,8 @@ namespace KianCommons {
             NetInfo.ConnectGroup.CenterTram |
             NetInfo.ConnectGroup.SingleTram |
             NetInfo.ConnectGroup.NarrowTram |
-            NetInfo.ConnectGroup.WideTram;
+            NetInfo.ConnectGroup.WideTram |
+            NetInfo.ConnectGroup.LargeWideTram;
         public const NetInfo.ConnectGroup TRAIN =
             NetInfo.ConnectGroup.DoubleTrain |
             NetInfo.ConnectGroup.SingleTrain |

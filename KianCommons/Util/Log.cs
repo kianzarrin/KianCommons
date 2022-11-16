@@ -284,6 +284,7 @@ namespace KianCommons {
                 Log.Error("null argument e was passed to Log.Exception()");
             try {
                 string message = ex.ToString() + $"\n\t-- end of exception --";
+                message = message.Replace("---> ", "--->\n");
                 if (!string.IsNullOrEmpty(m))
                     message = m + " -> \n" + message;
 
@@ -410,22 +411,8 @@ namespace KianCommons {
             }
         }
 
-        private static string ShortName(this MethodBase method) => $"{method.DeclaringType.Name}.{method.Name}";
-        internal static void Called(params object[] args) {
-            var method = new StackFrame(1).GetMethod();
-            var parameterNames = method.GetParameters();
-            if (args == null) {
-                args = new object[0];
-            } else if (args.Length == parameterNames.Length) {
-                for(int i = 0; i< parameterNames.Length; ++i) {
-                    args[i] = parameterNames[i].Name + ":" + args[i].ToSTR();
-                }
-            } else {
-                args = args?.Select(a => a.ToSTR())?.ToArray() ?? new object[0];
-            }
-
-            Info($"{method.ShortName()}({args.Select(a=>a.ToSTR()).Join(" , ")}) called.", false);
-        }
+        internal static void Called(params object[] args) => Info(ReflectionHelpers.CurrentMethod(2, args) + " called.", false);
+        internal static void DebugCalled(params object[] args) => Debug(ReflectionHelpers.CurrentMethod(2, args) + " called.", false);
         internal static void Succeeded(string m = null) => Info(ReflectionHelpers.CurrentMethod(2) + " succeeded! " + m, false);
     }
 

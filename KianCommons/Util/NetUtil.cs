@@ -293,6 +293,12 @@ namespace KianCommons {
 
         internal static bool IsInvert(this ref NetSegment segment) =>
             segment.m_flags.IsFlagSet(NetSegment.Flags.Invert);
+        internal static bool IsMiddle(this ref NetNode node) => node.m_flags.IsFlagSet(NetNode.Flags.Middle);
+        internal static bool IsSmooth(this ref NetNode node) => node.IsMiddle();
+        internal static bool IsSmooth(this ref NetSegment segment, bool start) =>
+            segment.GetNode(start).ToNode().IsSmooth();
+        internal static bool SmoothStart(this ref NetSegment segment) => segment.IsSmooth(true);
+        internal static bool SmoothEnd(this ref NetSegment segment) => segment.IsSmooth(false);
 
         internal static bool IsJunction(this ref NetNode node) =>
             node.m_flags.IsFlagSet(NetNode.Flags.Junction);
@@ -675,42 +681,24 @@ namespace KianCommons {
     public struct LaneData {
         public uint LaneID;
         public int LaneIndex;
-        /// <summary>true if the lane is going toward the start node of its segment (undefined for bidirectional lanes)</summary>
-        public bool StartNode;
-
-
-        [NonSerialized] private NetInfo.Lane laneInfo_;
-        public NetInfo.Lane LaneInfo {
-            get => laneInfo_ ??= Segment.Info.m_lanes[LaneIndex];
-            set => laneInfo_ = value;
-        }
-
         public LaneData(uint laneID, int laneIndex = -1) {
             LaneID = laneID;
             if (laneIndex < 0)
                 laneIndex = NetUtil.GetLaneIndex(laneID);
             LaneIndex = laneIndex;
-
-            ushort segmentID = LaneID.ToLane().m_segment;
-            try {
-                laneInfo_ = segmentID.ToSegment().Info.m_lanes[LaneIndex];
-            } catch (IndexOutOfRangeException ex) {
-                ex.Log($"LaneIndex:{LaneIndex} laneID={laneID} segmentID={segmentID}.\n" +
-                    $"Use network detective mod to debug the segment.", showInPannel: false);
-                Log.Error(NetUtil.PrintSegmentLanes(segmentID));
-                throw ex;
-            }
-            bool backward = laneInfo_.IsGoingBackward();
-            bool invert = segmentID.ToSegment().IsInvert();
-
-            // simple case: forward, not-invert : false != false -> false
-            StartNode = backward != invert; //xnor
         }
+
+        public NetInfo.Lane LaneInfo => Segment.Info?.m_lanes?[LaneIndex];
+        public bool IsValid => LaneID != 0 && Segment.IsValid() && LaneInfo != null;
+
+        /// <summary>true if the lane is going toward the start node of its segment (undefined for bidirectional lanes)</summary>
+        public bool HeadsToStartNode =>
+            Segment.IsInvert() ^ LaneInfo.IsGoingBackward(); // normally tail is start node.
+        public ushort HeadNodeID => HeadsToStartNode ? Segment.m_startNode : Segment.m_endNode;
 
         public readonly ushort SegmentID => Lane.m_segment;
         public readonly ref NetSegment Segment => ref SegmentID.ToSegment();
         public readonly ref NetLane Lane => ref LaneID.ToLane();
-        public readonly ushort NodeID => StartNode ? Segment.m_startNode : Segment.m_endNode;
         public readonly NetLane.Flags Flags {
             get => (NetLane.Flags)Lane.m_flags;
             set => LaneID.ToLane().m_flags = (ushort)value;
@@ -719,13 +707,29 @@ namespace KianCommons {
         public bool LeftSide => LaneInfo.m_position < 0 != Segment.m_flags.IsFlagSet(NetSegment.Flags.Invert);
         public bool RightSide => !LeftSide;
 
-        public readonly Bezier3 Bezier => Lane.m_bezier;
+        #region bezier
+        /// <summary> A = segment start D = segment end</summary>
+        public Bezier3 Bezier => Lane.m_bezier; // lane bezier.a is at segment start node regardless of lane direction, LHT, and segment invert
+
+        /// <inheritdoc cref="Bezier"/>
+        public bool SmoothA => Segment.SmoothStart();
+
+        /// <inheritdoc cref="Bezier"/>
+        public bool SmoothD => Segment.SmoothEnd();
+
+        /// <summary>A at startNode</summary>
+        public Bezier3 GetBezier(bool startNode) => startNode ? Bezier : Bezier.Invert();
+
+        /// <summary>A at nodeId</summary>
+        public Bezier3 GetBezier(ushort nodeId) => GetBezier(Segment.IsStartNode(nodeId));
+        #endregion
+
         public override string ToString() {
             try {
-                return $"LaneData:[segment:{SegmentID} segmentInfo:{Segment.Info} node:{NodeID} laneID:{LaneID} Index={LaneIndex} {LaneInfo?.m_laneType} { LaneInfo?.m_vehicleType}]";
+                return $"LaneData:[segment:{SegmentID} segmentInfo:{Segment.Info} node:{HeadNodeID} laneID:{LaneID} Index={LaneIndex} {LaneInfo?.m_laneType} { LaneInfo?.m_vehicleType}]";
             }
             catch (NullReferenceException) {
-                return $"LaneData:[segment:{SegmentID} segmentInfo:{Segment.Info} node:{NodeID} lane ID:{LaneID} null";
+                return $"LaneData:[segment:{SegmentID} segmentInfo:{Segment.Info} node:{HeadNodeID} lane ID:{LaneID} null";
             }
         }
     }
@@ -826,7 +830,7 @@ namespace KianCommons {
                 ex.Log($"bad lane! segment:{segmentID_} laneID:{nextLaneId} laneIndex:{nextLaneIndex}", false);
             }
 
-            if (startNode_.HasValue && startNode_.Value != current_.StartNode)
+            if (startNode_.HasValue && startNode_.Value != current_.HeadsToStartNode)
                 return MoveNext(); //continue
             if (laneType_.HasValue && !current_.LaneInfo.m_laneType.IsFlagSet(laneType_.Value))
                 return MoveNext(); //continue

@@ -4,9 +4,7 @@ namespace KianCommons.Math {
     using static MathUtil;
 
     internal static class BezierUtil {
-        public static string STR(this Bezier2 bezier) {
-            return $"Bezier2(" + bezier.a + ", " + bezier.b + ", " + bezier.c + ", " + bezier.d + ")";
-        }
+
 
         public static float ArcLength(this Bezier3 beizer, float step = 0.1f) {
             float ret = 0;
@@ -21,6 +19,29 @@ namespace KianCommons.Math {
             }
             return ret;
         }
+
+        public static float ArcTravel(this Bezier3 beizer, float distance, float step = 0.1f) {
+            float accDistance = 0;
+            float t;
+            for (t = step;; t += step) {
+                if (t > 1f) t = 1f;
+                float len = (beizer.Position(t) - beizer.Position(t - step)).magnitude;
+                accDistance += len;
+                if (accDistance >= distance) {
+                    // travel backward to correct position.
+                    t = beizer.Travel(t, distance - accDistance);
+                    return t;
+                }
+                if (t >= 1f)
+                    return 1;
+            }
+        }
+
+        /// <summary>points inward(b-a)</summary>
+        internal static Vector3 DirA(in this Bezier3 bezier) => bezier.b - bezier.a;
+
+        /// <summary>points inward(c-d)</summary>
+        internal static Vector3 DirD(in this Bezier3 bezier) => bezier.c - bezier.d;
 
         /// <summary>
         /// Travels some distance on bezier and calculates the point and tangent at that distance.
@@ -132,11 +153,11 @@ namespace KianCommons.Math {
         /// <param name="startDir">should be going toward the end of the bezier.</param>
         /// <param name="endDir">should be going toward the start of the  bezier.</param>
         /// <returns></returns>
-        public static Bezier3 Bezier3ByDir(Vector3 startPos, Vector3 startDir, Vector3 endPos, Vector3 endDir) {
+        public static Bezier3 Bezier3ByDir(Vector3 startPos, Vector3 startDir, Vector3 endPos, Vector3 endDir, bool startSmooth = false, bool endSmooth=false) {
             NetSegment.CalculateMiddlePoints(
                 startPos, startDir,
                 endPos, endDir,
-                false, false,
+                startSmooth, endSmooth,
                 out Vector3 MiddlePoint1, out Vector3 MiddlePoint2);
             return new Bezier3 {
                 a = startPos,
@@ -255,6 +276,32 @@ namespace KianCommons.Math {
 
         public static Vector2 Mirror(Vector2 point, Bezier2 bezier) {
             return Mirror(point.ToCS3D(0), bezier.ToCSBezier3(0)).ToCS2D();
+        }
+
+        public static Vector3 CalcShift(Vector3 pos, Vector3 dir, float shift) => pos + dir.NormalCW() * shift;
+
+        /// <summary>
+        /// shifts bezier to the right produced by NetSegment.CalculateMiddlePoints()
+        /// </summary>
+        /// <param name="shift">shift toward right-normal at any point</param>
+        /// <param name="vshift">vertical shift</param>
+        /// <returns>parallel bezier</returns>
+        public static Bezier3 SimpleShiftRight(this Bezier3 bezier, float shift, float vshift = 0) {
+            float len0 = (bezier.d - bezier.a).magnitude;
+            Vector3 dira = bezier.b - bezier.a;
+            bezier.a = CalcShift(bezier.a, dira, shift);
+            bezier.a.y += vshift;
+
+            Vector3 dird = bezier.c - bezier.d;
+            bezier.d = CalcShift(bezier.d, -dird, shift);
+            bezier.d.y += vshift;
+
+            float len = (bezier.d - bezier.a).magnitude;
+            float r = len / len0;
+            bezier.b = bezier.a + dira * r;
+            bezier.c = bezier.d + dird * r;
+
+            return bezier;
         }
 
     }
