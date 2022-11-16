@@ -57,19 +57,17 @@ namespace KianCommons.StockCode {
                     }
                 }
                 NetInfo.Lane laneInfo = this.m_info.m_lanes[i];
-                float lanePos01 = laneInfo.m_position / (this.m_info.m_halfWidth * 2f) + 0.5f; // lane pos rescaled between 0~1
+                float posNormalized = laneInfo.m_position / (this.m_info.m_halfWidth * 2f) + 0.5f; // lane pos rescaled between 0~1
                 if (segmentInverted) {
-                    lanePos01 = 1f - lanePos01;
+                    posNormalized = 1f - posNormalized;
                 }
-                Vector3 startPos = cornerPosStartLeft + (cornerPosStartRight - cornerPosStartLeft) * lanePos01;
-                Vector3 startDir = Vector3.Lerp(cornerDirStartLeft, cornerDirStartRight, lanePos01);
-                Vector3 endPos = cornerPosEndRight + (cornerPosEndLeft - cornerPosEndRight) * lanePos01;
-                Vector3 endDir = Vector3.Lerp(cornerDirEndRight, cornerDirEndLeft, lanePos01);
+                Vector3 startPos = cornerPosStartLeft + (cornerPosStartRight - cornerPosStartLeft) * posNormalized;
+                Vector3 startDir = Vector3.Lerp(cornerDirStartLeft, cornerDirStartRight, posNormalized);
+                Vector3 endPos = cornerPosEndRight + (cornerPosEndLeft - cornerPosEndRight) * posNormalized;
+                Vector3 endDir = Vector3.Lerp(cornerDirEndRight, cornerDirEndLeft, posNormalized);
                 startPos.y += laneInfo.m_verticalOffset;
                 endPos.y += laneInfo.m_verticalOffset;
-                Vector3 b;
-                Vector3 c;
-                NetSegment.CalculateMiddlePoints(startPos, startDir, endPos, endDir, smoothStart, smoothEnd, out b, out c);
+                NetSegment.CalculateMiddlePoints(startPos, startDir, endPos, endDir, smoothStart, smoothEnd, out Vector3 b, out Vector3 c);
                 NetLane.Flags flags2 = laneID.ToLane().Flags();
                 NetLane.Flags flags3 = flags;
                 flags2 &= ~(NetLane.Flags.YieldStart | NetLane.Flags.YieldEnd);

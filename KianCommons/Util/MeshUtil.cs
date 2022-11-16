@@ -88,6 +88,7 @@ namespace KianCommons {
             newMesh.normals = newNormals;
             newMesh.tangents = newTangents;
             newMesh.triangles = newTriangleList.ToArray(); // triangle must be added after vertices.
+            // TODO: clone colors (is vertex paint same as color?)
             return newMesh;
         }
 
@@ -114,12 +115,8 @@ namespace KianCommons {
                 }
             }
 
-            var newMesh = new Mesh { name = mesh.name + (keepLeftSide ? "_CutLeftHalf" : "_CutRightHalf") };
-            newMesh.bounds = mesh.bounds;
-            newMesh.vertices = mesh.vertices.ToArray();
-            newMesh.uv = mesh.uv.ToArray();
-            newMesh.normals = mesh.normals.ToArray();
-            newMesh.tangents = mesh.tangents.ToArray();
+            var newMesh = UnityEngine.Object.Instantiate<Mesh>(mesh);
+            newMesh.name = mesh.name + (keepLeftSide ? "_CutLeftHalf" : "_CutRightHalf");
             newMesh.triangles = newTriangleList.ToArray();
             return newMesh;
         }
@@ -148,13 +145,9 @@ namespace KianCommons {
                 }
             }
 
-            var newMesh = new Mesh { name = mesh.name + "_CutMeshGeneric" };
-            newMesh.bounds = mesh.bounds;
-            newMesh.vertices = mesh.vertices.ToArray();
-            newMesh.uv = mesh.uv.ToArray();
-            newMesh.normals = mesh.normals.ToArray();
-            newMesh.tangents = mesh.tangents.ToArray();
-            newMesh.triangles = newTriangleList.ToArray(); // triangle must be added after vertices.
+            var newMesh = UnityEngine.Object.Instantiate<Mesh>(mesh);
+            newMesh.name = mesh.name + "_CutMeshGeneric";
+            newMesh.triangles = newTriangleList.ToArray();
             return newMesh;
         }
 

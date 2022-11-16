@@ -271,7 +271,7 @@ namespace KianCommons.Patches {
             }
             if (n != counter) {
                 if (throwOnError == true) {
-                    throw new InstructionNotFoundException($"count: found={n} requested={count}");
+                    throw new InstructionNotFoundException($"count: found={n} requested={count} predicate={predicate.Method}");
                 } else {
                     if (VERBOSE)
                         Log("Did not found instruction[s].\n" + Environment.StackTrace);
@@ -571,5 +571,16 @@ namespace KianCommons.Patches {
             if (code.opcode != OpCodes.Call && code.opcode != OpCodes.Callvirt) return false;
             return (code.operand as MethodBase)?.Name == method;
         }
+
+        public static bool Calls(this CodeInstruction code, MethodBase method) {
+            if (method == null)
+                throw new ArgumentNullException("method");
+
+            if (code.opcode != OpCodes.Call && code.opcode != OpCodes.Callvirt)
+                return false;
+
+            return object.Equals(code.operand, method);
+        }
+
     }
 }

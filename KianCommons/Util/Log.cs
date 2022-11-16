@@ -284,6 +284,7 @@ namespace KianCommons {
                 Log.Error("null argument e was passed to Log.Exception()");
             try {
                 string message = ex.ToString() + $"\n\t-- end of exception --";
+                message = message.Replace("---> ", "--->\n");
                 if (!string.IsNullOrEmpty(m))
                     message = m + " -> \n" + message;
 
@@ -411,6 +412,7 @@ namespace KianCommons {
         }
 
         internal static void Called(params object[] args) => Info(ReflectionHelpers.CurrentMethod(2, args) + " called.", false);
+        internal static void DebugCalled(params object[] args) => Debug(ReflectionHelpers.CurrentMethod(2, args) + " called.", false);
         internal static void Succeeded(string m = null) => Info(ReflectionHelpers.CurrentMethod(2) + " succeeded! " + m, false);
     }
 

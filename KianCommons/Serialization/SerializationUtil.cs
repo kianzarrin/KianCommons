@@ -61,8 +61,6 @@ namespace KianCommons.Serialization {
     internal static class SerializationUtil {
         public static Version DeserializationVersion;
 
-
-
         static BinaryFormatter GetBinaryFormatter(SerializationBinder binder = null) {
             var ret = new BinaryFormatter { AssemblyFormat = FormatterAssemblyStyle.Simple };
             if(binder != null) {
@@ -85,8 +83,6 @@ namespace KianCommons.Serialization {
             catch (Exception e) {
                 Log.Exception(e, showInPanel: false);
                 return null;
-            } finally {
-                DeserializationVersion = null;
             }
         }
 

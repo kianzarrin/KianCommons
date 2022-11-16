@@ -2,6 +2,8 @@ namespace KianCommons {
     using System;
     using System.Collections;
     using System.Diagnostics;
+    using UnityEngine;
+
     internal static class Assertion {
         [Conditional("DEBUG")]
         internal static void AssertDebug(bool con, string m = "") => Assert(con, m);
@@ -65,6 +67,23 @@ namespace KianCommons {
                 throw new System.Exception(m);
             }
         }
+
+        internal static void NotNaNOrInf(float f, string m = "") {
+            if (float.IsNaN(f) || float.IsInfinity(f)) {
+                m = "Assertion failed: " + m;
+                Log.Error(m);
+                throw new System.Exception(m);
+            }
+        }
+
+        internal static void NotNaNOrInf(Vector3 v, string m = "") {
+            if (m != "") m = " - " + m;
+            m = $"vector={v}" + m;
+            NotNaNOrInf(v.x, m);
+            NotNaNOrInf(v.y, m);
+            NotNaNOrInf(v.z, m);
+        }
+
 
         internal static void InRange(IList list, int index) {
             NotNull(list);

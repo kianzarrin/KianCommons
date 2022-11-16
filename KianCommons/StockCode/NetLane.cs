@@ -36,8 +36,8 @@ namespace KianCommons.StockCode {
                 Vector4 zero3 = Vector4.zero;
                 Vector4 zero4 = Vector4.zero;
                 int nProps = laneProps.m_props.Length;
-                for(int i = 0; i < nProps; i++) {
-                    NetLaneProps.Prop prop = laneProps.m_props[i];
+                for(int iProp = 0; iProp < nProps; iProp++) {
+                    NetLaneProps.Prop prop = laneProps.m_props[iProp];
                     if(this.m_length >= prop.m_minLength) {
                         int repeatCountTimes2 = 2;
                         if(prop.m_repeatDistance > 1f) {
@@ -48,20 +48,20 @@ namespace KianCommons.StockCode {
                             propIndex = currentPropIndex + (repeatCountTimes2 + 1) >> 1; // div 2
                         }
                         if(prop.CheckFlags(this.m_flags, startFlags, endFlags)) {
-                            float offset = prop.m_segmentOffset * 0.5f;
+                            float halfSegmentOffset = prop.m_segmentOffset * 0.5f;
                             if(this.m_length != 0f) {
-                                offset = Mathf.Clamp(offset + prop.m_position.z / this.m_length, -0.5f, 0.5f);
+                                halfSegmentOffset = Mathf.Clamp(halfSegmentOffset + prop.m_position.z / this.m_length, -0.5f, 0.5f);
                             }
                             if(reverse) {
-                                offset = -offset;
+                                halfSegmentOffset = -halfSegmentOffset;
                             }
                             PropInfo propInfo = prop.m_finalProp;
                             if(propInfo != null && (layerMask & 1 << propInfo.m_prefabDataLayer) != 0) {
                                 Color color = (prop.m_colorMode != NetLaneProps.ColorMode.EndState) ? startColor : endColor;
-                                Randomizer randomizer = new Randomizer((int)(laneID + (uint)i));
+                                Randomizer randomizer = new Randomizer((int)(laneID + (uint)iProp));
                                 for(int j = 1; j <= repeatCountTimes2; j += 2) {
                                     if(randomizer.Int32(100u) < prop.m_probability) {
-                                        float t = offset + (float)j / (float)repeatCountTimes2;
+                                        float t = halfSegmentOffset + (float)j / (float)repeatCountTimes2;
                                         PropInfo variation = propInfo.GetVariation(ref randomizer);
                                         float scale = variation.m_minScale + (float)randomizer.Int32(10000u) * (variation.m_maxScale - variation.m_minScale) * 0.0001f;
                                         if(prop.m_colorMode == NetLaneProps.ColorMode.Default) {
@@ -130,10 +130,10 @@ namespace KianCommons.StockCode {
                             }
                             TreeInfo finalTree = prop.m_finalTree;
                             if(finalTree != null && (layerMask & 1 << finalTree.m_prefabDataLayer) != 0) {
-                                Randomizer randomizer2 = new Randomizer((int)(laneID + (uint)i));
+                                Randomizer randomizer2 = new Randomizer((int)(laneID + (uint)iProp));
                                 for(int k = 1; k <= repeatCountTimes2; k += 2) {
                                     if(randomizer2.Int32(100u) < prop.m_probability) {
-                                        float t = offset + (float)k / (float)repeatCountTimes2;
+                                        float t = halfSegmentOffset + (float)k / (float)repeatCountTimes2;
                                         TreeInfo variation2 = finalTree.GetVariation(ref randomizer2);
                                         float scale2 = variation2.m_minScale + (float)randomizer2.Int32(10000u) * (variation2.m_maxScale - variation2.m_minScale) * 0.0001f;
                                         float brightness = variation2.m_minBrightness + (float)randomizer2.Int32(10000u) * (variation2.m_maxBrightness - variation2.m_minBrightness) * 0.0001f;

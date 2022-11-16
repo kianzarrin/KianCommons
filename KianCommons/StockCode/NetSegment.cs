@@ -744,7 +744,7 @@ namespace KianCommons.StockCode {
                 Bezier2 sideBezier2XZ = Bezier2.XZ(sideBezier2);
                 float t1 = -1f;
                 float t2 = -1f;
-                bool sameSide = false;
+                bool sameSide140 = false;
                 int iExtraInfos;
                 if(extraInfo1 != null) {
                     if(extraInfo2 != null) {
@@ -876,14 +876,15 @@ namespace KianCommons.StockCode {
                             CalculateMiddlePoints(otherSideBezier.a, otherStartDir, otherSideBezier.d, otherEndDir, smoothStart: false, smoothEnd: false, out otherSideBezier.b, out otherSideBezier.c);
                             Bezier2 otherSideBezierXZ = Bezier2.XZ(otherSideBezier);
                             if (sideBezierXZ.Intersect(otherSideBezierXZ, out var t0, out _, 6)) {
-                                t1 = Mathf.Max(t1, t0);
+                                t1 = Mathf.Max(a: t1, t0);
                             } else if (sideBezierXZ.Intersect(otherSideBezierXZ.a, otherSideBezierXZ.a - VectorUtils.XZ(otherStartDir) * 16f, out t0, out _, 6)) {
                                 t1 = Mathf.Max(t1, t0);
                             } else if (otherSideBezierXZ.Intersect(sideBezierXZ.d + (sideBezierXZ.d - sideBezier2XZ.d) * 0.01f, sideBezier2XZ.d, out t0, out _, 6)) {
                                 t1 = Mathf.Max(t1, 1f);
                             }
-                            if (cornerDirection.x * otherStartDir.x + cornerDirection.z * otherStartDir.z >= -0.75f) {
-                                sameSide = true;
+                            if (VectorUtils.DotXZ(cornerDirection ,otherStartDir ) >= -0.75f) {
+                                // angle less than 140
+                                sameSide140 = true;
                             }
                             continue;
                         } else {
@@ -919,10 +920,10 @@ namespace KianCommons.StockCode {
                         }
                     }
                     if (flags.IsFlagSet(NetNode.Flags.Junction)) {
-                        if (!sameSide) {
+                        if (!sameSide140) {
                             t1 = Mathf.Max(t1, t2);
                         }
-                    } else if (flags.IsFlagSet(NetNode.Flags.Bend) && !sameSide) {
+                    } else if (flags.IsFlagSet(NetNode.Flags.Bend) && !sameSide140) {
                         t1 = Mathf.Max(t1, t2);
                     }
                     if (flags.IsFlagSet(NetNode.Flags.Outside)) {
@@ -933,7 +934,7 @@ namespace KianCommons.StockCode {
                         Vector2 rightup = new Vector2(mapSize, mapSize);
                         Vector2 rightdown = new Vector2(mapSize, 0f - mapSize);
                         if (sideBezierXZ.Intersect(leftdown, leftup, out var t_temp, out var _, 6)) {
-                            t1 = Mathf.Max(t1, t_temp);
+                            t1 = Mathf.Max(t1, b: t_temp);
                         }
                         if (sideBezierXZ.Intersect(leftup, rightup, out t_temp, out _, 6)) {
                             t1 = Mathf.Max(t1, t_temp);
@@ -983,7 +984,8 @@ namespace KianCommons.StockCode {
                     cornerPos = sideBezier.Position(t1);
                     cornerPos.y = startPos.y;
                 }
-            } else if (flags.IsFlagSet(NetNode.Flags.Junction) && info.m_minCornerOffset >= 0.01f) {
+            }
+            else if (flags.IsFlagSet(NetNode.Flags.Junction) && info.m_minCornerOffset >= 0.01f) {
                 rightSideDir = Vector3.Cross(endDir, Vector3.up).normalized;
                 sideBezier.d = endPos - rightSideDir * sideScale;
                 sideBezier2.d = endPos + rightSideDir * sideScale;
@@ -1020,7 +1022,7 @@ namespace KianCommons.StockCode {
                 cornerPos.y = startPos.y;
             }
             if (heightOffset && startNodeID != 0) {
-                cornerPos.y += startNodeID.ToNode().m_heightOffset * 0.015625f /* some constant used in terrain manager.*/; 
+                cornerPos.y += startNodeID.ToNode().m_heightOffset * (1f/64); 
             }
         }
 
