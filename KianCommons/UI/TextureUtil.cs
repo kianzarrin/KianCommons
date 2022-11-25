@@ -110,7 +110,7 @@ namespace KianCommons.UI {
 
 
             /// <summary>
-            /// Create a new atlas.
+            /// CreateMesh a new atlas.
             /// </summary>
             public static UITextureAtlas CreateTextureAtlas(string atlasName, Texture2D []textures) {
             const int maxSize = 2048;

@@ -47,6 +47,12 @@ namespace KianCommons {
         public static ref NetSegment ToSegment(this ushort id) => ref segmentBuffer_[id];
         public static ref NetLane ToLane(this uint id) => ref laneBuffer_[id];
         internal static NetLane.Flags Flags(this ref NetLane lane) => (NetLane.Flags)lane.m_flags;
+
+        internal static void SafeUpdateSegment(ushort segmentId) {
+            SimulationManager.instance.m_ThreadingWrapper.QueueSimulationThread(
+                () => NetManager.instance.UpdateSegment(segmentId));
+        }
+
         public static NetInfo.Lane GetLaneInfo(uint laneId) =>
             laneId.ToLane().m_segment.ToSegment().Info.m_lanes[GetLaneIndex(laneId)];
 
