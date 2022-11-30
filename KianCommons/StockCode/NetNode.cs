@@ -1268,8 +1268,8 @@ namespace KianCommons.StockCode {
             int prev_m_forwardVehicleLaneCount = 0;
             NetInfo infoNode = null;
             float num5 = -1E+07f;
-            for (int i = 0; i < 8; i++) {
-                ushort segmentID = This.GetSegment(i);
+            for (int segmentIndex = 0; segmentIndex < 8; segmentIndex++) {
+                ushort segmentID = This.GetSegment(segmentIndex);
                 if (segmentID != 0) {
                     NetInfo infoSegment = segmentID.ToSegment().Info;
                     float nodeInfoPriority = infoSegment.m_netAI.GetNodeInfoPriority(segmentID, ref segmentID.ToSegment());
@@ -1290,8 +1290,8 @@ namespace KianCommons.StockCode {
                 }
             }
             bool bStartNodeFirst = false;
-            for (int j = 0; j < 8; j++) {
-                ushort segmentID = This.GetSegment(j);
+            for (int segmentIndex = 0; segmentIndex < 8; segmentIndex++) {
+                ushort segmentID = This.GetSegment(segmentIndex);
                 if (segmentID != 0) {
                     iSegment++;
                     ushort startNodeID = segmentID.ToSegment().m_startNode;
@@ -1317,8 +1317,8 @@ namespace KianCommons.StockCode {
                         backwardVehicleLaneCount = infoSegment.m_forwardVehicleLaneCount;
                         forwardVehicleLaneCount = infoSegment.m_backwardVehicleLaneCount;
                     }
-                    for (int k = j + 1; k < 8; k++) {
-                        ushort segmentID2 = This.GetSegment(k);
+                    for (int segmentIndex2 = segmentIndex + 1; segmentIndex2 < 8; segmentIndex2++) {
+                        ushort segmentID2 = This.GetSegment(segmentIndex2);
                         if (segmentID2 != 0) {
                             NetInfo infoSegment2 = segmentID2.ToSegment().Info;
                             ItemClass connectionClass2 = infoSegment2.GetConnectionClass();
