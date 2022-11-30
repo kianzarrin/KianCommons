@@ -433,7 +433,7 @@ namespace KianCommons {
         [MethodImpl(MethodImplOptions.NoInlining)]
         internal static string CurrentMethod(int i = 1,  params object[] args) {
             var method = new StackFrame(i).GetMethod();
-                return $"{method.DeclaringType.Name}.{method.Name}({JoinArgs(args)})";
+            return $"{method.DeclaringType.Name}.{method.Name}({JoinArgs(args)})";
         }
         [MethodImpl(MethodImplOptions.NoInlining)]
         internal static string CurrentMethodFull(int i = 1, params object[] args) {
