@@ -1252,11 +1252,11 @@ namespace KianCommons.StockCode {
             int iSegment = 0;
             int ConnectCount = 0;
             bool hasSegments = false;
-            bool canBeMiddle = false;
-            bool bCompatibleButNodeMiddle = false;
+            bool middle = false;
+            bool bend = false;
             bool isAsymForward = false;
             bool isAsymBackward = false;
-            bool needsJunctionFlag = false;
+            bool junction = false;
             bool hasCurvedSegment = false;
             bool hasStraightSegment = false;
             bool bCompatibleAndStart2End = false;
@@ -1332,10 +1332,10 @@ namespace KianCommons.StockCode {
                                         ConnectCount++;
                                     }
                                 } else {
-                                    needsJunctionFlag = true;
+                                    junction = true;
                                 }
                             } else {
-                                needsJunctionFlag = true;
+                                junction = true;
                             }
                         }
                     }
@@ -1370,40 +1370,40 @@ namespace KianCommons.StockCode {
                             } else {
                                 isAsymBackward = true;
                             }
-                            bCompatibleButNodeMiddle = true;
+                            bend = true;
                         } else if (dot < -0.999f) // straight.
                           {
-                            canBeMiddle = true;
+                            middle = true;
                         } else {
-                            bCompatibleButNodeMiddle = true;
+                            bend = true;
                         }
                         bCompatibleAndStart2End = (bStartNode != bStartNodeFirst);
                     } else {
-                        needsJunctionFlag = true;
+                        junction = true;
                     }
                     prevInfo = infoSegment;
                     prev_backwardVehicleLaneCount = backwardVehicleLaneCount;
                     prev_m_forwardVehicleLaneCount = forwardVehicleLaneCount;
                 }
             }
-            if (!infoNode.m_enableMiddleNodes && canBeMiddle) {
-                bCompatibleButNodeMiddle = true;
+            if (!infoNode.m_enableMiddleNodes && middle) {
+                bend = true;
             }
-            if (!infoNode.m_enableBendingNodes && bCompatibleButNodeMiddle) {
-                needsJunctionFlag = true;
+            if (!infoNode.m_enableBendingNodes && bend) {
+                junction = true;
             }
             if (infoNode.m_requireContinuous && (This.m_flags & NetNode.Flags.Untouchable) != NetNode.Flags.None) {
-                needsJunctionFlag = true;
+                junction = true;
             }
-            if (infoNode.m_requireContinuous && !bCompatibleAndStart2End && (canBeMiddle || bCompatibleButNodeMiddle)) {
-                needsJunctionFlag = true;
+            if (infoNode.m_requireContinuous && !bCompatibleAndStart2End && (middle || bend)) {
+                junction = true;
             }
             NetNode.Flags flags = This.m_flags & ~(NetNode.Flags.End | NetNode.Flags.Middle | NetNode.Flags.Bend | NetNode.Flags.Junction | NetNode.Flags.Moveable | NetNode.Flags.AsymForward | NetNode.Flags.AsymBackward);
             if ((flags & NetNode.Flags.Outside) != NetNode.Flags.None) {
                 This.m_flags = flags;
-            } else if (needsJunctionFlag) {
+            } else if (junction) {
                 This.m_flags = (flags | NetNode.Flags.Junction);
-            } else if (bCompatibleButNodeMiddle) {
+            } else if (bend) {
                 if (isAsymForward) {
                     flags |= NetNode.Flags.AsymForward;
                 }
@@ -1411,7 +1411,7 @@ namespace KianCommons.StockCode {
                     flags |= NetNode.Flags.AsymBackward;
                 }
                 This.m_flags = (flags | NetNode.Flags.Bend);
-            } else if (canBeMiddle) {
+            } else if (middle) {
                 if ((!hasCurvedSegment || !hasStraightSegment) && (This.m_flags & (NetNode.Flags.Untouchable | NetNode.Flags.Double)) == NetNode.Flags.None && allConnectedSegmentsAreFlat && CanModify) {
                     flags |= NetNode.Flags.Moveable;
                 }
