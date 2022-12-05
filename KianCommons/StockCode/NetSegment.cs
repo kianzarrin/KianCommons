@@ -744,7 +744,7 @@ namespace KianCommons.StockCode {
                 Bezier2 sideBezier2XZ = Bezier2.XZ(sideBezier2);
                 float t1 = -1f;
                 float t2 = -1f;
-                bool sameSide140 = false;
+                bool lessThan140 = false;
                 int iExtraInfos;
                 if(extraInfo1 != null) {
                     if(extraInfo2 != null) {
@@ -858,7 +858,10 @@ namespace KianCommons.StockCode {
                                 continue;
                             }
                         }
-                        if (VectorUtil.DetXZ(cornerDirection, otherStartDir) > 0f == leftSide) {
+
+                        float det = VectorUtil.DetXZ(cornerDirection, otherStartDir);
+                        bool lessThan180 = det > 0f == leftSide;
+                        if (lessThan180) {
                             // same side
                             Bezier3 otherSideBezier = default;
                             float otherSideScale = Mathf.Max(qw, otherNetInfo.m_halfWidth);
@@ -882,9 +885,9 @@ namespace KianCommons.StockCode {
                             } else if (otherSideBezierXZ.Intersect(sideBezierXZ.d + (sideBezierXZ.d - sideBezier2XZ.d) * 0.01f, sideBezier2XZ.d, out t0, out _, 6)) {
                                 t1 = Mathf.Max(t1, 1f);
                             }
-                            if (VectorUtils.DotXZ(cornerDirection ,otherStartDir ) >= -0.75f) {
+                            if (VectorUtils.DotXZ(cornerDirection, otherStartDir ) >= -0.75f) {
                                 // angle less than 140
-                                sameSide140 = true;
+                                lessThan140 = true;
                             }
                             continue;
                         } else {
@@ -919,11 +922,7 @@ namespace KianCommons.StockCode {
                             }
                         }
                     }
-                    if (flags.IsFlagSet(NetNode.Flags.Junction)) {
-                        if (!sameSide140) {
-                            t1 = Mathf.Max(t1, t2);
-                        }
-                    } else if (flags.IsFlagSet(NetNode.Flags.Bend) && !sameSide140) {
+                    if (flags.IsFlagSet(NetNode.Flags.Junction | NetNode.Flags.Bend) && !lessThan140) {
                         t1 = Mathf.Max(t1, t2);
                     }
                     if (flags.IsFlagSet(NetNode.Flags.Outside)) {
