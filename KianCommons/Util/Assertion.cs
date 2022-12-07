@@ -81,5 +81,22 @@ namespace KianCommons {
                 throw e;
             }
         }
+
+        internal static void InSimulationThread(bool throwOnError = false) {
+            if (!Helpers.InSimulationThread()) {
+                const string m = "Assertion failed. expected to be simulation thread";
+                Log.Error(m);
+                if (throwOnError) throw new Exception(m);
+            }
+        }
+
+        internal static void InMainThread(bool throwOnError = false) {
+            if (!Helpers.InMainThread()) {
+                const string m = "Assertion failed. expected to be main thread";
+                Log.Error(message: m);
+                if (throwOnError) throw new Exception(m);
+
+            }
+        }
     }
 }
