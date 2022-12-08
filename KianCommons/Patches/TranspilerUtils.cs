@@ -391,9 +391,10 @@ namespace KianCommons.Patches {
     }
 
     internal static class TranspilerExtensions {
-        public static void InsertInstructions(
+        public static int InsertInstructions(
             this List<CodeInstruction> codes, int index, CodeInstruction[] insertion, bool moveLabels = true) {
             TranspilerUtils.InsertInstructions(codes, insertion, index, moveLabels);
+            return codes.Count;
         }
 
         public static void InsertInstructions(
@@ -495,10 +496,12 @@ namespace KianCommons.Patches {
                 return method.GetMethodBody().LocalVariables[2].LocalType == type;
             } else if (code.opcode == OpCodes.Ldloc_3) {
                 return method.GetMethodBody().LocalVariables[3].LocalType == type;
+            } else if (code.operand is LocalBuilder lb) {
+                return lb.LocalType == type;
             } else {
-                return code.operand is LocalBuilder lb && lb.LocalType == type;
+                return method.GetMethodBody().LocalVariables[(int)code.operand].LocalType == type;
             }
-            
+
         }
 
         /// <summary>
@@ -506,17 +509,16 @@ namespace KianCommons.Patches {
         /// </summary>
         /// <param name="type">type of variable being loaded</param>
         /// <param name="method">method containing the local variable</param>
-        public static bool IsLdLocA(this CodeInstruction code, Type type, out int loc) {
+        public static bool IsLdLocA(this CodeInstruction code, Type type, MethodBase method) {
             bool isldloca =
                 code.opcode == OpCodes.Ldloca ||
                 code.opcode == OpCodes.Ldloca_S;
-            if (isldloca && code.operand is LocalBuilder lb && lb.LocalType == type) {
-                loc = lb.LocalIndex;
-                return true;
+            if (!isldloca) return false;
+            if (code.operand is LocalBuilder lb) {
+                return lb.LocalType == type;
+            } else {
+                return method.GetMethodBody().LocalVariables[(int)code.operand].LocalType == type;
             }
-            loc = -1;
-            return false;
-
         }
 
         public static bool IsStLoc(this CodeInstruction code, Type type, MethodBase method) {
@@ -530,8 +532,10 @@ namespace KianCommons.Patches {
                 return method.GetMethodBody().LocalVariables[2].LocalType == type;
             } else if (code.opcode == OpCodes.Stloc_3) {
                 return method.GetMethodBody().LocalVariables[3].LocalType == type;
+            } else if (code.operand is LocalBuilder lb) {
+                return lb.LocalType == type;
             } else {
-                return code.operand is LocalBuilder lb && lb.LocalType == type;
+                return method.GetMethodBody().LocalVariables[(int)code.operand].LocalType == type;
             }
         }
 
