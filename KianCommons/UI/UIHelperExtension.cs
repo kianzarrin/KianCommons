@@ -5,6 +5,7 @@ using KianCommons;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Text;
 using UnityEngine;
 
@@ -77,6 +78,31 @@ namespace KianCommons.UI {
             if (textColor.HasValue)
                 label.textColor = textColor.Value;
             return label;
+        }
+
+        /// <param name="text">label will be text: tooltip</param>
+        /// <param name="tooltip">set null for default tooltip</param>
+        /// <param name="OnSubmit">Triggered when slider is released. Can be null</param>
+        public static UISlider AddSavedSlider(
+            this UIHelperBase helper,
+            string text, Func<float, string> tooltip,
+            SavedFloat savedFloat, float min, float max, float step,
+            Action OnSubmit) {
+            tooltip ??= (float val) => val.ToString();
+
+            var slider = helper.AddSlider(
+                text: text + ": " + tooltip(savedFloat.value),
+                min, max, step, defaultValue: savedFloat.value,
+                eventCallback: val => savedFloat.value = val) as UISlider;
+
+            slider.eventValueChanged += (slider_, val) => {
+                var label = slider_.parent.Find<UILabel>("Label");
+                label.text = text + ": " + tooltip(savedFloat.value);
+            };
+
+            if(OnSubmit != null) slider.eventMouseUp += (_, val) => OnSubmit();
+
+            return slider;
         }
     }
 }
