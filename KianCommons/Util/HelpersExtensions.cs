@@ -76,6 +76,18 @@ namespace KianCommons {
             System.Threading.Thread.CurrentThread == SimulationManager.instance.m_simulationThread;
         internal static bool InMainThread() =>
             Dispatcher.currentSafe == ThreadHelper.dispatcher;
+
+        internal static string WhatIsCurrentThread() {
+            if (InSimulationThread()) {
+                return "InSimulationThread";
+            } else if (InMainThread()) {
+                return "InMainThread";
+            } else {
+                var t = System.Threading.Thread.CurrentThread;
+                return $"CurrentThread: name:'{t.Name}' id:'{t.ManagedThreadId}' IsThreadPool:{t.IsThreadPoolThread} state:{t.ThreadState} " +
+                    $"alive:{t.IsAlive} priority:{t.Priority}";
+            }
+        }
     }
 
 

@@ -35,23 +35,20 @@ namespace KianCommons {
             a ?? Enumerable.Empty<T?>();
 
         internal static bool AllEqual<T>(this IEnumerable<T> source, IEqualityComparer<T> comparer = null) {
-            if (source == null)
-                throw new ArgumentNullException(nameof(source));
+            if (source == null) throw new ArgumentNullException(nameof(source));
+            comparer ??= EqualityComparer<T>.Default;
 
-            comparer = comparer ?? EqualityComparer<T>.Default;
-
-            using (var enumerator = source.GetEnumerator()) {
-                if (enumerator.MoveNext()) {
-                    var value = enumerator.Current;
-
-                    while (enumerator.MoveNext()) {
-                        if (!comparer.Equals(enumerator.Current, value))
-                            return false;
-                    }
+            bool firstTime = true;
+            T item0 = default;
+            foreach (T item in source) {
+                if (firstTime) {
+                    item0 = item;
+                    firstTime = false;
+                } else if (!comparer.Equals(item, item0)) {
+                    return false;
                 }
-
-                return true;
             }
+            return true;
         }
 
         internal static bool AllEqual<T,T2>(this IEnumerable<T> source, Func<T,T2> selector, IEqualityComparer<T2> comparer = null) {
