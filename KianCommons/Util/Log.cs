@@ -411,6 +411,10 @@ namespace KianCommons {
             }
         }
 
+        internal static void Stack() {
+            Info($"{ReflectionHelpers.CurrentMethod(2)} called in tread: {Helpers.WhatIsCurrentThread()}\n" + Environment.StackTrace);
+        }
+
         internal static void Called(params object[] args) => Info(ReflectionHelpers.CurrentMethod(2, args) + " called.", false);
         internal static void DebugCalled(params object[] args) => Debug(ReflectionHelpers.CurrentMethod(2, args) + " called.", false);
         internal static void Succeeded(string m = null) => Info(ReflectionHelpers.CurrentMethod(2) + " succeeded! " + m, false);
