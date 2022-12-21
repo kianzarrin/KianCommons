@@ -78,24 +78,6 @@ namespace KianCommons.Plugins {
         
         public static PluginInfo GetLoadOrderMod() => GetPlugin("LoadOrderMod", searchOptions: AssemblyEquals);
 
-        [Obsolete]
-        internal static bool CSUREnabled;
-        [Obsolete]
-        static bool IsCSUR(PluginInfo current) =>
-            current.name.Contains("CSUR ToolBox") || 1959342332 == (uint)current.publishedFileID.AsUInt64;
-        [Obsolete]
-        public static void Init() {
-            CSUREnabled = false;
-            foreach (PluginInfo current in man.GetPluginsInfo()) {
-                if (!current.isEnabled) continue;
-                if (IsCSUR(current)) {
-                    CSUREnabled = true;
-                    Log.Debug(current.name + "detected");
-                    return;
-                }
-            }
-        }
-
         public static PluginInfo GetPlugin(this IUserMod userMod) {
             foreach (PluginInfo current in man.GetPluginsInfo()) {
                 if (userMod == current.userModInstance)

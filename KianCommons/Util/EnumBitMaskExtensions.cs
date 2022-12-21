@@ -36,32 +36,33 @@ namespace KianCommons {
         public static int CountOnes(int value) {
             int count = 0;
             while(value != 0) {
+                if ((value & 1) != 0) count++;
                 value >>= 1;
-                count++;
             }
             return count;
         }
         public static int CountOnes(long value) {
             int count = 0;
             while(value != 0) {
+                if ((value & 1) != 0) count++;
                 value >>= 1;
-                count++;
             }
             return count;
         }
         public static int CountOnes(uint value) {
             int count = 0;
             while(value != 0) {
+                if ((value & 1) != 0) count++;
                 value >>= 1;
-                count++;
             }
             return count;
         }
         public static int CountOnes(ulong value) {
             int count = 0;
             while(value != 0) {
+                if ((value & 1) != 0) count++;
                 value >>= 1;
-                count++;
+                
             }
             return count;
         }
