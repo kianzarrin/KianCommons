@@ -94,6 +94,7 @@ namespace KianCommons {
         }
 
         internal static bool IsFlagSet(this NetInfo.Direction value, NetInfo.Direction flag) => (value & flag) != 0;
+        internal static bool IsFlagSet(this NetInfo.ConnectGroup value, NetInfo.ConnectGroup flag) => (value & flag) != 0;
         internal static bool IsFlagSet(this NetInfo.LaneType value, NetInfo.LaneType flag) => (value & flag) != 0;
         internal static bool IsFlagSet(this VehicleInfo.VehicleType value, VehicleInfo.VehicleType flag) => (value & flag) != 0;
         internal static bool IsFlagSet(this NetNode.Flags value, NetNode.Flags flag) => (value & flag) != 0;
